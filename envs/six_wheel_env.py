@@ -1,0 +1,282 @@
+"""
+Gymnasium environment for the 6-wheel skid-steer robot.
+
+Control pipeline per step
+─────────────────────────
+  WaypointController → (v, ω)
+       → BaseAllocator → omega_base[6]
+       → (+) delta_omega  (RL action)
+       → fault_fn         (multiplicative wheel degradation)
+       → data.ctrl        (MuJoCo velocity actuators)
+
+Observation (23 values per timestep, stacked K=5 → 115 total)
+──────────────────────────────────────────────────────────────
+  [0]  cross_track_error      (m)
+  [1]  heading_error          (rad)
+  [2]  dist_to_waypoint       (m)
+  [3]  v_forward              (m/s, robot frame)
+  [4]  omega_z                (rad/s)
+  [5:11]  actual wheel velocities qvel[6:12]   (rad/s)
+  [11:17] base allocator commands omega_base   (rad/s)
+  [17:23] previous residual action delta_omega (rad/s)
+
+Action
+──────
+  delta_omega : (6,) wheel velocity corrections, clipped to ±5 rad/s
+
+Fault model
+───────────
+  Sampled at reset:
+    fault_wheel_idx ~ Uniform{0,...,5}
+    fault_alpha     ~ Uniform[0, 1]
+  Applied:
+    omega_actual[fault_wheel_idx] *= fault_alpha
+  The policy does NOT observe fault parameters.
+"""
+
+import os
+from collections import deque
+
+import mujoco
+import numpy as np
+import gymnasium as gym
+
+from controllers.base_controller import WaypointController, BaseAllocator, WAYPOINTS
+from envs.rewards import tracking_reward
+
+# constants
+_XML_PATH = os.path.join(os.path.dirname(__file__), "..", "assets", "robot.xml")
+_OBS_DIM = 23
+_OBS_STACK = 5           # how many timesteps to stack (1 being "only the current state")
+_ACTION_DIM = 6
+_ACTION_CLIP = 5.0       # rad/s (Need to tune this)
+_FRAME_SKIP = 10         # physics steps per env step → 0.002 * 10 = 0.02 s (the agent act at 50 Hz)
+_WHEEL_RADIUS = 0.15     # m
+_TRACK_WIDTH = 0.70      # m
+
+
+class SixWheelEnv(gym.Env):
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 50}
+
+    def __init__(
+        self,
+        render_mode: str | None = None,
+        reward_fn=tracking_reward,
+        reward_weights: tuple = (1.0, 0.5, 0.01, 0.01, 50.0, 0.05),
+    ):
+        super().__init__()
+
+        # validate render_mode
+        assert render_mode is None or render_mode in self.metadata["render_modes"], (
+            f"Invalid render_mode '{render_mode}'. "
+            f"Supported: {self.metadata['render_modes']}"
+        )
+        self.render_mode = render_mode
+        self.reward_fn = reward_fn
+        self.reward_weights = reward_weights
+
+        # load MuJoCo model (once, shared across resets)
+        self.model = mujoco.MjModel.from_xml_path(_XML_PATH)
+        self.data  = mujoco.MjData(self.model)
+
+        # gymnasium spaces
+        obs_size = _OBS_DIM * _OBS_STACK
+        self.observation_space = gym.spaces.Box(
+            low=-np.inf, high=np.inf, shape=(obs_size,), dtype=np.float32
+        )
+        self.action_space = gym.spaces.Box(
+            low=-_ACTION_CLIP, high=_ACTION_CLIP,
+            shape=(_ACTION_DIM,), dtype=np.float32,
+        )
+
+        # controllers (recreated on reset)
+        self.wp_controller  = WaypointController(WAYPOINTS)
+        self.allocator = BaseAllocator(_WHEEL_RADIUS, _TRACK_WIDTH)
+
+        # history buffer
+        self._obs_history: deque = deque(maxlen=_OBS_STACK)
+
+        # episode state
+        self._prev_delta_omega = np.zeros(_ACTION_DIM, dtype=np.float32)
+        self.fault_wheel_idx: int = 0
+        self.fault_alpha: float   = 1.0
+
+        # rendering handles
+        self._viewer   = None   # mujoco.viewer passive handle (human mode)
+        self._renderer = None   # mujoco.Renderer              (rgb_array mode)
+
+    # Gymnasium API
+
+    def reset(self, seed=None, options=None):
+        super().reset(seed=seed)  # seeds self.np_random
+
+        # Reset physics
+        mujoco.mj_resetData(self.model, self.data)
+        # Place chassis at origin, flat orientation
+        self.data.qpos[0:3] = [0.0, 0.0, 0.25]   # x, y, z
+        self.data.qpos[3:7] = [1.0, 0.0, 0.0, 0.0]  # quaternion (identity)
+        mujoco.mj_forward(self.model, self.data)
+
+        # Fault injection (sampled fresh every episode)
+        self.fault_wheel_idx = int(self.np_random.integers(0, _ACTION_DIM))
+        self.fault_alpha      = float(self.np_random.uniform(0.0, 1.0))
+
+        # Reset controllers
+        self.wp_controller.reset()
+
+        # Reset episode state
+        self._prev_delta_omega = np.zeros(_ACTION_DIM, dtype=np.float32)
+
+        # Fill history buffer with zeros
+        self._obs_history.clear()
+        for _ in range(_OBS_STACK):
+            self._obs_history.append(np.zeros(_OBS_DIM, dtype=np.float32))
+
+        obs = self._get_stacked_obs()
+        return obs, {}
+
+    def step(self, action: np.ndarray):
+        delta_omega = np.clip(action, -_ACTION_CLIP, _ACTION_CLIP).astype(np.float32)
+
+        # 1. Body controller
+        pos_xy, heading = self._chassis_pose()
+        prev_wp_idx = self.wp_controller._idx          # snapshot before compute
+        v, omega, _ = self.wp_controller.compute(pos_xy, heading)
+        waypoint_reached = self.wp_controller._idx > prev_wp_idx  # True if we have advanced to the next waypoint
+
+        # 2. Base allocation
+        omega_base = self.allocator.allocate(v, omega)
+
+        # 3. Combine with residual
+        omega_cmd = omega_base + delta_omega
+
+        # 4. Apply fault (hidden from policy)
+        omega_faulted = omega_cmd.copy()
+        omega_faulted[self.fault_wheel_idx] *= self.fault_alpha
+
+        # 5. Step physics
+        self.data.ctrl[:] = omega_faulted
+        for _ in range(_FRAME_SKIP):
+            mujoco.mj_step(self.model, self.data)
+
+        # 6. Build obs
+        obs_t = self._single_obs(pos_xy, heading, omega_base, self._prev_delta_omega)
+        self._obs_history.append(obs_t)
+        stacked = self._get_stacked_obs()
+
+        # 7. Reward
+        reward = self.reward_fn(
+            obs_t, delta_omega, self._prev_delta_omega,
+            waypoint_reached, self.reward_weights,
+        )
+
+        # 8. Termination
+        terminated = self._is_terminated(pos_xy)
+        truncated  = False  # handled externally by TimeLimit wrapper
+
+        self._prev_delta_omega = delta_omega.copy()
+
+        if self.render_mode == "human":
+            self.render()
+
+        return stacked, reward, terminated, truncated, {}
+
+    def render(self):
+        if self.render_mode == "human":
+            if self._viewer is None:
+                self._viewer = mujoco.viewer.launch_passive(self.model, self.data)
+            self._viewer.sync()
+
+        elif self.render_mode == "rgb_array":
+            if self._renderer is None:
+                self._renderer = mujoco.Renderer(self.model, height=480, width=640)
+            self._renderer.update_scene(self.data)
+            return self._renderer.render()  # np.ndarray (H, W, 3) uint8
+
+    def close(self):
+        if self._viewer is not None:
+            self._viewer.close()
+            self._viewer = None
+        if self._renderer is not None:
+            self._renderer.close()
+            self._renderer = None
+
+    # mid-episode fault injection (evaluation only)
+
+    def inject_fault(self, wheel_idx: int, alpha: float) -> None:
+        """Inject or change a fault mid-episode (for evaluation experiments)."""
+        assert 0 <= wheel_idx < _ACTION_DIM, "wheel_idx must be in [0, 5]"
+        assert 0.0 <= alpha <= 1.0, "alpha must be in [0, 1]"
+        self.fault_wheel_idx = wheel_idx
+        self.fault_alpha     = alpha
+
+    # internal helpers
+
+    def _chassis_pose(self):
+        """Return (pos_xy, heading) from freejoint qpos."""
+        x, y = self.data.qpos[0], self.data.qpos[1]
+        qw, qx, qy, qz = self.data.qpos[3:7]
+        heading = np.arctan2(
+            2.0 * (qw * qz + qx * qy),
+            1.0 - 2.0 * (qy ** 2 + qz ** 2),
+        )
+        return np.array([x, y], dtype=np.float64), float(heading)
+
+    def _single_obs(
+        self,
+        pos_xy: np.ndarray,
+        heading: float,
+        omega_base: np.ndarray,
+        prev_delta_omega: np.ndarray,
+    ) -> np.ndarray:
+        """Build one 23-dim observation vector."""
+        wp = self.wp_controller.current_waypoint()
+        dx, dy = wp - pos_xy
+        dist    = float(np.hypot(dx, dy))
+
+        desired_heading = np.arctan2(dy, dx)
+        heading_error   = float(_wrap_to_pi(desired_heading - heading))
+
+        # Cross-track error: signed perpendicular distance (approx)
+        cross_track_error = float(np.sin(heading_error) * dist)
+
+        # Body-frame velocities from freejoint qvel
+        vx_w = float(self.data.qvel[0])
+        vy_w = float(self.data.qvel[1])
+        wz   = float(self.data.qvel[5])
+        v_forward = vx_w * np.cos(heading) + vy_w * np.sin(heading)
+
+        # Actual wheel velocities: qvel[6:12]
+        wheel_qvel = self.data.qvel[6:12].astype(np.float32)
+
+        obs = np.concatenate([
+            [cross_track_error, heading_error, dist, v_forward, wz],  # 5
+            wheel_qvel,        # 6 — actual
+            omega_base,        # 6 — base commanded
+            prev_delta_omega,  # 6 — previous residual
+        ]).astype(np.float32)
+        assert obs.shape == (_OBS_DIM,), f"obs shape mismatch: {obs.shape}"
+        return obs
+
+    def _get_stacked_obs(self) -> np.ndarray:
+        return np.concatenate(list(self._obs_history), axis=0).astype(np.float32)
+
+    def _is_terminated(self, pos_xy: np.ndarray) -> bool:
+        # All waypoints reached
+        if self.wp_controller.is_done():
+            return True
+        # Robot flipped (large roll or pitch)
+        qw, qx, qy, qz = self.data.qpos[3:7]
+        roll  = np.arctan2(2.0 * (qw * qx + qy * qz),
+                           1.0 - 2.0 * (qx ** 2 + qy ** 2))
+        pitch = np.arcsin(np.clip(2.0 * (qw * qy - qz * qx), -1.0, 1.0))
+        if abs(roll) > 0.7 or abs(pitch) > 0.7:
+            return True
+        # Out of bounds
+        if np.any(np.abs(pos_xy) > 15.0):
+            return True
+        return False
+
+
+def _wrap_to_pi(angle: float) -> float:
+    return ((angle + np.pi) % (2.0 * np.pi)) - np.pi
