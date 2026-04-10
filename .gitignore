@@ -1,0 +1,7 @@
+.ipynb_checkpoints/
+MUJOCO_LOG.TXT
+__pycache__/
+.venv/
+*.pyc
+*.pyo
+.DS_Store
