@@ -38,9 +38,9 @@ class WaypointController:
         self,
         waypoints: np.ndarray = WAYPOINTS,
         arrival_radius: float = 0.3,
-        kp_heading: float = 2.0,
-        v_max: float = 1.5,
-        omega_max: float = 2.0,
+        kp_heading: float = 3.0,
+        v_max: float = 2.0,
+        omega_max: float = 2.5,
     ):
         self.waypoints = np.array(waypoints, dtype=np.float64)
         self.arrival_radius = arrival_radius
