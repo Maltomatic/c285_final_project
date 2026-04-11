@@ -1,6 +1,6 @@
 <mujoco model="six_wheel_skidsteer">
 
-  <option timestep="0.002" integrator="implicitfast" gravity="0 0 -9.81"/>
+  <option timestep="0.01" integrator="implicitfast" gravity="0 0 -9.81"/>
 
 
   <default>

@@ -6,7 +6,7 @@ import time, csv
 
 EPISODES = 100_000
 DISCOUNT = 0.97
-RENDER_TRAINING = True
+RENDER_TRAINING = False
 
 csv_path = 'training_log.csv'
 
@@ -68,7 +68,7 @@ def main():
             print(f"Episode {episode} finished at step {steps} with sum reward {sum_rewards} and discounted reward {discounted_reward}")
     except KeyboardInterrupt:
         print("Training interrupted, saving checkpoint.")
-        agent.checkpoint_save(path="td3_checkpoint.pth")
+        agent.checkpoint_save(path="td3_checkpoint")
 
     env.close()
 

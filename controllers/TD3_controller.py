@@ -38,6 +38,7 @@ class Agent(nn.Module):
         self.exploration_std = 0.1
         self.max_grad_norm = 2.0
         self.total_it = 0
+        self._loss = None # store most recent loss for logging
 
         self.wheel_hist = deque(maxlen=5)
         self.base_hist = deque(maxlen=5)
@@ -50,6 +51,8 @@ class Agent(nn.Module):
         self.epsilon_decay = 0.995
         self.epsilon_min = 0.05
         self.decay_steps = 10
+
+        self.checkpoint_load("td3_checkpoint")
     
     def hist_reset(self):
         self.wheel_hist.clear()
@@ -138,11 +141,12 @@ class Agent(nn.Module):
         torch.nn.utils.clip_grad_norm_(self.critic2.parameters(), self.max_grad_norm)
         self.critic2_optimizer.step()
 
-        actor_loss = None
+        actor_loss = self._loss
         if self.total_it % self.policy_freq == 0:
             pi_actions = self.actor(states) * self.max_action
             pi_state_action = torch.cat([states, pi_actions], dim=1)
             actor_loss = -self.critic1(pi_state_action).mean()
+            self._loss = actor_loss.detach().cpu()
 
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
@@ -171,24 +175,28 @@ class Agent(nn.Module):
             'actor_optimizer': self.actor_optimizer.state_dict(),
             'critic1_optimizer': self.critic1_optimizer.state_dict(),
             'critic2_optimizer': self.critic2_optimizer.state_dict(),
-        }, path)
+        }, path + ".pth")
         save_replay = input("Save replay buffer? (y/n): ")
         if save_replay.lower() == 'y':
             torch.save(list(self.replay), path + "_replay.pth")
     
     def checkpoint_load(self, path):
-        checkpoint = torch.load(path)
-        self.actor.load_state_dict(checkpoint['actor'])
-        self.critic1.load_state_dict(checkpoint['critic1'])
-        self.critic2.load_state_dict(checkpoint['critic2'])
-        self.actor_target.load_state_dict(checkpoint['actor_target'])
-        self.critic1_target.load_state_dict(checkpoint['critic1_target'])
-        self.critic2_target.load_state_dict(checkpoint['critic2_target'])
-        self.actor_optimizer.load_state_dict(checkpoint['actor_optimizer'])
-        self.critic1_optimizer.load_state_dict(checkpoint['critic1_optimizer'])
-        self.critic2_optimizer.load_state_dict(checkpoint['critic2_optimizer'])
-        replay_path = path + "_replay.pth"
         try:
+            ckpt_path = path + ".pth"
+            checkpoint = torch.load(ckpt_path)
+            self.actor.load_state_dict(checkpoint['actor'])
+            self.critic1.load_state_dict(checkpoint['critic1'])
+            self.critic2.load_state_dict(checkpoint['critic2'])
+            self.actor_target.load_state_dict(checkpoint['actor_target'])
+            self.critic1_target.load_state_dict(checkpoint['critic1_target'])
+            self.critic2_target.load_state_dict(checkpoint['critic2_target'])
+            self.actor_optimizer.load_state_dict(checkpoint['actor_optimizer'])
+            self.critic1_optimizer.load_state_dict(checkpoint['critic1_optimizer'])
+            self.critic2_optimizer.load_state_dict(checkpoint['critic2_optimizer'])
+        except FileNotFoundError:
+            print(f"No checkpoint found at {ckpt_path}. Starting with uninitialized model.")
+        try:
+            replay_path = path + "_replay.pth"
             replay_data = torch.load(replay_path)
             self.replay = deque(replay_data, maxlen=100_000)
             print(f"Replay buffer loaded from {replay_path}")

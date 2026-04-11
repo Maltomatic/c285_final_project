@@ -48,12 +48,14 @@ from envs.rewards import tracking_reward
 # constants
 _XML_PATH = os.path.join(os.path.dirname(__file__), "..", "assets", "robot.xml")
 _OBS_DIM = 23
-_OBS_STACK = 5           # how many timesteps to stack (1 being "only the current state")
+_OBS_STACK = 5           # timesteps stacked
 _ACTION_DIM = 6
 _ACTION_CLIP = 5.0       # rad/s (Need to tune this)
-_FRAME_SKIP = 10         # physics steps per env step → 0.002 * 10 = 0.02 s (the agent act at 50 Hz)
+_FRAME_SKIP = 10         # physics steps per env step → 0.01 * 10 = 0.1 s (10 Hz control)
 _WHEEL_RADIUS = 0.15     # m
 _TRACK_WIDTH = 0.70      # m
+_RESET_SETTLE_STEPS = 15
+_MAX_CTRL_ACCEL = 10.0   # max wheel-speed command slew [rad/s^2]
 _CAM_LOOKAT = np.array([2.5, 2.5, 0.2], dtype=np.float32)
 _CAM_DISTANCE = 10.0
 _CAM_AZIMUTH = 90.0
@@ -83,6 +85,8 @@ class SixWheelEnv(gym.Env):
         # load MuJoCo model (once, shared across resets)
         self.model = mujoco.MjModel.from_xml_path(_XML_PATH)
         self.data  = mujoco.MjData(self.model)
+        self._ctrl_dt = float(self.model.opt.timestep * _FRAME_SKIP)
+        self._max_ctrl_delta = float(_MAX_CTRL_ACCEL * self._ctrl_dt)
 
         # gymnasium spaces
         obs_size = _OBS_DIM# * _OBS_STACK
@@ -104,6 +108,7 @@ class SixWheelEnv(gym.Env):
         # episode state
         self._prev_delta_omega = np.zeros(_ACTION_DIM, dtype=np.float32)
         self._prev_omega_base = np.zeros(_ACTION_DIM, dtype=np.float32)
+        self._prev_ctrl_cmd = np.zeros(_ACTION_DIM, dtype=np.float32)
         self.fault_wheel_idx: int = 0
         self.fault_alpha: float   = 1.0
 
@@ -119,10 +124,26 @@ class SixWheelEnv(gym.Env):
 
         # Reset physics
         mujoco.mj_resetData(self.model, self.data)
+
+        # Ensure no dynamic or actuator state leaks across episodes.
+        self.data.qvel[:] = 0.0
+        self.data.qacc[:] = 0.0
+        self.data.ctrl[:] = 0.0
+        self.data.qacc_warmstart[:] = 0.0
+        self.data.qfrc_applied[:] = 0.0
+        self.data.xfrc_applied[:] = 0.0
+        if self.data.act.size > 0:
+            self.data.act[:] = 0.0
+
         # Place chassis at origin, flat orientation
         self.data.qpos[0:3] = [0.0, 0.0, 0.25]   # x, y, z
         self.data.qpos[3:7] = [1.0, 0.0, 0.0, 0.0]  # quaternion (identity)
         mujoco.mj_forward(self.model, self.data)
+
+        # Let contacts settle with zero control before first policy action.
+        self.data.ctrl[:] = 0.0
+        for _ in range(_RESET_SETTLE_STEPS):
+            mujoco.mj_step(self.model, self.data)
 
         # Fault injection (sampled fresh every episode)
         self.fault_wheel_idx = int(self.np_random.integers(0, _ACTION_DIM))
@@ -134,6 +155,7 @@ class SixWheelEnv(gym.Env):
         # Reset episode state
         self._prev_delta_omega = np.zeros(_ACTION_DIM, dtype=np.float32)
         self._prev_omega_base = np.zeros(_ACTION_DIM, dtype=np.float32)
+        self._prev_ctrl_cmd = np.zeros(_ACTION_DIM, dtype=np.float32)
 
         # Fill history buffer with zeros
         self._obs_history.clear()
@@ -148,7 +170,10 @@ class SixWheelEnv(gym.Env):
         delta_omega = np.clip(action, -_ACTION_CLIP, _ACTION_CLIP).astype(np.float32)
 
         # 1. Post-deviation speed
-        omega_cmd = self._prev_omega_base + delta_omega
+        omega_cmd_target = self._prev_omega_base + delta_omega
+        # Slew-rate limit wheel commands to avoid large startup/transition impulses.
+        cmd_delta = np.clip(omega_cmd_target - self._prev_ctrl_cmd, -self._max_ctrl_delta, self._max_ctrl_delta)
+        omega_cmd = self._prev_ctrl_cmd + cmd_delta
 
         # print(f"\nLast timestep base speed: {self._prev_omega_base}, delta_omega: {delta_omega}, output speed: {omega_cmd}")
 
@@ -160,6 +185,7 @@ class SixWheelEnv(gym.Env):
         self.data.ctrl[:] = omega_faulted
         for _ in range(_FRAME_SKIP):
             mujoco.mj_step(self.model, self.data)
+        self._prev_ctrl_cmd = omega_cmd.copy()
         
         # 4. Body controller
         pos_xy, heading = self._chassis_pose()
