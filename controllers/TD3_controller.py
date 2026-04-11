@@ -49,6 +49,7 @@ class Agent(nn.Module):
         self.epsilon = 1.0
         self.epsilon_decay = 0.995
         self.epsilon_min = 0.05
+        self.decay_steps = 10
     
     def hist_reset(self):
         self.wheel_hist.clear()
@@ -75,7 +76,10 @@ class Agent(nn.Module):
             action = torch.clamp(action, -self.max_action, self.max_action)
 
         if explore:
-            self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+            self.decay_steps -= 1
+            if self.decay_steps <= 0:
+                self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+                self.decay_steps = 10
 
         return action
 
@@ -155,6 +159,41 @@ class Agent(nn.Module):
             "critic2_loss": float(critic2_loss.item()),
             "actor_loss": float(actor_loss.item()) if actor_loss is not None else None,
         }
+
+    def checkpoint_save(self, path):
+        torch.save({
+            'actor': self.actor.state_dict(),
+            'critic1': self.critic1.state_dict(),
+            'critic2': self.critic2.state_dict(),
+            'actor_target': self.actor_target.state_dict(),
+            'critic1_target': self.critic1_target.state_dict(),
+            'critic2_target': self.critic2_target.state_dict(),
+            'actor_optimizer': self.actor_optimizer.state_dict(),
+            'critic1_optimizer': self.critic1_optimizer.state_dict(),
+            'critic2_optimizer': self.critic2_optimizer.state_dict(),
+        }, path)
+        save_replay = input("Save replay buffer? (y/n): ")
+        if save_replay.lower() == 'y':
+            torch.save(list(self.replay), path + "_replay.pth")
+    
+    def checkpoint_load(self, path):
+        checkpoint = torch.load(path)
+        self.actor.load_state_dict(checkpoint['actor'])
+        self.critic1.load_state_dict(checkpoint['critic1'])
+        self.critic2.load_state_dict(checkpoint['critic2'])
+        self.actor_target.load_state_dict(checkpoint['actor_target'])
+        self.critic1_target.load_state_dict(checkpoint['critic1_target'])
+        self.critic2_target.load_state_dict(checkpoint['critic2_target'])
+        self.actor_optimizer.load_state_dict(checkpoint['actor_optimizer'])
+        self.critic1_optimizer.load_state_dict(checkpoint['critic1_optimizer'])
+        self.critic2_optimizer.load_state_dict(checkpoint['critic2_optimizer'])
+        replay_path = path + "_replay.pth"
+        try:
+            replay_data = torch.load(replay_path)
+            self.replay = deque(replay_data, maxlen=100_000)
+            print(f"Replay buffer loaded from {replay_path}")
+        except FileNotFoundError:
+            print(f"No replay buffer found at {replay_path}, starting with empty buffer.")
 
     def _soft_update(self, source: nn.Module, target: nn.Module):
         for target_param, source_param in zip(target.parameters(), source.parameters()):
