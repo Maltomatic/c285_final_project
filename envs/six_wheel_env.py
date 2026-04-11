@@ -54,7 +54,7 @@ _ACTION_CLIP = 5.0       # rad/s (Need to tune this)
 _FRAME_SKIP = 10         # physics steps per env step → 0.01 * 10 = 0.1 s (10 Hz control)
 _WHEEL_RADIUS = 0.15     # m
 _TRACK_WIDTH = 0.70      # m
-_RESET_SETTLE_STEPS = 15
+_RESET_SETTLE_STEPS = 10
 _MAX_CTRL_ACCEL = 10.0   # max wheel-speed command slew [rad/s^2]
 _CAM_LOOKAT = np.array([2.5, 2.5, 0.2], dtype=np.float32)
 _CAM_DISTANCE = 10.0

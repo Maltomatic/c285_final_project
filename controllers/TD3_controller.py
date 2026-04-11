@@ -14,13 +14,14 @@ ACT_DIM = 6
 class Agent(nn.Module):
     def __init__(self):
         super(Agent, self).__init__()
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         state_dim = 6*5*3 + 1*5*2 # 6 wheels, base/dev/actual ; 1 vel ; 1 ang
         action_dim = ACT_DIM
-        self.actor = Actor(state_dim, action_dim)
+        self.actor = Actor(state_dim, action_dim).to(self.device)
         self.actor_target = copy.deepcopy(self.actor)
-        self.critic1 = Critic(state_dim, action_dim)
+        self.critic1 = Critic(state_dim, action_dim).to(self.device)
         self.critic1_target = copy.deepcopy(self.critic1)
-        self.critic2 = Critic(state_dim, action_dim)
+        self.critic2 = Critic(state_dim, action_dim).to(self.device)
         self.critic2_target = copy.deepcopy(self.critic2)
 
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=1e-4)
@@ -28,7 +29,7 @@ class Agent(nn.Module):
         self.critic2_optimizer = torch.optim.Adam(self.critic2.parameters(), lr=1e-3)
 
         self.replay = deque(maxlen=100_000)
-        self.batch_size = 128
+        self.batch_size = 512
         self.gamma = 0.97
         self.tau = 0.005
         self.policy_noise = 0.2
@@ -71,9 +72,9 @@ class Agent(nn.Module):
         if type(obs) is not torch.Tensor:
             obs_dict, obs_t = self.parse_obs(obs)
         else:
-            obs_t = obs
+            obs_t = obs.to(self.device)
         if explore and np.random.rand() < self.epsilon:
-            action = torch.empty(ACT_DIM, dtype=torch.float32).uniform_(-self.max_action, self.max_action)
+            action = torch.empty(ACT_DIM, dtype=torch.float32, device=self.device).uniform_(-self.max_action, self.max_action)
         else:
             action = self.actor(obs_t) * self.max_action
             action = torch.clamp(action, -self.max_action, self.max_action)
@@ -107,11 +108,11 @@ class Agent(nn.Module):
         # Sample batch
         idx = np.random.choice(len(self.replay), size=self.batch_size, replace=False)
         batch = [self.replay[i] for i in idx]
-        states = torch.tensor(np.stack([b[0] for b in batch]), dtype=torch.float32)
-        actions = torch.tensor(np.stack([b[1] for b in batch]), dtype=torch.float32)
-        rewards = torch.tensor(np.array([b[2] for b in batch], dtype=np.float32)).unsqueeze(1)
-        dones = torch.tensor(np.array([b[3] for b in batch], dtype=np.float32)).unsqueeze(1)
-        next_states = torch.tensor(np.stack([b[4] for b in batch]), dtype=torch.float32)
+        states = torch.tensor(np.stack([b[0] for b in batch]), dtype=torch.float32, device=self.device)
+        actions = torch.tensor(np.stack([b[1] for b in batch]), dtype=torch.float32, device=self.device)
+        rewards = torch.tensor(np.array([b[2] for b in batch], dtype=np.float32), device=self.device).unsqueeze(1)
+        dones = torch.tensor(np.array([b[3] for b in batch], dtype=np.float32), device=self.device).unsqueeze(1)
+        next_states = torch.tensor(np.stack([b[4] for b in batch]), dtype=torch.float32, device=self.device)
 
         # TD3 target: clipped target policy smoothing + min over twin critics
         with torch.no_grad():
@@ -183,7 +184,7 @@ class Agent(nn.Module):
     def checkpoint_load(self, path):
         try:
             ckpt_path = path + ".pth"
-            checkpoint = torch.load(ckpt_path)
+            checkpoint = torch.load(ckpt_path, map_location=self.device)
             self.actor.load_state_dict(checkpoint['actor'])
             self.critic1.load_state_dict(checkpoint['critic1'])
             self.critic2.load_state_dict(checkpoint['critic2'])
@@ -193,11 +194,14 @@ class Agent(nn.Module):
             self.actor_optimizer.load_state_dict(checkpoint['actor_optimizer'])
             self.critic1_optimizer.load_state_dict(checkpoint['critic1_optimizer'])
             self.critic2_optimizer.load_state_dict(checkpoint['critic2_optimizer'])
+            self._optimizer_to_device(self.actor_optimizer)
+            self._optimizer_to_device(self.critic1_optimizer)
+            self._optimizer_to_device(self.critic2_optimizer)
         except FileNotFoundError:
             print(f"No checkpoint found at {ckpt_path}. Starting with uninitialized model.")
         try:
             replay_path = path + "_replay.pth"
-            replay_data = torch.load(replay_path)
+            replay_data = torch.load(replay_path, map_location='cpu', weights_only=False)
             self.replay = deque(replay_data, maxlen=100_000)
             print(f"Replay buffer loaded from {replay_path}")
         except FileNotFoundError:
@@ -207,7 +211,13 @@ class Agent(nn.Module):
         for target_param, source_param in zip(target.parameters(), source.parameters()):
             target_param.data.copy_(self.tau * source_param.data + (1.0 - self.tau) * target_param.data)
 
-    def parse_obs(self, obs):
+    def _optimizer_to_device(self, optimizer):
+        for state in optimizer.state.values():
+            for k, v in state.items():
+                if isinstance(v, torch.Tensor):
+                    state[k] = v.to(self.device)
+
+    def parse_obs(self, obs, device=None):
         obs_dict = {}
         obs_dict["cross_track_err"] = obs[0]
         obs_dict["heading_err"] = obs[1]
@@ -230,6 +240,7 @@ class Agent(nn.Module):
         _dev_hist = np.concatenate(list(self.dev_hist))
 
         obs_arr = np.concatenate((_vels_hist, _ang_hist, _wheel_hist, _base_hist, _dev_hist)).astype(np.float32)
-        obs_t = torch.from_numpy(obs_arr)
+        target_device = self.device if device is None else torch.device(device)
+        obs_t = torch.from_numpy(obs_arr).to(target_device)
 
         return obs_dict, obs_t

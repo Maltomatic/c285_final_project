@@ -51,7 +51,7 @@ def main():
             obs_t = agent.parse_obs(obs)[1]
             
             while not done:
-                action = agent.make_decision(obs_t).detach().numpy()
+                action = agent.make_decision(obs_t).detach().cpu().numpy()
                 # action = np.zeros_like(action)
                 obs, reward, terminated, truncated, _ = env.step(action)
                 done = terminated or truncated
