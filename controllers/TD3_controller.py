@@ -12,8 +12,9 @@ OBS_DIM = 23
 ACT_DIM = 6
 
 class Agent(nn.Module):
-    def __init__(self):
+    def __init__(self, num_envs = 1):
         super(Agent, self).__init__()
+        self.num_envs = num_envs
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         state_dim = 6*5*3 + 1*5*2 # 6 wheels, base/dev/actual ; 1 vel ; 1 ang
         action_dim = ACT_DIM
@@ -28,24 +29,23 @@ class Agent(nn.Module):
         self.critic1_optimizer = torch.optim.Adam(self.critic1.parameters(), lr=1e-3)
         self.critic2_optimizer = torch.optim.Adam(self.critic2.parameters(), lr=1e-3)
 
-        self.replay = deque(maxlen=100_000)
-        self.batch_size = 512
+        self.replay = deque(maxlen=1_000_000)
+        self.batch_size = 1024
         self.gamma = 0.97
         self.tau = 0.005
-        self.policy_noise = 0.2
-        self.noise_clip = 0.5
+        self.policy_noise = 0.5
+        self.noise_clip = 1.5
         self.policy_freq = 2
-        self.max_action = 5.0
-        self.exploration_std = 0.1
-        self.max_grad_norm = 2.0
+        self.max_action = 50.0
+        self.max_grad_norm = 3.0
         self.total_it = 0
         self._loss = None # store most recent loss for logging
 
-        self.wheel_hist = deque(maxlen=5)
-        self.base_hist = deque(maxlen=5)
-        self.dev_hist = deque(maxlen=5)
-        self.vels_hist = deque(maxlen=5)
-        self.ang_hist = deque(maxlen=5)
+        self.wheel_hist = [deque(maxlen=5) for _ in range(num_envs)]
+        self.base_hist = [deque(maxlen=5) for _ in range(num_envs)]
+        self.dev_hist = [deque(maxlen=5) for _ in range(num_envs)]
+        self.vels_hist = [deque(maxlen=5) for _ in range(num_envs)]
+        self.ang_hist = [deque(maxlen=5) for _ in range(num_envs)]
         self.hist_reset()
 
         self.epsilon = 1.0
@@ -54,51 +54,81 @@ class Agent(nn.Module):
         self.decay_steps = 10
 
         self.checkpoint_load("td3_checkpoint")
-    
     def hist_reset(self):
-        self.wheel_hist.clear()
-        self.base_hist.clear()
-        self.dev_hist.clear()
-        self.vels_hist.clear()
-        self.ang_hist.clear()
+        for env_id in range(self.num_envs):
+            self.hist_reset_single_env(env_id)
+    
+    def hist_reset_single_env(self, env_id):
+        self.wheel_hist[env_id].clear()
+        self.base_hist[env_id].clear()
+        self.dev_hist[env_id].clear()
+        self.vels_hist[env_id].clear()
+        self.ang_hist[env_id].clear()
         for _ in range(5):
-            self.wheel_hist.append(np.zeros(6, dtype=np.float32))
-            self.base_hist.append(np.zeros(6, dtype=np.float32))
-            self.dev_hist.append(np.zeros(6, dtype=np.float32))
-            self.vels_hist.append(0.0)
-            self.ang_hist.append(0.0)
+            self.wheel_hist[env_id].append(np.zeros(6, dtype=np.float32))
+            self.base_hist[env_id].append(np.zeros(6, dtype=np.float32))
+            self.dev_hist[env_id].append(np.zeros(6, dtype=np.float32))
+            self.vels_hist[env_id].append(0.0)
+            self.ang_hist[env_id].append(0.0)
+    
+    def parse_obs(self, obs, device=None, env_id=0):
+        obs_dict = {}
+        obs_dict["cross_track_err"] = obs[0]
+        obs_dict["heading_err"] = obs[1]
+        obs_dict["waypoint_dist"] = obs[2]
+        obs_dict["bot_vel"] = obs[3]
+        self.vels_hist[env_id].append(obs[3])
+        obs_dict["bot_ang"] = obs[4]
+        self.ang_hist[env_id].append(obs[4])
+        obs_dict["curr_wheel"] = obs[5:11]
+        self.wheel_hist[env_id].append(obs[5:11])
+        obs_dict["curr_base"] = obs[11:17]
+        self.base_hist[env_id].append(obs[11:17])
+        obs_dict["curr_dev"] = obs[17:23]
+        self.dev_hist[env_id].append(obs[17:23])
 
-    def make_decision(self, obs, explore: bool = True):
+        _vels_hist = np.array(self.vels_hist[env_id])
+        _ang_hist = np.array(self.ang_hist[env_id])
+        _wheel_hist = np.concatenate(list(self.wheel_hist[env_id]))
+        _base_hist = np.concatenate(list(self.base_hist[env_id]))
+        _dev_hist = np.concatenate(list(self.dev_hist[env_id]))
+
+        obs_arr = np.concatenate((_vels_hist, _ang_hist, _wheel_hist, _base_hist, _dev_hist)).astype(np.float32)
+        target_device = self.device if device is None else torch.device(device)
+        obs_t = torch.from_numpy(obs_arr).to(target_device)
+
+        return obs_dict, obs_t
+
+    def make_decision(self, obs, explore: bool = True, env_id=0):
         if type(obs) is not torch.Tensor:
-            obs_dict, obs_t = self.parse_obs(obs)
+            obs_t = torch.stack([self.parse_obs(obs[i], env_id=i)[1] for i in range(self.num_envs)])
         else:
             obs_t = obs.to(self.device)
+        # obs_t is batched over N envs
+        N = obs_t.shape[0]
         if explore and np.random.rand() < self.epsilon:
-            action = torch.empty(ACT_DIM, dtype=torch.float32, device=self.device).uniform_(-self.max_action, self.max_action)
+            action = torch.empty(N, ACT_DIM, dtype=torch.float32, device=self.device).uniform_(-self.max_action, self.max_action)
         else:
-            action = self.actor(obs_t) * self.max_action
-            action = torch.clamp(action, -self.max_action, self.max_action)
-
-        if explore:
-            self.decay_steps -= 1
-            if self.decay_steps <= 0:
-                self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
-                self.decay_steps = 10
+            with torch.no_grad():
+                action = self.actor(obs_t) * self.max_action # target instead of actor to avoid gpu/cpu race
+                action = torch.clamp(action, -self.max_action, self.max_action)
 
         return action
 
-    def train_step(self, obs, action, reward, done, next_obs):
-        # Store transition
+    def decay_epsilon(self):
+        self.decay_steps -= 1
+        if self.decay_steps <= 0:
+            self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+            self.decay_steps = 10
+
+    def save_transition(self, obs, action, reward, done, next_obs):
         obs_np = obs.detach().cpu().numpy() if isinstance(obs, torch.Tensor) else np.asarray(obs, dtype=np.float32)
-        next_obs_np = (
-            next_obs.detach().cpu().numpy()
-            if isinstance(next_obs, torch.Tensor)
-            else np.asarray(next_obs, dtype=np.float32)
-        )
+        next_obs_np = (next_obs.detach().cpu().numpy() if isinstance(next_obs, torch.Tensor) else np.asarray(next_obs, dtype=np.float32))
         action_np = np.asarray(action, dtype=np.float32)
-        reward_f = float(reward)
-        done_f = float(done)
-        self.replay.append((obs_np, action_np, reward_f, done_f, next_obs_np))
+        done = float(done)
+        self.replay.append((obs_np, action_np, reward, done, next_obs_np))
+
+    def train_step(self):
 
         if len(self.replay) < self.batch_size:
             return None
@@ -114,12 +144,9 @@ class Agent(nn.Module):
         dones = torch.tensor(np.array([b[3] for b in batch], dtype=np.float32), device=self.device).unsqueeze(1)
         next_states = torch.tensor(np.stack([b[4] for b in batch]), dtype=torch.float32, device=self.device)
 
-        # TD3 target: clipped target policy smoothing + min over twin critics
         with torch.no_grad():
             noise = (torch.randn_like(actions) * self.policy_noise).clamp(-self.noise_clip, self.noise_clip)
-            next_actions = (self.actor_target(next_states) * self.max_action + noise).clamp(
-                -self.max_action, self.max_action
-            )
+            next_actions = (self.actor_target(next_states) * self.max_action + noise).clamp(-self.max_action, self.max_action)
             next_state_action = torch.cat([next_states, next_actions], dim=1)
             target_q1 = self.critic1_target(next_state_action)
             target_q2 = self.critic2_target(next_state_action)
@@ -134,12 +161,12 @@ class Agent(nn.Module):
 
         self.critic1_optimizer.zero_grad()
         critic1_loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.critic1.parameters(), self.max_grad_norm)
+        nn.utils.clip_grad_norm_(self.critic1.parameters(), self.max_grad_norm)
         self.critic1_optimizer.step()
 
         self.critic2_optimizer.zero_grad()
         critic2_loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.critic2.parameters(), self.max_grad_norm)
+        nn.utils.clip_grad_norm_(self.critic2.parameters(), self.max_grad_norm)
         self.critic2_optimizer.step()
 
         actor_loss = self._loss
@@ -151,10 +178,9 @@ class Agent(nn.Module):
 
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
-            torch.nn.utils.clip_grad_norm_(self.actor.parameters(), self.max_grad_norm)
+            nn.utils.clip_grad_norm_(self.actor.parameters(), self.max_grad_norm)
             self.actor_optimizer.step()
 
-            # Polyak averaging
             self._soft_update(self.actor, self.actor_target)
             self._soft_update(self.critic1, self.critic1_target)
             self._soft_update(self.critic2, self.critic2_target)
@@ -178,7 +204,7 @@ class Agent(nn.Module):
             'critic2_optimizer': self.critic2_optimizer.state_dict(),
         }, path + ".pth")
         save_replay = input("Save replay buffer? (y/n): ")
-        if save_replay.lower() == 'y':
+        if save_replay.strip().lower() == 'y':
             torch.save(list(self.replay), path + "_replay.pth")
     
     def checkpoint_load(self, path):
@@ -202,7 +228,7 @@ class Agent(nn.Module):
         try:
             replay_path = path + "_replay.pth"
             replay_data = torch.load(replay_path, map_location='cpu', weights_only=False)
-            self.replay = deque(replay_data, maxlen=100_000)
+            self.replay = deque(replay_data, maxlen=1_000_000)
             print(f"Replay buffer loaded from {replay_path}")
         except FileNotFoundError:
             print(f"No replay buffer found at {replay_path}, starting with empty buffer.")
@@ -216,31 +242,3 @@ class Agent(nn.Module):
             for k, v in state.items():
                 if isinstance(v, torch.Tensor):
                     state[k] = v.to(self.device)
-
-    def parse_obs(self, obs, device=None):
-        obs_dict = {}
-        obs_dict["cross_track_err"] = obs[0]
-        obs_dict["heading_err"] = obs[1]
-        obs_dict["waypoint_dist"] = obs[2]
-        obs_dict["bot_vel"] = obs[3]
-        self.vels_hist.append(obs[3])
-        obs_dict["bot_ang"] = obs[4]
-        self.ang_hist.append(obs[4])
-        obs_dict["curr_wheel"] = obs[5:11]
-        self.wheel_hist.append(obs[5:11])
-        obs_dict["curr_base"] = obs[11:17]
-        self.base_hist.append(obs[11:17])
-        obs_dict["curr_dev"] = obs[17:23]
-        self.dev_hist.append(obs[17:23])
-
-        _vels_hist = np.array(self.vels_hist)
-        _ang_hist = np.array(self.ang_hist)
-        _wheel_hist = np.concatenate(list(self.wheel_hist))
-        _base_hist = np.concatenate(list(self.base_hist))
-        _dev_hist = np.concatenate(list(self.dev_hist))
-
-        obs_arr = np.concatenate((_vels_hist, _ang_hist, _wheel_hist, _base_hist, _dev_hist)).astype(np.float32)
-        target_device = self.device if device is None else torch.device(device)
-        obs_t = torch.from_numpy(obs_arr).to(target_device)
-
-        return obs_dict, obs_t

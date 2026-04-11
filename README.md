@@ -160,7 +160,7 @@ env.unwrapped.inject_fault(wheel_idx=2, alpha=0.0)  # kill wheel 2
 
 Two reward functions are available, passed via `reward_fn=` at construction:
 
-**`tracking_reward`** (default) — weights `(1.0, 0.5, 0.01, 0.01, 50.0, 0.05)`:
+**`tracking_reward`** (default) — weights `(0.2, 0.5, 0.01, 0.01, 50.0, 0.05)`:
 
 ```
 r = -w1*|cross_track_err| - w2*|heading_err|

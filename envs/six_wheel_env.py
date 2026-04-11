@@ -43,24 +43,25 @@ import numpy as np
 import gymnasium as gym
 
 from controllers.base_controller import WaypointController, BaseAllocator, WAYPOINTS
-from envs.rewards import tracking_reward
+from envs.rewards import tracking_reward, sparse_reward
 
 # constants
 _XML_PATH = os.path.join(os.path.dirname(__file__), "..", "assets", "robot.xml")
 _OBS_DIM = 23
 _OBS_STACK = 5           # timesteps stacked
 _ACTION_DIM = 6
-_ACTION_CLIP = 5.0       # rad/s (Need to tune this)
+_ACTION_CLIP = 50.0       # rad/s (Need to tune this)
 _FRAME_SKIP = 10         # physics steps per env step → 0.01 * 10 = 0.1 s (10 Hz control)
 _WHEEL_RADIUS = 0.15     # m
 _TRACK_WIDTH = 0.70      # m
 _RESET_SETTLE_STEPS = 10
-_MAX_CTRL_ACCEL = 10.0   # max wheel-speed command slew [rad/s^2]
+_MAX_CTRL_ACCEL = 20#10.0   # max wheel-speed command slew [rad/s^2]
 _CAM_LOOKAT = np.array([2.5, 2.5, 0.2], dtype=np.float32)
 _CAM_DISTANCE = 10.0
 _CAM_AZIMUTH = 90.0
 _CAM_ELEVATION = -25.0
 
+NO_FAULT = True#False
 
 class SixWheelEnv(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 50}
@@ -69,7 +70,8 @@ class SixWheelEnv(gym.Env):
         self,
         render_mode: str | None = None,
         reward_fn=tracking_reward,
-        reward_weights: tuple = (1.0, 0.5, 0.01, 0.01, 50.0, 0.05),
+        reward_weights: tuple | None = None,
+        env_id = 0
     ):
         super().__init__()
 
@@ -80,11 +82,14 @@ class SixWheelEnv(gym.Env):
         )
         self.render_mode = render_mode
         self.reward_fn = reward_fn
-        self.reward_weights = reward_weights
+        self.reward_weights = reward_weights if reward_weights is not None else None
+        self.env_id = env_id
 
         # load MuJoCo model (once, shared across resets)
         self.model = mujoco.MjModel.from_xml_path(_XML_PATH)
         self.data  = mujoco.MjData(self.model)
+        self.model.opt.iterations = 10
+        self.model.opt.ls_iterations = 5
         self._ctrl_dt = float(self.model.opt.timestep * _FRAME_SKIP)
         self._max_ctrl_delta = float(_MAX_CTRL_ACCEL * self._ctrl_dt)
 
@@ -147,7 +152,10 @@ class SixWheelEnv(gym.Env):
 
         # Fault injection (sampled fresh every episode)
         self.fault_wheel_idx = int(self.np_random.integers(0, _ACTION_DIM))
-        self.fault_alpha      = float(self.np_random.uniform(0.0, 1.0))
+        self.fault_alpha      = 1.0 if NO_FAULT else float(self.np_random.uniform(0.0, 1.0))
+
+        # if not NO_FAULT:
+        #     print(f"Fault in env {self.env_id}: wheel {self.fault_wheel_idx} at {self.fault_alpha:.2f}x effectiveness")
 
         # Reset controllers
         self.wp_controller.reset()
@@ -174,6 +182,7 @@ class SixWheelEnv(gym.Env):
         # Slew-rate limit wheel commands to avoid large startup/transition impulses.
         cmd_delta = np.clip(omega_cmd_target - self._prev_ctrl_cmd, -self._max_ctrl_delta, self._max_ctrl_delta)
         omega_cmd = self._prev_ctrl_cmd + cmd_delta
+        # omega_cmd = omega_cmd_target.copy()
 
         # print(f"\nLast timestep base speed: {self._prev_omega_base}, delta_omega: {delta_omega}, output speed: {omega_cmd}")
 
@@ -204,10 +213,16 @@ class SixWheelEnv(gym.Env):
         stacked = self._get_stacked_obs()
 
         # 7. Reward
-        reward = self.reward_fn(
-            obs_t, delta_omega, self._prev_delta_omega,
-            waypoint_reached, self.reward_weights,
-        )
+        if self.reward_weights is not None:    
+            reward = self.reward_fn(
+                obs_t, delta_omega, self._prev_delta_omega,
+                waypoint_reached, self.reward_weights
+            )
+        else:
+            reward = self.reward_fn(
+                obs_t, delta_omega, self._prev_delta_omega,
+                waypoint_reached
+            )
 
         # 8. Termination
         terminated = self._is_terminated(pos_xy)

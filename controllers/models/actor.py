@@ -12,7 +12,7 @@ class Actor(nn.Module):
             nn.LayerNorm(128),
             nn.ReLU(),
             nn.Linear(128, action_dim),
-            nn.Tanh()
+            # nn.Tanh()
             # placeholder
         )
 

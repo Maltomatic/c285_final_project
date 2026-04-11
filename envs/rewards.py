@@ -10,13 +10,14 @@ Pass the desired function to SixWheelEnv via reward_fn=...
 
 import numpy as np
 
+_ACTION_CLIP = 50.0       # rad/s (Need to tune this)
 
 def tracking_reward(
     obs_t: np.ndarray,
     delta_omega: np.ndarray,
     prev_delta_omega: np.ndarray,
     waypoint_reached: bool,
-    weights: tuple = (0.2, 0.5, 0.01, 0.01, 50.0, 0.05),
+    weights: tuple = (0.2, 0.5, 0.01, 0.01, 50.0, 0.1),
 ) -> float:
     """
     Default reward.
@@ -54,17 +55,18 @@ def sparse_reward(
     delta_omega: np.ndarray,
     prev_delta_omega: np.ndarray,
     waypoint_reached: bool,
-    weights: tuple = (100.0, 0.1),
+    weights: tuple = (20.0, 10.0, 0.1),
 ) -> float:
     """
-    Sparse reward — only waypoint bonuses and a time penalty.
+    Sparse reward — only illegal action magnitude penalty, waypoint bonuses, and a time penalty.
     Harder to learn but produces cleaner behavior.
 
     weights:
         w1  waypoint reached bonus
         w2  time step penalty
     """
-    w1, w2 = weights
-    r  = +w1 * float(waypoint_reached)
-    r += -w2
+    w1, w2, w3 = weights
+    r  = -w1 * float(np.sum(delta_omega) - ((_ACTION_CLIP)*2 - 1) ** 2)
+    r += +w2 * float(waypoint_reached)
+    r += -w3
     return r
