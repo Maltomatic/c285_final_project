@@ -11,22 +11,20 @@ import numpy as np
 
 # ── Waypoint trajectory ──────────────────────────────────────────────────────
 # L-shape + return: straight → 90° corner → back → home
+SCALE = 2.5
 WAYPOINTS = np.array([
-    [12.0, 0.0],
-    [18.0, 0.0],   # straight along X
-    [20.0, 3.5],
-    [15.5, 8.0],
-    [18.0, 15.0],
-    [20.0, 17.0],
-    [20.0, 20.0],   # 90° left turn, then straight along Y
-    [0.0, 20.0],   # 90° left turn, back toward X=0
-    [0.0, 15.0],
-    [2.0, 18.5],
-    [6.0, 15.0],
-    [4.0, 14.0],
-    [2.0, 12.0],
-    [0.0, 17.0],
-    [0.0, 0.0],   # home
+    [12.0 / SCALE, 0.0 / SCALE],
+    [18.0 / SCALE, 0.0 / SCALE],   # straight along X
+    [20.0 / SCALE, 3.5 / SCALE],
+    [15.5 / SCALE, 8.0 / SCALE],
+    [20.0 / SCALE, 17.0 / SCALE],
+    [20.0 / SCALE, 20.0 / SCALE],   # 90° left turn, then straight along Y
+    [0.0 / SCALE, 20.0 / SCALE],   # 90° left turn, back toward X=0
+    [0.0 / SCALE, 10.0 / SCALE],
+    [4.0 / SCALE, 13.0 / SCALE],
+    [2.0 / SCALE, 15.0 / SCALE],
+    [0.0 / SCALE, 15.0 / SCALE],
+    [0.0 / SCALE, 0.0 / SCALE],   # home
 ], dtype=np.float64)
 # WAYPOINTS = np.array([
 #     [5.0, 0.0],   # straight along X
@@ -55,9 +53,9 @@ class WaypointController:
         self,
         waypoints: np.ndarray = WAYPOINTS,
         arrival_radius: float = 0.8,
-        kp_heading: float = 2.5,
-        v_max: float = 1.5,
-        omega_max: float = 2.0,
+        kp_heading: float = 3.0,
+        v_max: float = 2.5,
+        omega_max: float = 3.0,
     ):
         self.waypoints = np.array(waypoints, dtype=np.float64)
         self.arrival_radius = arrival_radius

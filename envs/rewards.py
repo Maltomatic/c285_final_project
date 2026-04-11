@@ -16,7 +16,7 @@ def tracking_reward(
     delta_omega: np.ndarray,
     prev_delta_omega: np.ndarray,
     waypoint_reached: bool,
-    weights: tuple = (0.5, 0.5, 0.01, 0.01, 50.0, 0.05),
+    weights: tuple = (0.2, 0.5, 0.01, 0.01, 50.0, 0.05),
 ) -> float:
     """
     Default reward.

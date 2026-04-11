@@ -1,7 +1,9 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 from collections import deque
+import copy
 
 from controllers.models.actor import Actor
 from controllers.models.critic import Critic
@@ -15,8 +17,28 @@ class Agent(nn.Module):
         state_dim = 6*5*3 + 1*5*2 # 6 wheels, base/dev/actual ; 1 vel ; 1 ang
         action_dim = ACT_DIM
         self.actor = Actor(state_dim, action_dim)
-        self.critic = Critic(state_dim, action_dim)
-        self.replay = []
+        self.actor_target = copy.deepcopy(self.actor)
+        self.critic1 = Critic(state_dim, action_dim)
+        self.critic1_target = copy.deepcopy(self.critic1)
+        self.critic2 = Critic(state_dim, action_dim)
+        self.critic2_target = copy.deepcopy(self.critic2)
+
+        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=1e-4)
+        self.critic1_optimizer = torch.optim.Adam(self.critic1.parameters(), lr=1e-3)
+        self.critic2_optimizer = torch.optim.Adam(self.critic2.parameters(), lr=1e-3)
+
+        self.replay = deque(maxlen=100_000)
+        self.batch_size = 128
+        self.gamma = 0.97
+        self.tau = 0.005
+        self.policy_noise = 0.2
+        self.noise_clip = 0.5
+        self.policy_freq = 2
+        self.max_action = 5.0
+        self.exploration_std = 0.1
+        self.max_grad_norm = 2.0
+        self.total_it = 0
+
         self.wheel_hist = deque(maxlen=5)
         self.base_hist = deque(maxlen=5)
         self.dev_hist = deque(maxlen=5)
@@ -26,6 +48,7 @@ class Agent(nn.Module):
 
         self.epsilon = 1.0
         self.epsilon_decay = 0.995
+        self.epsilon_min = 0.05
     
     def hist_reset(self):
         self.wheel_hist.clear()
@@ -40,17 +63,102 @@ class Agent(nn.Module):
             self.vels_hist.append(0.0)
             self.ang_hist.append(0.0)
 
-    def make_decision(self, obs):
+    def make_decision(self, obs, explore: bool = True):
         if type(obs) is not torch.Tensor:
             obs_dict, obs_t = self.parse_obs(obs)
         else:
             obs_t = obs
-        action = self.actor(obs_t)
+        if explore and np.random.rand() < self.epsilon:
+            action = torch.empty(ACT_DIM, dtype=torch.float32).uniform_(-self.max_action, self.max_action)
+        else:
+            action = self.actor(obs_t) * self.max_action
+            action = torch.clamp(action, -self.max_action, self.max_action)
+
+        if explore:
+            self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+
         return action
 
     def train_step(self, obs, action, reward, done, next_obs):
-        # Placeholder for training step
-        pass
+        # Store transition
+        obs_np = obs.detach().cpu().numpy() if isinstance(obs, torch.Tensor) else np.asarray(obs, dtype=np.float32)
+        next_obs_np = (
+            next_obs.detach().cpu().numpy()
+            if isinstance(next_obs, torch.Tensor)
+            else np.asarray(next_obs, dtype=np.float32)
+        )
+        action_np = np.asarray(action, dtype=np.float32)
+        reward_f = float(reward)
+        done_f = float(done)
+        self.replay.append((obs_np, action_np, reward_f, done_f, next_obs_np))
+
+        if len(self.replay) < self.batch_size:
+            return None
+
+        self.total_it += 1
+
+        # Sample batch
+        idx = np.random.choice(len(self.replay), size=self.batch_size, replace=False)
+        batch = [self.replay[i] for i in idx]
+        states = torch.tensor(np.stack([b[0] for b in batch]), dtype=torch.float32)
+        actions = torch.tensor(np.stack([b[1] for b in batch]), dtype=torch.float32)
+        rewards = torch.tensor(np.array([b[2] for b in batch], dtype=np.float32)).unsqueeze(1)
+        dones = torch.tensor(np.array([b[3] for b in batch], dtype=np.float32)).unsqueeze(1)
+        next_states = torch.tensor(np.stack([b[4] for b in batch]), dtype=torch.float32)
+
+        # TD3 target: clipped target policy smoothing + min over twin critics
+        with torch.no_grad():
+            noise = (torch.randn_like(actions) * self.policy_noise).clamp(-self.noise_clip, self.noise_clip)
+            next_actions = (self.actor_target(next_states) * self.max_action + noise).clamp(
+                -self.max_action, self.max_action
+            )
+            next_state_action = torch.cat([next_states, next_actions], dim=1)
+            target_q1 = self.critic1_target(next_state_action)
+            target_q2 = self.critic2_target(next_state_action)
+            target_q = rewards + (1.0 - dones) * self.gamma * torch.min(target_q1, target_q2)
+
+        state_action = torch.cat([states, actions], dim=1)
+        current_q1 = self.critic1(state_action)
+        current_q2 = self.critic2(state_action)
+
+        critic1_loss = F.mse_loss(current_q1, target_q)
+        critic2_loss = F.mse_loss(current_q2, target_q)
+
+        self.critic1_optimizer.zero_grad()
+        critic1_loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.critic1.parameters(), self.max_grad_norm)
+        self.critic1_optimizer.step()
+
+        self.critic2_optimizer.zero_grad()
+        critic2_loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.critic2.parameters(), self.max_grad_norm)
+        self.critic2_optimizer.step()
+
+        actor_loss = None
+        if self.total_it % self.policy_freq == 0:
+            pi_actions = self.actor(states) * self.max_action
+            pi_state_action = torch.cat([states, pi_actions], dim=1)
+            actor_loss = -self.critic1(pi_state_action).mean()
+
+            self.actor_optimizer.zero_grad()
+            actor_loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.actor.parameters(), self.max_grad_norm)
+            self.actor_optimizer.step()
+
+            # Polyak averaging
+            self._soft_update(self.actor, self.actor_target)
+            self._soft_update(self.critic1, self.critic1_target)
+            self._soft_update(self.critic2, self.critic2_target)
+
+        return {
+            "critic1_loss": float(critic1_loss.item()),
+            "critic2_loss": float(critic2_loss.item()),
+            "actor_loss": float(actor_loss.item()) if actor_loss is not None else None,
+        }
+
+    def _soft_update(self, source: nn.Module, target: nn.Module):
+        for target_param, source_param in zip(target.parameters(), source.parameters()):
+            target_param.data.copy_(self.tau * source_param.data + (1.0 - self.tau) * target_param.data)
 
     def parse_obs(self, obs):
         obs_dict = {}

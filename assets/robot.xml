@@ -22,7 +22,7 @@
     <light diffuse="0.8 0.8 0.8" pos="0 0 10" dir="0 0 -1" castshadow="false"/>
 
     <!-- Ground plane -->
-    <geom name="floor" type="plane" size="20 20 0.1" material="grid"
+    <geom name="floor" type="plane" size="40 40 0.1" material="grid"
           contype="1" conaffinity="1"/>
 
     <!-- ─── Chassis ─────────────────────────────────────────────────── -->
@@ -96,12 +96,12 @@
        ctrl[5] = wheel_rr  (rear-right)
   ──────────────────────────────────────────────────────────────────── -->
   <actuator>
-    <velocity name="act_fl" joint="wheel_fl_joint" kv="100"/>
-    <velocity name="act_ml" joint="wheel_ml_joint" kv="100"/>
-    <velocity name="act_rl" joint="wheel_rl_joint" kv="100"/>
-    <velocity name="act_fr" joint="wheel_fr_joint" kv="100"/>
-    <velocity name="act_mr" joint="wheel_mr_joint" kv="100"/>
-    <velocity name="act_rr" joint="wheel_rr_joint" kv="100"/>
+    <velocity name="act_fl" joint="wheel_fl_joint" kv="85"/>
+    <velocity name="act_ml" joint="wheel_ml_joint" kv="85"/>
+    <velocity name="act_rl" joint="wheel_rl_joint" kv="85"/>
+    <velocity name="act_fr" joint="wheel_fr_joint" kv="85"/>
+    <velocity name="act_mr" joint="wheel_mr_joint" kv="85"/>
+    <velocity name="act_rr" joint="wheel_rr_joint" kv="85"/>
   </actuator>
 
 </mujoco>

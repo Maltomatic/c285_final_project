@@ -85,7 +85,7 @@ class SixWheelEnv(gym.Env):
         self.data  = mujoco.MjData(self.model)
 
         # gymnasium spaces
-        obs_size = _OBS_DIM * _OBS_STACK
+        obs_size = _OBS_DIM# * _OBS_STACK
         self.observation_space = gym.spaces.Box(
             low=-np.inf, high=np.inf, shape=(obs_size,), dtype=np.float32
         )
@@ -291,7 +291,7 @@ class SixWheelEnv(gym.Env):
         roll  = np.arctan2(2.0 * (qw * qx + qy * qz),
                            1.0 - 2.0 * (qx ** 2 + qy ** 2))
         pitch = np.arcsin(np.clip(2.0 * (qw * qy - qz * qx), -1.0, 1.0))
-        if abs(roll) > 0.7 or abs(pitch) > 0.7:
+        if abs(roll) > 1.5 or abs(pitch) > 1.5:
             return True
         # Out of bounds
         if np.any(np.abs(pos_xy) > 30.0):
