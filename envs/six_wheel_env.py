@@ -38,6 +38,7 @@ import os
 from collections import deque
 
 import mujoco
+from mujoco import viewer
 import numpy as np
 import gymnasium as gym
 
@@ -53,6 +54,10 @@ _ACTION_CLIP = 5.0       # rad/s (Need to tune this)
 _FRAME_SKIP = 10         # physics steps per env step → 0.002 * 10 = 0.02 s (the agent act at 50 Hz)
 _WHEEL_RADIUS = 0.15     # m
 _TRACK_WIDTH = 0.70      # m
+_CAM_LOOKAT = np.array([2.5, 2.5, 0.2], dtype=np.float32)
+_CAM_DISTANCE = 10.0
+_CAM_AZIMUTH = 90.0
+_CAM_ELEVATION = -25.0
 
 
 class SixWheelEnv(gym.Env):
@@ -98,12 +103,14 @@ class SixWheelEnv(gym.Env):
 
         # episode state
         self._prev_delta_omega = np.zeros(_ACTION_DIM, dtype=np.float32)
+        self._prev_omega_base = np.zeros(_ACTION_DIM, dtype=np.float32)
         self.fault_wheel_idx: int = 0
         self.fault_alpha: float   = 1.0
 
         # rendering handles
         self._viewer   = None   # mujoco.viewer passive handle (human mode)
         self._renderer = None   # mujoco.Renderer              (rgb_array mode)
+        self._camera_initialized = False
 
     # Gymnasium API
 
@@ -126,38 +133,44 @@ class SixWheelEnv(gym.Env):
 
         # Reset episode state
         self._prev_delta_omega = np.zeros(_ACTION_DIM, dtype=np.float32)
+        self._prev_omega_base = np.zeros(_ACTION_DIM, dtype=np.float32)
 
         # Fill history buffer with zeros
         self._obs_history.clear()
         for _ in range(_OBS_STACK):
             self._obs_history.append(np.zeros(_OBS_DIM, dtype=np.float32))
 
-        obs = self._get_stacked_obs()
+        stack = self._get_stacked_obs()
+        obs = self._single_obs(*self._chassis_pose(), self._prev_omega_base, self._prev_delta_omega)
         return obs, {}
 
     def step(self, action: np.ndarray):
         delta_omega = np.clip(action, -_ACTION_CLIP, _ACTION_CLIP).astype(np.float32)
 
-        # 1. Body controller
+        # 1. Post-deviation speed
+        omega_cmd = self._prev_omega_base + delta_omega
+
+        # print(f"\nLast timestep base speed: {self._prev_omega_base}, delta_omega: {delta_omega}, output speed: {omega_cmd}")
+
+        # 2. Apply fault (hidden from policy)
+        omega_faulted = omega_cmd.copy()
+        omega_faulted[self.fault_wheel_idx] *= self.fault_alpha
+
+        # 3. Step physics
+        self.data.ctrl[:] = omega_faulted
+        for _ in range(_FRAME_SKIP):
+            mujoco.mj_step(self.model, self.data)
+        
+        # 4. Body controller
         pos_xy, heading = self._chassis_pose()
         prev_wp_idx = self.wp_controller._idx          # snapshot before compute
         v, omega, _ = self.wp_controller.compute(pos_xy, heading)
         waypoint_reached = self.wp_controller._idx > prev_wp_idx  # True if we have advanced to the next waypoint
-
-        # 2. Base allocation
+        
+        # 5. New base speed for next step
         omega_base = self.allocator.allocate(v, omega)
-
-        # 3. Combine with residual
-        omega_cmd = omega_base + delta_omega
-
-        # 4. Apply fault (hidden from policy)
-        omega_faulted = omega_cmd.copy()
-        omega_faulted[self.fault_wheel_idx] *= self.fault_alpha
-
-        # 5. Step physics
-        self.data.ctrl[:] = omega_faulted
-        for _ in range(_FRAME_SKIP):
-            mujoco.mj_step(self.model, self.data)
+        # print(f"New base speed for obs: {omega_base}")
+        self._prev_omega_base = omega_base
 
         # 6. Build obs
         obs_t = self._single_obs(pos_xy, heading, omega_base, self._prev_delta_omega)
@@ -179,12 +192,19 @@ class SixWheelEnv(gym.Env):
         if self.render_mode == "human":
             self.render()
 
-        return stacked, reward, terminated, truncated, {}
+        # return stacked, reward, terminated, truncated, {}
+        return obs_t, reward, terminated, truncated, {}
 
     def render(self):
         if self.render_mode == "human":
             if self._viewer is None:
-                self._viewer = mujoco.viewer.launch_passive(self.model, self.data)
+                self._viewer = viewer.launch_passive(self.model, self.data)
+            if not self._camera_initialized:
+                self._viewer.cam.lookat[:] = _CAM_LOOKAT
+                self._viewer.cam.distance = _CAM_DISTANCE
+                self._viewer.cam.azimuth = _CAM_AZIMUTH
+                self._viewer.cam.elevation = _CAM_ELEVATION
+                self._camera_initialized = True
             self._viewer.sync()
 
         elif self.render_mode == "rgb_array":
@@ -197,6 +217,7 @@ class SixWheelEnv(gym.Env):
         if self._viewer is not None:
             self._viewer.close()
             self._viewer = None
+            self._camera_initialized = False
         if self._renderer is not None:
             self._renderer.close()
             self._renderer = None
@@ -273,7 +294,7 @@ class SixWheelEnv(gym.Env):
         if abs(roll) > 0.7 or abs(pitch) > 0.7:
             return True
         # Out of bounds
-        if np.any(np.abs(pos_xy) > 15.0):
+        if np.any(np.abs(pos_xy) > 30.0):
             return True
         return False
 

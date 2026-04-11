@@ -16,7 +16,7 @@ def tracking_reward(
     delta_omega: np.ndarray,
     prev_delta_omega: np.ndarray,
     waypoint_reached: bool,
-    weights: tuple = (1.0, 0.5, 0.01, 0.01, 50.0, 0.05),
+    weights: tuple = (0.5, 0.5, 0.01, 0.01, 50.0, 0.05),
 ) -> float:
     """
     Default reward.
@@ -33,12 +33,19 @@ def tracking_reward(
     cross_track_err = float(obs_t[0])
     heading_err     = float(obs_t[1])
 
-    r  = -w1 * abs(cross_track_err)
+    r = 0.0
+    r += -w1 * abs(cross_track_err)
+    # print("Cross-track error: -", cross_track_err)
     r += -w2 * abs(heading_err)
+    # print("Heading error: -", heading_err)
     r += -w3 * float(np.sum(delta_omega ** 2))
+    # print("Action magnitude: -", float(np.sum(delta_omega ** 2)))
     r += -w4 * float(np.sum((delta_omega - prev_delta_omega) ** 2))
+    # print("Action smoothness: -", float(np.sum((delta_omega - prev_delta_omega) ** 2)))
     r += +w5 * float(waypoint_reached)
+    # print("Waypoint reached bonus: ", float(waypoint_reached))
     r += -w6
+    # print("Total step reward: ", r)
     return r
 
 

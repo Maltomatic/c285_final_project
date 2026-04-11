@@ -12,11 +12,28 @@ import numpy as np
 # ── Waypoint trajectory ──────────────────────────────────────────────────────
 # L-shape + return: straight → 90° corner → back → home
 WAYPOINTS = np.array([
-    [5.0, 0.0],   # straight along X
-    [5.0, 5.0],   # 90° left turn, then straight along Y
-    [0.0, 5.0],   # 90° left turn, back toward X=0
+    [12.0, 0.0],
+    [18.0, 0.0],   # straight along X
+    [20.0, 3.5],
+    [15.5, 8.0],
+    [18.0, 15.0],
+    [20.0, 17.0],
+    [20.0, 20.0],   # 90° left turn, then straight along Y
+    [0.0, 20.0],   # 90° left turn, back toward X=0
+    [0.0, 15.0],
+    [2.0, 18.5],
+    [6.0, 15.0],
+    [4.0, 14.0],
+    [2.0, 12.0],
+    [0.0, 17.0],
     [0.0, 0.0],   # home
 ], dtype=np.float64)
+# WAYPOINTS = np.array([
+#     [5.0, 0.0],   # straight along X
+#     [5.0, 5.0],   # 90° left turn, then straight along Y
+#     [0.0, 5.0],   # 90° left turn, back toward X=0
+#     [0.0, 0.0],   # home
+# ], dtype=np.float64)
 
 
 def _wrap_to_pi(angle: float) -> float:
@@ -37,10 +54,10 @@ class WaypointController:
     def __init__(
         self,
         waypoints: np.ndarray = WAYPOINTS,
-        arrival_radius: float = 0.3,
-        kp_heading: float = 3.0,
-        v_max: float = 2.0,
-        omega_max: float = 2.5,
+        arrival_radius: float = 0.8,
+        kp_heading: float = 2.5,
+        v_max: float = 1.5,
+        omega_max: float = 2.0,
     ):
         self.waypoints = np.array(waypoints, dtype=np.float64)
         self.arrival_radius = arrival_radius
@@ -91,6 +108,8 @@ class WaypointController:
             wp = self.waypoints[self._idx]
             dx, dy = wp - pos_xy
             dist = np.hypot(dx, dy)
+        
+        # print(f"Target: {wp}, Distance to target: {dist}")
 
         desired_heading = np.arctan2(dy, dx)
         heading_error = _wrap_to_pi(desired_heading - heading)
@@ -99,8 +118,10 @@ class WaypointController:
         omega = float(np.clip(self.kp_heading * heading_error,
                                -self.omega_max, self.omega_max))
 
-        # Slow down when pointing away from goal
-        v = float(self.v_max * max(0.0, np.cos(heading_error)))
+        # Slow down when pointing away from goal, and decrease speed as we get closer
+        dist_modulator = np.cos(heading_error) * (dist / self.arrival_radius)
+        dist_modulator = np.clip(dist_modulator, 0.0, 1.0)
+        v = float(self.v_max * max(0.0, np.cos(heading_error))) * dist_modulator
 
         return v, omega, False
 

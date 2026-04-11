@@ -122,9 +122,9 @@ env = gym.make("SixWheelSkidSteer-v0")
 | 2 | dist to waypoint (m) | how far to go |
 | 3 | v_forward (m/s) | chassis speed in robot frame |
 | 4 | omega_z (rad/s) | yaw rate |
-| 5:11 | **actual wheel velocities** (rad/s) | what the wheels actually did |
-| 11:17 | **omega_base** — base allocator output (rad/s) | what the controller commanded |
-| 17:23 | prev_delta_omega (rad/s) | last RL action |
+| 5:11 | **current wheel velocities** (rad/s) | what the wheels actually did |
+| 11:17 | **base wheel velocities** — base allocator output (rad/s) | what the controller commanded |
+| 17:23 | previous deviation (rad/s) | last RL action |
 
 > **Fault detection relies on indices 5:17.** When a wheel is degraded, `actual[i] < omega_base[i] + delta_omega[i]`. The 5-frame stack lets the policy see this discrepancy persisting over time, distinguishing a permanent fault from a transient slip.
 
@@ -180,7 +180,7 @@ r = +w1*(waypoint_reached) - w2
 |---|---|
 | All waypoints reached | `terminated=True` |
 | Roll or pitch > 0.7 rad (~40°) | `terminated=True` |
-| Position > 15 m from origin | `terminated=True` |
+| Position > 30 m from origin | `terminated=True` |
 | 2000 env steps elapsed | `truncated=True` (TimeLimit wrapper) |
 
 ---
