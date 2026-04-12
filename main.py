@@ -62,7 +62,7 @@ def main():
     parser.add_argument(
         "--num-envs",
         type=int,
-        default=max(1, multiprocessing.cpu_count()),
+        default=max(1, multiprocessing.cpu_count()-1),
         help="Number of parallel environments to launch",
     )
     args = parser.parse_args()
