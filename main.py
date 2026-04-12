@@ -205,14 +205,15 @@ def main():
             # train, log, update
             bt2 = time.perf_counter()
             losses = train_losses[0] if GPU_THREAD else agent.train_step()
-            if global_step % 1000 == 0:
+            if global_step % (1000 * NUM_ENVS) == 0:
                 agent.decay_epsilon()
+            if global_step % 1000 == 0:
                 print(f"Episode {episode}, global step {global_step}, Losses: {losses}")
                 print(f"\tReplay buffer size: {len(agent.replay)}  |  Epsilon: {agent.epsilon:.3f}")
                 if losses:
                     logging(episode, global_step, losses['critic1_loss'], losses['critic2_loss'], losses['actor_loss'])
             obs_t = next_obs_t
-            global_step += 1
+            global_step += NUM_ENVS
             episode = episode_cnt.min()
 
             # Benchmark: every half min, report throughput
