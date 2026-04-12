@@ -128,7 +128,7 @@ env = gym.make("SixWheelSkidSteer-v0")
 
 > **Fault detection relies on indices 5:17.** When a wheel is degraded, `actual[i] < omega_base[i] + delta_omega[i]`. The 5-frame stack lets the policy see this discrepancy persisting over time, distinguishing a permanent fault from a transient slip.
 
-### Action Space — `Box(6,)` float32, clipped to ±5 rad/s
+### Action Space — `Box(6,)` float32, clipped to ±15 rad/s
 
 `delta_omega` — additive wheel velocity corrections on top of `omega_base`. The actual command sent to MuJoCo is:
 

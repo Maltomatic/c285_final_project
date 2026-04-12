@@ -45,10 +45,10 @@ class Agent(nn.Module):
 
         self.replay = ReplayBuffer(CAPACITY, STACK_OBS_DIM, ACT_DIM)
         self.batch_size = 1024
-        self.gamma = 0.997
+        self.gamma = 0.995
         self.tau = 0.005
-        self.policy_noise = 0.5
-        self.noise_clip = 1.5
+        self.policy_noise = 0.2
+        self.noise_clip = 0.5
         self.policy_freq = 2
         self.max_action = 15.0
         self.max_grad_norm = 3.0
@@ -63,9 +63,8 @@ class Agent(nn.Module):
         self.hist_reset()
 
         self.epsilon = 0.99
-        self.epsilon_decay = 0.995
+        self.epsilon_decay = 0.9955
         self.epsilon_min = 0.05
-        self.decay_steps = 10
 
         self.checkpoint_load(checkpoint_path)
     def hist_reset(self):
@@ -131,11 +130,8 @@ class Agent(nn.Module):
         return action
 
     def decay_epsilon(self):
-        self.decay_steps -= 1
-        if self.decay_steps <= 0:
-            self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
-            self.decay_steps = 10
-
+        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+        
     def save_transition(self, obs, action, reward, done, next_obs):
         obs_np = obs.detach().cpu().numpy() if isinstance(obs, torch.Tensor) else np.asarray(obs, dtype=np.float32)
         next_obs_np = (next_obs.detach().cpu().numpy() if isinstance(next_obs, torch.Tensor) else np.asarray(next_obs, dtype=np.float32))
@@ -150,11 +146,10 @@ class Agent(nn.Module):
         self.total_it += 1
 
         # Sample batch
-        idx = np.random.choice(len(self.replay), size=self.batch_size, replace=False)
         states, actions, rewards, dones, next_states = self.replay.sample(self.batch_size, device=self.device)
         with torch.no_grad():
             noise = (torch.randn_like(actions) * self.policy_noise).clamp(-self.noise_clip, self.noise_clip)
-            next_actions = (self.actor_target(next_states) * self.max_action + noise).clamp(-self.max_action, self.max_action)
+            next_actions = (self.actor_target(next_states) + noise).clamp(-self.max_action, self.max_action)
             next_state_action = torch.cat([next_states, next_actions], dim=1)
             target_q1 = self.critic1_target(next_state_action)
             target_q2 = self.critic2_target(next_state_action)
@@ -179,9 +174,10 @@ class Agent(nn.Module):
 
         actor_loss = self._loss
         if self.total_it % self.policy_freq == 0:
-            pi_actions = self.actor(states) * self.max_action
+            pi_raw = self.actor(states)
+            pi_actions = pi_raw.clamp(-self.max_action, self.max_action)
             pi_state_action = torch.cat([states, pi_actions], dim=1)
-            actor_loss = -self.critic1(pi_state_action).mean()
+            actor_loss = -self.critic1(pi_state_action).mean() + 1e-3 * (pi_actions**2).mean()
             self._loss = actor_loss.detach().cpu()
 
             self.actor_optimizer.zero_grad()

@@ -123,7 +123,7 @@ def main():
     def estimate_q(obs_state: torch.Tensor) -> float:
         with torch.no_grad():
             obs = obs_state.to(agent.device).unsqueeze(0)
-            act = torch.clamp(agent.actor(obs) * agent.max_action, -agent.max_action, agent.max_action)
+            act = torch.clamp(agent.actor(obs), -agent.max_action, agent.max_action)
             assess = torch.cat([obs, act], dim=1)
             q1 = agent.critic1(assess)
             q2 = agent.critic2(assess)
@@ -202,11 +202,11 @@ def main():
                     episode_cnt[i] += NUM_ENVS
                     episode_discounted_rewards[i] = 0.0
                     episode_rewards[i] = 0.0
-                    agent.decay_epsilon()
             # train, log, update
             bt2 = time.perf_counter()
             losses = train_losses[0] if GPU_THREAD else agent.train_step()
             if global_step % 1000 == 0:
+                agent.decay_epsilon()
                 print(f"Episode {episode}, global step {global_step}, Losses: {losses}")
                 print(f"\tReplay buffer size: {len(agent.replay)}  |  Epsilon: {agent.epsilon:.3f}")
                 if losses:

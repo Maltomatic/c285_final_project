@@ -22,7 +22,7 @@ Observation (23 values per timestep, stacked K=5 → 115 total)
 
 Action
 ──────
-  delta_omega : (6,) wheel velocity corrections, clipped to ±5 rad/s
+  delta_omega : (6,) wheel velocity corrections, clipped to ±15 rad/s
 
 Fault model
 ───────────
@@ -172,7 +172,7 @@ class SixWheelEnv(gym.Env):
         for _ in range(_OBS_STACK):
             self._obs_history.append(np.zeros(_OBS_DIM, dtype=np.float32))
 
-        stack = self._get_stacked_obs()
+        # stack = self._get_stacked_obs()
         obs = self._single_obs(*self._chassis_pose(), self._prev_omega_base, self._prev_delta_omega)
         return obs, {}
 
@@ -212,17 +212,17 @@ class SixWheelEnv(gym.Env):
         # 6. Build obs
         obs_t = self._single_obs(pos_xy, heading, omega_base, self._prev_delta_omega)
         self._obs_history.append(obs_t)
-        stacked = self._get_stacked_obs()
+        # stacked = self._get_stacked_obs()
 
         # 7. Reward
         if self.reward_weights is not None:    
             reward = self.reward_fn(
-                obs_t, delta_omega, self._prev_delta_omega,
+                obs_t, action, self._prev_delta_omega,
                 waypoint_reached, self.reward_weights
             )
         else:
             reward = self.reward_fn(
-                obs_t, delta_omega, self._prev_delta_omega,
+                obs_t, action, self._prev_delta_omega,
                 waypoint_reached
             )
 
