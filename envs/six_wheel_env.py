@@ -61,7 +61,7 @@ _CAM_DISTANCE = 10.0
 _CAM_AZIMUTH = 90.0
 _CAM_ELEVATION = -25.0
 
-NO_FAULT = True#False
+NO_FAULT = False
 
 class SixWheelEnv(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 50}
@@ -71,7 +71,8 @@ class SixWheelEnv(gym.Env):
         render_mode: str | None = None,
         reward_fn=tracking_reward,
         reward_weights: tuple | None = None,
-        env_id = 0
+        env_id = 0,
+        no_fault: bool | None = None,
     ):
         super().__init__()
 
@@ -84,6 +85,7 @@ class SixWheelEnv(gym.Env):
         self.reward_fn = reward_fn
         self.reward_weights = reward_weights if reward_weights is not None else None
         self.env_id = env_id
+        self.no_fault = NO_FAULT if no_fault is None else bool(no_fault)
 
         # load MuJoCo model (once, shared across resets)
         self.model = mujoco.MjModel.from_xml_path(_XML_PATH)
@@ -152,10 +154,10 @@ class SixWheelEnv(gym.Env):
 
         # Fault injection (sampled fresh every episode)
         self.fault_wheel_idx = int(self.np_random.integers(0, _ACTION_DIM))
-        self.fault_alpha      = 1.0 if NO_FAULT else float(self.np_random.uniform(0.0, 1.0))
+        self.fault_alpha      = 1.0 if self.no_fault else float(self.np_random.uniform(0.0, 1.0))
 
-        # if not NO_FAULT:
-        #     print(f"Fault in env {self.env_id}: wheel {self.fault_wheel_idx} at {self.fault_alpha:.2f}x effectiveness")
+        if not self.no_fault:
+            print(f"Fault in env {self.env_id}: wheel {self.fault_wheel_idx} at {self.fault_alpha:.2f}x effectiveness")
 
         # Reset controllers
         self.wp_controller.reset()

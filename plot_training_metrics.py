@@ -110,13 +110,24 @@ def _read_episode_log(path: Path):
 
 def main():
     parser = argparse.ArgumentParser(description="Plot TD3 training metrics from CSV logs")
-    parser.add_argument("--training-log", default="training_log.csv", help="Path to training log CSV")
-    parser.add_argument("--episode-log", default="episode_log.csv", help="Path to episode log CSV")
+    parser.add_argument(
+        "prefix",
+        nargs="?",
+        default="",
+        help="Optional filename prefix (e.g. 'fault' -> fault-training_log.csv)",
+    )
+    parser.add_argument("--training-log", default="", help="Path to training log CSV")
+    parser.add_argument("--episode-log", default="", help="Path to episode log CSV")
     parser.add_argument("--outdir", default=".", help="Directory to write output PNGs")
     args = parser.parse_args()
 
-    training_log = Path(args.training_log)
-    episode_log = Path(args.episode_log)
+    prefix = args.prefix.strip()
+    file_prefix = f"{prefix}-" if prefix else ""
+    training_name = f"{file_prefix}training_log.csv"
+    episode_name = f"{file_prefix}episode_returns.csv"
+
+    training_log = Path(args.training_log) if args.training_log else Path(training_name)
+    episode_log = Path(args.episode_log) if args.episode_log else Path(episode_name)
     outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
 
@@ -139,7 +150,7 @@ def main():
     plt.grid(True, alpha=0.25)
     plt.legend()
     plt.tight_layout()
-    losses_path = outdir / "losses_vs_global_steps.png"
+    losses_path = outdir / f"{file_prefix}losses_vs_global_steps.png"
     plt.savefig(losses_path, dpi=160)
     plt.close()
 
@@ -154,7 +165,7 @@ def main():
     plt.grid(True, alpha=0.25)
     plt.legend()
     plt.tight_layout()
-    rewards_path = outdir / "rewards_vs_episode.png"
+    rewards_path = outdir / f"{file_prefix}rewards_vs_episode.png"
     plt.savefig(rewards_path, dpi=160)
     plt.close()
 
@@ -167,9 +178,44 @@ def main():
     plt.grid(True, alpha=0.25)
     plt.legend()
     plt.tight_layout()
-    steps_path = outdir / "steps_vs_episode.png"
+    steps_path = outdir / f"{file_prefix}steps_vs_episode.png"
     plt.savefig(steps_path, dpi=160)
     plt.close()
+
+    # Show all three plots in one interactive 2x2 window after saving individual PNGs.
+    fig, axes = plt.subplots(2, 2, figsize=(12, 12), constrained_layout=True)
+    ax_ul, ax_ur = axes[0]
+    ax_ll, ax_lr = axes[1]
+
+    ax_ul.plot(steps, c1, label="Critic1 Loss", linewidth=1.5)
+    ax_ul.plot(steps, c2, label="Critic2 Loss", linewidth=1.5)
+    ax_ul.plot(steps, actor, label="Actor Loss", linewidth=1.5)
+    ax_ul.set_xlabel("Global Steps")
+    ax_ul.set_ylabel("Loss")
+    ax_ul.set_title("Losses vs Global Steps")
+    ax_ul.grid(True, alpha=0.25)
+    ax_ul.legend()
+
+    ax_ur.plot(episodes, rewards, label="Total Reward", linewidth=1.5)
+    ax_ur.plot(episodes, discounted, label="Discounted Reward", linewidth=1.5)
+    ax_ur.plot(episodes, expected_qs, label="Expected Q (episode start)", linewidth=1.5)
+    ax_ur.set_xlabel("Episode")
+    ax_ur.set_ylabel("Reward")
+    ax_ur.set_title("Rewards and Expected Q vs Episode")
+    ax_ur.grid(True, alpha=0.25)
+    ax_ur.legend()
+
+    ax_ll.plot(episodes, steps_per_episode, label="Episode Steps", linewidth=1.5)
+    ax_ll.set_xlabel("Episode")
+    ax_ll.set_ylabel("Steps")
+    ax_ll.set_title("Steps vs Episode")
+    ax_ll.grid(True, alpha=0.25)
+    ax_ll.legend()
+
+    # Keep lower-right quadrant intentionally empty.
+    ax_lr.axis("off")
+
+    plt.show()
 
     print(f"Saved: {losses_path}")
     print(f"Saved: {rewards_path}")

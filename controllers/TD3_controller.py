@@ -11,8 +11,10 @@ from controllers.models.critic import Critic
 OBS_DIM = 23
 ACT_DIM = 6
 
+COMPILE = False
+
 class Agent(nn.Module):
-    def __init__(self, num_envs = 1):
+    def __init__(self, num_envs = 1, checkpoint_path="td3_checkpoint"):
         super(Agent, self).__init__()
         self.num_envs = num_envs
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -24,14 +26,22 @@ class Agent(nn.Module):
         self.critic1_target = copy.deepcopy(self.critic1)
         self.critic2 = Critic(state_dim, action_dim).to(self.device)
         self.critic2_target = copy.deepcopy(self.critic2)
+        # compile for faster training
+        if self.device.type == 'cuda' and COMPILE:
+            self.actor = torch.compile(self.actor)
+            self.critic1 = torch.compile(self.critic1)
+            self.critic2 = torch.compile(self.critic2)
+            self.actor_target = torch.compile(self.actor_target)
+            self.critic1_target = torch.compile(self.critic1_target)
+            self.critic2_target = torch.compile(self.critic2_target)
 
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=1e-4)
         self.critic1_optimizer = torch.optim.Adam(self.critic1.parameters(), lr=1e-3)
         self.critic2_optimizer = torch.optim.Adam(self.critic2.parameters(), lr=1e-3)
 
-        self.replay = deque(maxlen=1_000_000)
+        self.replay = deque(maxlen=700_000)
         self.batch_size = 1024
-        self.gamma = 0.99
+        self.gamma = 0.997
         self.tau = 0.005
         self.policy_noise = 0.5
         self.noise_clip = 1.5
@@ -48,12 +58,12 @@ class Agent(nn.Module):
         self.ang_hist = [deque(maxlen=5) for _ in range(num_envs)]
         self.hist_reset()
 
-        self.epsilon = 1.0
+        self.epsilon = 0.45
         self.epsilon_decay = 0.995
         self.epsilon_min = 0.05
         self.decay_steps = 10
 
-        self.checkpoint_load("td3_checkpoint")
+        self.checkpoint_load(checkpoint_path)
     def hist_reset(self):
         for env_id in range(self.num_envs):
             self.hist_reset_single_env(env_id)
@@ -192,35 +202,39 @@ class Agent(nn.Module):
             "actor_loss": float(actor_loss.item()) if actor_loss is not None else None,
         }
 
+    def unwrap(self, m):
+        return m._orig_mod if hasattr(m, '_orig_mod') else m
+
     def checkpoint_save(self, path):
         torch.save({
-            'actor': self.actor.state_dict(),
-            'critic1': self.critic1.state_dict(),
-            'critic2': self.critic2.state_dict(),
-            'actor_target': self.actor_target.state_dict(),
-            'critic1_target': self.critic1_target.state_dict(),
-            'critic2_target': self.critic2_target.state_dict(),
+            'actor': self.unwrap(self.actor).state_dict(),
+            'critic1': self.unwrap(self.critic1).state_dict(),
+            'critic2': self.unwrap(self.critic2).state_dict(),
+            'actor_target': self.unwrap(self.actor_target).state_dict(),
+            'critic1_target': self.unwrap(self.critic1_target).state_dict(),
+            'critic2_target': self.unwrap(self.critic2_target).state_dict(),
             'actor_optimizer': self.actor_optimizer.state_dict(),
             'critic1_optimizer': self.critic1_optimizer.state_dict(),
             'critic2_optimizer': self.critic2_optimizer.state_dict(),
+            'epsilon': self.epsilon,
         }, path + ".pth")
-        save_replay = input("Save replay buffer? (y/n): ")
-        if save_replay.strip().lower() == 'y':
-            torch.save(list(self.replay), path + "_replay.pth")
+        # save_replay = input("Save replay buffer? (y/n): ")
+        torch.save(list(self.replay), path + "_replay.pth")
     
     def checkpoint_load(self, path):
         try:
             ckpt_path = path + ".pth"
             checkpoint = torch.load(ckpt_path, map_location=self.device)
-            self.actor.load_state_dict(checkpoint['actor'])
-            self.critic1.load_state_dict(checkpoint['critic1'])
-            self.critic2.load_state_dict(checkpoint['critic2'])
-            self.actor_target.load_state_dict(checkpoint['actor_target'])
-            self.critic1_target.load_state_dict(checkpoint['critic1_target'])
-            self.critic2_target.load_state_dict(checkpoint['critic2_target'])
+            self.unwrap(self.actor).load_state_dict(checkpoint['actor'])
+            self.unwrap(self.critic1).load_state_dict(checkpoint['critic1'])
+            self.unwrap(self.critic2).load_state_dict(checkpoint['critic2'])
+            self.unwrap(self.actor_target).load_state_dict(checkpoint['actor_target'])
+            self.unwrap(self.critic1_target).load_state_dict(checkpoint['critic1_target'])
+            self.unwrap(self.critic2_target).load_state_dict(checkpoint['critic2_target'])
             self.actor_optimizer.load_state_dict(checkpoint['actor_optimizer'])
             self.critic1_optimizer.load_state_dict(checkpoint['critic1_optimizer'])
             self.critic2_optimizer.load_state_dict(checkpoint['critic2_optimizer'])
+            self.epsilon = float(checkpoint.get('epsilon', self.epsilon))
             self._optimizer_to_device(self.actor_optimizer)
             self._optimizer_to_device(self.critic1_optimizer)
             self._optimizer_to_device(self.critic2_optimizer)
@@ -229,7 +243,7 @@ class Agent(nn.Module):
         try:
             replay_path = path + "_replay.pth"
             replay_data = torch.load(replay_path, map_location='cpu', weights_only=False)
-            self.replay = deque(replay_data, maxlen=1_000_000)
+            self.replay = deque(replay_data, maxlen=700_000)
             print(f"Replay buffer loaded from {replay_path}")
         except FileNotFoundError:
             print(f"No replay buffer found at {replay_path}, starting with empty buffer.")

@@ -1,3 +1,4 @@
+import argparse
 import numpy as np
 import torch, envs, gymnasium as gym
 from envs.six_wheel_env import SixWheelEnv
@@ -6,9 +7,9 @@ import time, csv, os, multiprocessing, threading
 from envs.rewards import tracking_reward, sparse_reward
 
 G_STEPS = 1_000_000
-DISCOUNT = 0.97
+DISCOUNT = 0.997
 
-NUM_ENVS = max(1, multiprocessing.cpu_count() - 1)
+NUM_ENVS = max(1, multiprocessing.cpu_count())
 RWD_FN = 'tracking' # 'tracking', 'sparse'
 
 RENDER_TRAINING = False
@@ -17,6 +18,7 @@ GPU_THREAD = False # True may be faster if GPU is strong and CPU is meh; on lapt
 
 csv_path = 'training_log.csv'
 csv_eps_log_path = 'episode_log.csv'
+checkpoint_base_path = 'td3_checkpoint'
 
 def print_d(*args, **kwargs):
     if DEBUG:
@@ -45,20 +47,43 @@ def reset():
     obs = env.reset()
     return obs
 
-def make_env(rwd = "tracking", id=0):
+def make_env(rwd = "tracking", id=0, no_fault=False):
     def _init():
         return gym.make("SixWheelSkidSteer-v0",
                         render_mode="human" if RENDER_TRAINING else None,
                         reward_fn=tracking_reward if rwd == "tracking" else sparse_reward if rwd == "sparse" else None,
-                        env_id = id)
+                        env_id=id,
+                        no_fault=no_fault)
     return _init
 
 def main():
-    envs = gym.vector.AsyncVectorEnv([make_env(RWD_FN, i) for i in range(NUM_ENVS)])
-    agent = Agent(num_envs=NUM_ENVS)
+    parser = argparse.ArgumentParser(description="Train TD3 with parallel environments")
+    parser.add_argument("--no-fault", action="store_true", help="Disable injected wheel faults (NO_FAULT mode)")
+    parser.add_argument("--exp-name", type=str, default=None, help="Experiment prefix for logs/checkpoints")
+    parser.add_argument(
+        "--num-envs",
+        type=int,
+        default=NUM_ENVS,
+        help="Number of parallel environments to launch",
+    )
+    args = parser.parse_args()
+
+    no_fault = bool(args.no_fault)
+    exp_prefix = args.exp_name.strip() if args.exp_name else ("normal" if no_fault else "fault")
+
+    global NUM_ENVS, csv_path, csv_eps_log_path, checkpoint_base_path
+    NUM_ENVS = max(1, int(args.num_envs))
+    csv_path = f"{exp_prefix}-training_log.csv"
+    csv_eps_log_path = f"{exp_prefix}-episode_returns.csv"
+    checkpoint_base_path = f"{exp_prefix}-td3_checkpoint"
+
+    envs = gym.vector.AsyncVectorEnv([make_env(RWD_FN, i, no_fault=no_fault) for i in range(NUM_ENVS)])
+    agent = Agent(num_envs=NUM_ENVS, checkpoint_path=checkpoint_base_path)
     print(f"Launching {NUM_ENVS} parallel environments.")
     print(f"GPU thread enabled: {GPU_THREAD}")
     print(f"Reward function: {RWD_FN}")
+    print(f"NO_FAULT: {no_fault}")
+    print(f"Experiment prefix: {exp_prefix}")
     print(f"Training on device: {agent.device}, env action device: {'GPU' if agent.device.type == 'cuda' else 'CPU'}")
     train_thread = None
     train_losses = [None]
@@ -200,9 +225,10 @@ def main():
                 print(f"\t[BENCH] {iter_per_sec:.1f} iter/s")
                 bench_last_check = now
                 bench_last_step = global_step
-    except KeyboardInterrupt:
+    except Exception as e:
+        print(e)
         print("Training interrupted, saving checkpoint.")
-        agent.checkpoint_save(path="td3_checkpoint")
+        agent.checkpoint_save(path=checkpoint_base_path)
     finally:
         envs.close()
 
