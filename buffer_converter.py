@@ -2,9 +2,8 @@ import torch
 import numpy as np
 from controllers.TD3_controller import ReplayBuffer
 
-OBS_DIM = 100  # 6*5*3 + 1*5*2
-ACT_DIM = 6
-CAPACITY = 1_000_000
+from controllers.utils.controller_config import CAPACITY
+from envs.configs import STACK_OBS_DIM as OBS_DIM, _ACTION_DIM as ACT_DIM
 
 EXP = "fault"
 

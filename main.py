@@ -205,7 +205,8 @@ def main():
             bt2 = time.perf_counter()
             losses = train_losses[0] if GPU_THREAD else agent.train_step()
             
-            if global_step % DECAY_INTERVAL == 0:
+            if (global_step > DECAY_INTERVAL and (global_step // DECAY_INTERVAL >  (global_step - NUM_ENVS) // DECAY_INTERVAL )):
+                # print("eps decay")
                 agent.decay_epsilon()
                 print(f"Episode {episode}, global step {global_step}, Losses: {losses}")
                 print(f"\tReplay buffer size: {len(agent.replay)}  |  Epsilon: {agent.epsilon:.3f}")
