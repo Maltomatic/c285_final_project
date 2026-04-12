@@ -1,3 +1,5 @@
+from collections.abc import Iterator
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -12,10 +14,9 @@ from controllers.utils.replay import ReplayBuffer
 
 from envs.configs import _ACTION_CLIP, STACK_OBS_DIM, _ACTION_DIM as ACT_DIM
 
-from controllers.utils.controller_config import EPS_START, EPS_DECAY, EPS_MIN
+from controllers.utils.controller_config import EPS_START, EPS_DECAY, EPS_MIN, CAPACITY
 
 COMPILE = False
-CAPACITY = 1_000_000
 
 class Agent(nn.Module):
     def __init__(self, num_envs = 1, checkpoint_path="td3_checkpoint"):
@@ -67,6 +68,26 @@ class Agent(nn.Module):
         self.epsilon_min = EPS_MIN
 
         self.checkpoint_load(checkpoint_path)
+
+        self.printout()
+    
+    def printout(self):
+        # print out hyperparameters
+        print(f"TD3 Agent initialized with:")
+        print(f"\tDevice: {self.device}")
+        print(f"\tReplay buffer capacity: {CAPACITY}")
+        print(f"\tBatch size: {self.batch_size}")
+        print(f"\tGamma (discount): {self.gamma}")
+        print(f"\tTau (target update rate): {self.tau}")
+        print(f"\tPolicy noise: {self.policy_noise}")
+        print(f"\tNoise clip: {self.noise_clip}")
+        print(f"\tPolicy update frequency: {self.policy_freq}")
+        print(f"\tMax action: {self.max_action}")
+        print(f"\tMax grad norm: {self.max_grad_norm}")
+        print(f"\tEpsilon start: {EPS_START}")
+        print(f"\tEpsilon decay: {EPS_DECAY}")
+        print(f"\tEpsilon min: {EPS_MIN}")
+
     def hist_reset(self):
         for env_id in range(self.num_envs):
             self.hist_reset_single_env(env_id)
