@@ -6,8 +6,7 @@ from controllers.TD3_controller import Agent
 import time, csv, os, multiprocessing, threading
 from envs.rewards import tracking_reward, sparse_reward
 
-G_STEPS = 50_000_000
-DISCOUNT = 0.997
+from controllers.utils.controller_config import DECAY_INTERVAL, DISCOUNT, G_STEPS
 
 RWD_FN = 'tracking' # 'tracking', 'sparse'
 
@@ -206,7 +205,7 @@ def main():
             bt2 = time.perf_counter()
             losses = train_losses[0] if GPU_THREAD else agent.train_step()
             
-            if global_step % 1000 == 0:
+            if global_step % DECAY_INTERVAL == 0:
                 agent.decay_epsilon()
                 print(f"Episode {episode}, global step {global_step}, Losses: {losses}")
                 print(f"\tReplay buffer size: {len(agent.replay)}  |  Epsilon: {agent.epsilon:.3f}")

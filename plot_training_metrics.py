@@ -5,6 +5,9 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 
+N_PTS = 200
+
+
 def _normalize(name: str) -> str:
     return "".join(ch for ch in name.lower() if ch.isalnum())
 
@@ -16,6 +19,19 @@ def _resolve_column(fieldnames, candidates):
         if key in norm_map:
             return norm_map[key]
     raise KeyError(f"Could not find any of columns: {candidates}. Found: {fieldnames}")
+
+
+def _sample_series(x_values, *series, max_points=N_PTS):
+    if len(x_values) <= max_points or max_points <= 0:
+        return (x_values, *series)
+
+    last_idx = len(x_values) - 1
+    # Uniformly sample indices while always including first and last points.
+    indices = sorted({round(i * last_idx / (max_points - 1)) for i in range(max_points)})
+
+    sampled_x = [x_values[i] for i in indices]
+    sampled_series = [[values[i] for i in indices] for values in series]
+    return (sampled_x, *sampled_series)
 
 
 def _read_training_log(path: Path):
@@ -138,6 +154,15 @@ def main():
 
     steps, c1, c2, actor = _read_training_log(training_log)
     episodes, steps_per_episode, rewards, discounted, expected_qs = _read_episode_log(episode_log)
+
+    steps, c1, c2, actor = _sample_series(steps, c1, c2, actor)
+    episodes, steps_per_episode, rewards, discounted, expected_qs = _sample_series(
+        episodes,
+        steps_per_episode,
+        rewards,
+        discounted,
+        expected_qs,
+    )
 
     # Graph 1: losses over global steps
     plt.figure(figsize=(10, 6))

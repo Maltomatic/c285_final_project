@@ -10,8 +10,9 @@ from controllers.models.critic import Critic
 
 from controllers.utils.replay import ReplayBuffer
 
-from envs.configs import _ACTION_CLIP, STACK_OBS_DIM, _ACTION_DIM
-ACT_DIM = _ACTION_DIM
+from envs.configs import _ACTION_CLIP, STACK_OBS_DIM, _ACTION_DIM as ACT_DIM
+
+from controllers.utils.controller_config import EPS_START, EPS_DECAY, EPS_MIN
 
 COMPILE = False
 CAPACITY = 1_000_000
@@ -61,9 +62,9 @@ class Agent(nn.Module):
         self.ang_hist = [deque(maxlen=5) for _ in range(num_envs)]
         self.hist_reset()
 
-        self.epsilon = 0.99
-        self.epsilon_decay = 0.9955
-        self.epsilon_min = 0.05
+        self.epsilon = EPS_START
+        self.epsilon_decay = EPS_DECAY
+        self.epsilon_min = EPS_MIN
 
         self.checkpoint_load(checkpoint_path)
     def hist_reset(self):
