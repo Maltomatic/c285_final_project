@@ -8,7 +8,10 @@ import copy
 from controllers.models.actor import Actor
 from controllers.models.critic import Critic
 
+from controllers.utils.replay import ReplayBuffer
+
 OBS_DIM = 23
+STACK_OBS_DIM = 6*5*3 + 1*5*2 # 6 wheels, base/dev/actual ; 1 vel ; 1 ang
 ACT_DIM = 6
 
 COMPILE = False
@@ -19,7 +22,7 @@ class Agent(nn.Module):
         super(Agent, self).__init__()
         self.num_envs = num_envs
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        state_dim = 6*5*3 + 1*5*2 # 6 wheels, base/dev/actual ; 1 vel ; 1 ang
+        state_dim = STACK_OBS_DIM
         action_dim = ACT_DIM
         self.actor = Actor(state_dim, action_dim).to(self.device)
         self.actor_target = copy.deepcopy(self.actor)
@@ -40,7 +43,7 @@ class Agent(nn.Module):
         self.critic1_optimizer = torch.optim.Adam(self.critic1.parameters(), lr=1e-3)
         self.critic2_optimizer = torch.optim.Adam(self.critic2.parameters(), lr=1e-3)
 
-        self.replay = deque(maxlen=CAPACITY)
+        self.replay = ReplayBuffer(CAPACITY, STACK_OBS_DIM, ACT_DIM)
         self.batch_size = 1024
         self.gamma = 0.997
         self.tau = 0.005
@@ -138,10 +141,9 @@ class Agent(nn.Module):
         next_obs_np = (next_obs.detach().cpu().numpy() if isinstance(next_obs, torch.Tensor) else np.asarray(next_obs, dtype=np.float32))
         action_np = np.asarray(action, dtype=np.float32)
         done = float(done)
-        self.replay.append((obs_np, action_np, reward, done, next_obs_np))
+        self.replay.add(obs_np, action_np, reward, done, next_obs_np)
 
     def train_step(self):
-
         if len(self.replay) < self.batch_size:
             return None
 
@@ -149,13 +151,7 @@ class Agent(nn.Module):
 
         # Sample batch
         idx = np.random.choice(len(self.replay), size=self.batch_size, replace=False)
-        batch = [self.replay[i] for i in idx]
-        states = torch.tensor(np.stack([b[0] for b in batch]), dtype=torch.float32, device=self.device)
-        actions = torch.tensor(np.stack([b[1] for b in batch]), dtype=torch.float32, device=self.device)
-        rewards = torch.tensor(np.array([b[2] for b in batch], dtype=np.float32), device=self.device).unsqueeze(1)
-        dones = torch.tensor(np.array([b[3] for b in batch], dtype=np.float32), device=self.device).unsqueeze(1)
-        next_states = torch.tensor(np.stack([b[4] for b in batch]), dtype=torch.float32, device=self.device)
-
+        states, actions, rewards, dones, next_states = self.replay.sample(self.batch_size, device=self.device)
         with torch.no_grad():
             noise = (torch.randn_like(actions) * self.policy_noise).clamp(-self.noise_clip, self.noise_clip)
             next_actions = (self.actor_target(next_states) * self.max_action + noise).clamp(-self.max_action, self.max_action)
@@ -220,7 +216,14 @@ class Agent(nn.Module):
             'epsilon': self.epsilon,
         }, path + ".pth")
         # save_replay = input("Save replay buffer? (y/n): ")
-        torch.save(list(self.replay), path + "_replay.pth")
+        sz = len(self.replay)
+        np.savez(path + "_replay.npz",
+            obs=self.replay.obs[:sz],
+            next_obs=self.replay.next_obs[:sz],
+            actions=self.replay.actions[:sz],
+            rewards=self.replay.rewards[:sz],
+            dones=self.replay.dones[:sz],
+        )
     
     def checkpoint_load(self, path):
         try:
@@ -242,10 +245,16 @@ class Agent(nn.Module):
         except FileNotFoundError:
             print(f"No checkpoint found at {ckpt_path}. Starting with uninitialized model.")
         try:
-            replay_path = path + "_replay.pth"
-            replay_data = torch.load(replay_path, map_location='cpu', weights_only=False)
-            self.replay = deque(replay_data, maxlen=CAPACITY)
-            print(f"Replay buffer loaded from {replay_path}")
+            replay_path = path + "_replay.npz"
+            data = np.load(replay_path)
+            self.replay.obs[:len(data['obs'])] = data['obs']
+            self.replay.next_obs[:len(data['next_obs'])] = data['next_obs']
+            self.replay.actions[:len(data['actions'])] = data['actions']
+            self.replay.rewards[:len(data['rewards'])] = data['rewards']
+            self.replay.dones[:len(data['dones'])] = data['dones']
+            self.replay.size = len(data['obs'])
+            self.replay.ptr = self.replay.size % self.replay.capacity
+            print(f"Replay buffer loaded from {replay_path} with size {self.replay.size}.")
         except FileNotFoundError:
             print(f"No replay buffer found at {replay_path}, starting with empty buffer.")
 

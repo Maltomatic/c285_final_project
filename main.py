@@ -224,12 +224,15 @@ def main():
                 print(f"\t[BENCH] {iter_per_sec:.1f} iter/s")
                 bench_last_check = now
                 bench_last_step = global_step
+    except KeyboardInterrupt:
+        print("Training interrupted by user.")
     except Exception as e:
-        print(e)
-        print("Training interrupted, saving checkpoint.")
-        agent.checkpoint_save(path=checkpoint_base_path)
-    finally:
+        print("Exception during training:", e)
+    finally:    
         envs.close()
+        print("Saving checkpoint...")
+        agent.checkpoint_save(path=checkpoint_base_path)
+    
 
 if __name__ == "__main__":
     main()
