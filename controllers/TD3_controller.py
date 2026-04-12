@@ -10,9 +10,8 @@ from controllers.models.critic import Critic
 
 from controllers.utils.replay import ReplayBuffer
 
-OBS_DIM = 23
-STACK_OBS_DIM = 6*5*3 + 1*5*2 # 6 wheels, base/dev/actual ; 1 vel ; 1 ang
-ACT_DIM = 6
+from envs.configs import _ACTION_CLIP, STACK_OBS_DIM, _ACTION_DIM
+ACT_DIM = _ACTION_DIM
 
 COMPILE = False
 CAPACITY = 1_000_000
@@ -50,7 +49,7 @@ class Agent(nn.Module):
         self.policy_noise = 0.2
         self.noise_clip = 0.5
         self.policy_freq = 2
-        self.max_action = 15.0
+        self.max_action = _ACTION_CLIP
         self.max_grad_norm = 3.0
         self.total_it = 0
         self._loss = None # store most recent loss for logging

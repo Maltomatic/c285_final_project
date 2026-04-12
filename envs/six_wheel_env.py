@@ -45,17 +45,10 @@ import gymnasium as gym
 from controllers.base_controller import WaypointController, BaseAllocator, WAYPOINTS
 from envs.rewards import tracking_reward, sparse_reward
 
+from envs.configs import _ACTION_DIM, _OBS_DIM, _ACTION_CLIP, _OBS_STACK, _FRAME_SKIP, _WHEEL_RADIUS, _TRACK_WIDTH, _RESET_SETTLE_STEPS, _MAX_CTRL_ACCEL
+
 # constants
 _XML_PATH = os.path.join(os.path.dirname(__file__), "..", "assets", "robot.xml")
-_OBS_DIM = 23
-_OBS_STACK = 5           # timesteps stacked
-_ACTION_DIM = 6
-_ACTION_CLIP = 15.0       # rad/s (Need to tune this)
-_FRAME_SKIP = 10         # physics steps per env step → 0.01 * 10 = 0.1 s (10 Hz control)
-_WHEEL_RADIUS = 0.15     # m
-_TRACK_WIDTH = 0.70      # m
-_RESET_SETTLE_STEPS = 10
-_MAX_CTRL_ACCEL = 20#10.0   # max wheel-speed command slew [rad/s^2]
 _CAM_LOOKAT = np.array([2.5, 2.5, 0.2], dtype=np.float32)
 _CAM_DISTANCE = 10.0
 _CAM_AZIMUTH = 90.0
@@ -156,8 +149,8 @@ class SixWheelEnv(gym.Env):
         self.fault_wheel_idx = int(self.np_random.integers(0, _ACTION_DIM))
         self.fault_alpha      = 1.0 if self.no_fault else float(self.np_random.uniform(0.0, 1.0))
 
-        if not self.no_fault:
-            print(f"Fault in env {self.env_id}: wheel {self.fault_wheel_idx} at {self.fault_alpha:.2f}x effectiveness")
+        # if not self.no_fault:
+        #     print(f"Fault in env {self.env_id}: wheel {self.fault_wheel_idx} at {self.fault_alpha:.2f}x effectiveness")
 
         # Reset controllers
         self.wp_controller.reset()
