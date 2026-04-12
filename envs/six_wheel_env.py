@@ -49,6 +49,7 @@ from envs.rewards import tracking_reward
 _XML_PATH = os.path.join(os.path.dirname(__file__), "..", "assets", "robot.xml")
 _OBS_DIM = 23
 _OBS_STACK = 5           # timesteps stacked
+_PARTIAL_OBS_DIM = 1 * _OBS_STACK * 2 + 6 * _OBS_STACK * 3
 _ACTION_DIM = 6
 _ACTION_CLIP = 5.0       # rad/s (Need to tune this)
 _FRAME_SKIP = 10         # physics steps per env step → 0.01 * 10 = 0.1 s (10 Hz control)
@@ -68,6 +69,7 @@ class SixWheelEnv(gym.Env):
     def __init__(
         self,
         render_mode: str | None = None,
+        obs_mode: str = "PARTIAL_OBS",
         reward_fn=tracking_reward,
         reward_weights: tuple = (1.0, 0.5, 0.01, 0.01, 50.0, 0.05),
     ):
@@ -79,6 +81,9 @@ class SixWheelEnv(gym.Env):
             f"Supported: {self.metadata['render_modes']}"
         )
         self.render_mode = render_mode
+        if obs_mode not in ("FULL_OBS", "PARTIAL_OBS"):
+            raise ValueError("obs_mode must be 'FULL_OBS' or 'PARTIAL_OBS'")
+        self.obs_mode = obs_mode
         self.reward_fn = reward_fn
         self.reward_weights = reward_weights
 
@@ -89,7 +94,7 @@ class SixWheelEnv(gym.Env):
         self._max_ctrl_delta = float(_MAX_CTRL_ACCEL * self._ctrl_dt)
 
         # gymnasium spaces
-        obs_size = _OBS_DIM# * _OBS_STACK
+        obs_size = _OBS_DIM if self.obs_mode == "FULL_OBS" else _PARTIAL_OBS_DIM
         self.observation_space = gym.spaces.Box(
             low=-np.inf, high=np.inf, shape=(obs_size,), dtype=np.float32
         )
@@ -104,6 +109,11 @@ class SixWheelEnv(gym.Env):
 
         # history buffer
         self._obs_history: deque = deque(maxlen=_OBS_STACK)
+        self._partial_vel_hist: deque = deque(maxlen=_OBS_STACK)
+        self._partial_ang_hist: deque = deque(maxlen=_OBS_STACK)
+        self._partial_wheel_hist: deque = deque(maxlen=_OBS_STACK)
+        self._partial_base_hist: deque = deque(maxlen=_OBS_STACK)
+        self._partial_dev_hist: deque = deque(maxlen=_OBS_STACK)
 
         # episode state
         self._prev_delta_omega = np.zeros(_ACTION_DIM, dtype=np.float32)
@@ -159,12 +169,22 @@ class SixWheelEnv(gym.Env):
 
         # Fill history buffer with zeros
         self._obs_history.clear()
+        self._partial_vel_hist.clear()
+        self._partial_ang_hist.clear()
+        self._partial_wheel_hist.clear()
+        self._partial_base_hist.clear()
+        self._partial_dev_hist.clear()
         for _ in range(_OBS_STACK):
             self._obs_history.append(np.zeros(_OBS_DIM, dtype=np.float32))
+            self._partial_vel_hist.append(0.0)
+            self._partial_ang_hist.append(0.0)
+            self._partial_wheel_hist.append(np.zeros(_ACTION_DIM, dtype=np.float32))
+            self._partial_base_hist.append(np.zeros(_ACTION_DIM, dtype=np.float32))
+            self._partial_dev_hist.append(np.zeros(_ACTION_DIM, dtype=np.float32))
 
-        stack = self._get_stacked_obs()
         obs = self._single_obs(*self._chassis_pose(), self._prev_omega_base, self._prev_delta_omega)
-        return obs, {}
+        self._append_partial_history(obs)
+        return self._format_obs(obs), {}
 
     def step(self, action: np.ndarray):
         delta_omega = np.clip(action, -_ACTION_CLIP, _ACTION_CLIP).astype(np.float32)
@@ -201,7 +221,7 @@ class SixWheelEnv(gym.Env):
         # 6. Build obs
         obs_t = self._single_obs(pos_xy, heading, omega_base, self._prev_delta_omega)
         self._obs_history.append(obs_t)
-        stacked = self._get_stacked_obs()
+        self._append_partial_history(obs_t)
 
         # 7. Reward
         reward = self.reward_fn(
@@ -218,8 +238,7 @@ class SixWheelEnv(gym.Env):
         if self.render_mode == "human":
             self.render()
 
-        # return stacked, reward, terminated, truncated, {}
-        return obs_t, reward, terminated, truncated, {}
+        return self._format_obs(obs_t), reward, terminated, truncated, {}
 
     def render(self):
         if self.render_mode == "human":
@@ -307,6 +326,26 @@ class SixWheelEnv(gym.Env):
 
     def _get_stacked_obs(self) -> np.ndarray:
         return np.concatenate(list(self._obs_history), axis=0).astype(np.float32)
+
+    def _append_partial_history(self, obs_t: np.ndarray) -> None:
+        self._partial_vel_hist.append(float(obs_t[3]))
+        self._partial_ang_hist.append(float(obs_t[4]))
+        self._partial_wheel_hist.append(obs_t[5:11].astype(np.float32))
+        self._partial_base_hist.append(obs_t[11:17].astype(np.float32))
+        self._partial_dev_hist.append(obs_t[17:23].astype(np.float32))
+
+    def _get_partial_obs(self) -> np.ndarray:
+        vels = np.array(self._partial_vel_hist, dtype=np.float32)
+        angs = np.array(self._partial_ang_hist, dtype=np.float32)
+        wheels = np.concatenate(list(self._partial_wheel_hist)).astype(np.float32)
+        bases = np.concatenate(list(self._partial_base_hist)).astype(np.float32)
+        devs = np.concatenate(list(self._partial_dev_hist)).astype(np.float32)
+        return np.concatenate((vels, angs, wheels, bases, devs)).astype(np.float32)
+
+    def _format_obs(self, obs_t: np.ndarray) -> np.ndarray:
+        if self.obs_mode == "PARTIAL_OBS":
+            return self._get_partial_obs()
+        return obs_t
 
     def _is_terminated(self, pos_xy: np.ndarray) -> bool:
         # All waypoints reached

@@ -12,9 +12,10 @@ OBS_DIM = 23
 ACT_DIM = 6
 
 class Agent(nn.Module):
-    def __init__(self):
+    def __init__(self, num_envs: int = 1):
         super(Agent, self).__init__()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.num_envs = num_envs
         state_dim = 6*5*3 + 1*5*2 # 6 wheels, base/dev/actual ; 1 vel ; 1 ang
         action_dim = ACT_DIM
         self.actor = Actor(state_dim, action_dim).to(self.device)
@@ -39,6 +40,8 @@ class Agent(nn.Module):
         self.exploration_std = 0.1
         self.max_grad_norm = 2.0
         self.total_it = 0
+        self.transitions_collected = 0  # total transitions added to replay (for vectorized scaling)
+        self.last_actor_update_transition = 0
         self._loss = None # store most recent loss for logging
 
         self.wheel_hist = deque(maxlen=5)
@@ -51,7 +54,11 @@ class Agent(nn.Module):
         self.epsilon = 1.0
         self.epsilon_decay = 0.995
         self.epsilon_min = 0.05
-        self.decay_steps = 10
+        self.epsilon_decay_interval = 10  # historical cadence in collect calls
+        self.epsilon_decay_interval_transitions = self.epsilon_decay_interval * self.num_envs
+
+        # TD3 actor-delay measured in optimizer steps: 1 actor update per policy_freq critic updates.
+        self.actor_update_interval_optim_steps = self.policy_freq
 
         self.checkpoint_load("td3_checkpoint")
     
@@ -73,33 +80,65 @@ class Agent(nn.Module):
             obs_dict, obs_t = self.parse_obs(obs)
         else:
             obs_t = obs.to(self.device)
-        if explore and np.random.rand() < self.epsilon:
-            action = torch.empty(ACT_DIM, dtype=torch.float32, device=self.device).uniform_(-self.max_action, self.max_action)
-        else:
-            action = self.actor(obs_t) * self.max_action
-            action = torch.clamp(action, -self.max_action, self.max_action)
+
+        is_batched = obs_t.ndim > 1
+        policy_action = self.actor(obs_t) * self.max_action
+        policy_action = torch.clamp(policy_action, -self.max_action, self.max_action)
 
         if explore:
-            self.decay_steps -= 1
-            if self.decay_steps <= 0:
+            if is_batched:
+                rand_mask = torch.rand(policy_action.shape[0], device=self.device) < self.epsilon
+                random_action = torch.empty_like(policy_action).uniform_(-self.max_action, self.max_action)
+                action = torch.where(rand_mask.unsqueeze(1), random_action, policy_action)
+            elif np.random.rand() < self.epsilon:
+                action = torch.empty(ACT_DIM, dtype=torch.float32, device=self.device).uniform_(
+                    -self.max_action, self.max_action
+                )
+            else:
+                action = policy_action
+        else:
+            action = policy_action
+
+        # Decay epsilon every epsilon_decay_interval transitions (scaled for vectorization)
+        if explore:
+            steps_since_last_decay = self.transitions_collected % self.epsilon_decay_interval_transitions
+            if steps_since_last_decay == 0 and self.transitions_collected > 0:
                 self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
-                self.decay_steps = 10
 
         return action
 
-    def train_step(self, obs, action, reward, done, next_obs):
-        # Store transition
+    def add_transitions(self, obs, action, reward, done, next_obs):
+        # Store single or batched transitions in replay once per environment collection step.
         obs_np = obs.detach().cpu().numpy() if isinstance(obs, torch.Tensor) else np.asarray(obs, dtype=np.float32)
-        next_obs_np = (
-            next_obs.detach().cpu().numpy()
-            if isinstance(next_obs, torch.Tensor)
-            else np.asarray(next_obs, dtype=np.float32)
-        )
+        next_obs_np = next_obs.detach().cpu().numpy() if isinstance(next_obs, torch.Tensor) else np.asarray(next_obs, dtype=np.float32)
         action_np = np.asarray(action, dtype=np.float32)
-        reward_f = float(reward)
-        done_f = float(done)
-        self.replay.append((obs_np, action_np, reward_f, done_f, next_obs_np))
+        reward_np = np.asarray(reward, dtype=np.float32)
+        done_np = np.asarray(done, dtype=np.float32)
 
+        if obs_np.ndim == 1:
+            obs_np = obs_np[None, :]
+            next_obs_np = next_obs_np[None, :]
+            action_np = action_np[None, :]
+            reward_np = reward_np.reshape(1)
+            done_np = done_np.reshape(1)
+
+        added = 0
+        for i in range(obs_np.shape[0]):
+            self.replay.append(
+                (
+                    obs_np[i].astype(np.float32, copy=False),
+                    action_np[i].astype(np.float32, copy=False),
+                    float(reward_np[i]),
+                    float(done_np[i]),
+                    next_obs_np[i].astype(np.float32, copy=False),
+                )
+            )
+            self.transitions_collected += 1
+            added += 1
+
+        return added
+
+    def optimize_step(self):
         if len(self.replay) < self.batch_size:
             return None
 
@@ -143,7 +182,10 @@ class Agent(nn.Module):
         self.critic2_optimizer.step()
 
         actor_loss = self._loss
-        if self.total_it % self.policy_freq == 0:
+        should_update_actor = (
+            self.total_it % self.actor_update_interval_optim_steps
+        ) == 0
+        if should_update_actor:
             pi_actions = self.actor(states) * self.max_action
             pi_state_action = torch.cat([states, pi_actions], dim=1)
             actor_loss = -self.critic1(pi_state_action).mean()
@@ -158,12 +200,18 @@ class Agent(nn.Module):
             self._soft_update(self.actor, self.actor_target)
             self._soft_update(self.critic1, self.critic1_target)
             self._soft_update(self.critic2, self.critic2_target)
+            self.last_actor_update_transition = self.transitions_collected
 
         return {
             "critic1_loss": float(critic1_loss.item()),
             "critic2_loss": float(critic2_loss.item()),
             "actor_loss": float(actor_loss.item()) if actor_loss is not None else None,
         }
+
+    def train_step(self, obs, action, reward, done, next_obs):
+        # Backward-compatible wrapper for older single-call training flow.
+        self.add_transitions(obs, action, reward, done, next_obs)
+        return self.optimize_step()
 
     def checkpoint_save(self, path):
         torch.save({
