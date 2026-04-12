@@ -176,7 +176,7 @@ class Agent(nn.Module):
             pi_raw = self.actor(states)
             pi_actions = pi_raw.clamp(-self.max_action, self.max_action)
             pi_state_action = torch.cat([states, pi_actions], dim=1)
-            actor_loss = -self.critic1(pi_state_action).mean() + 1e-3 * (pi_actions**2).mean()
+            actor_loss = -self.critic1(pi_state_action).mean() + 1e-3 * (pi_raw**2).mean()
             self._loss = actor_loss.detach().cpu()
 
             self.actor_optimizer.zero_grad()
