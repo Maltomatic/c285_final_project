@@ -9,7 +9,6 @@ from envs.rewards import tracking_reward, sparse_reward
 G_STEPS = 1_000_000
 DISCOUNT = 0.997
 
-NUM_ENVS = max(1, multiprocessing.cpu_count())
 RWD_FN = 'tracking' # 'tracking', 'sparse'
 
 RENDER_TRAINING = False
@@ -63,7 +62,7 @@ def main():
     parser.add_argument(
         "--num-envs",
         type=int,
-        default=NUM_ENVS,
+        default=max(1, multiprocessing.cpu_count()),
         help="Number of parallel environments to launch",
     )
     args = parser.parse_args()

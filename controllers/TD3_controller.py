@@ -12,6 +12,7 @@ OBS_DIM = 23
 ACT_DIM = 6
 
 COMPILE = False
+CAPACITY = 1_000_000
 
 class Agent(nn.Module):
     def __init__(self, num_envs = 1, checkpoint_path="td3_checkpoint"):
@@ -39,7 +40,7 @@ class Agent(nn.Module):
         self.critic1_optimizer = torch.optim.Adam(self.critic1.parameters(), lr=1e-3)
         self.critic2_optimizer = torch.optim.Adam(self.critic2.parameters(), lr=1e-3)
 
-        self.replay = deque(maxlen=700_000)
+        self.replay = deque(maxlen=CAPACITY)
         self.batch_size = 1024
         self.gamma = 0.997
         self.tau = 0.005
@@ -243,7 +244,7 @@ class Agent(nn.Module):
         try:
             replay_path = path + "_replay.pth"
             replay_data = torch.load(replay_path, map_location='cpu', weights_only=False)
-            self.replay = deque(replay_data, maxlen=700_000)
+            self.replay = deque(replay_data, maxlen=CAPACITY)
             print(f"Replay buffer loaded from {replay_path}")
         except FileNotFoundError:
             print(f"No replay buffer found at {replay_path}, starting with empty buffer.")
