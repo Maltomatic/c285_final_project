@@ -228,10 +228,10 @@ def main():
         print("Training interrupted by user.")
     except Exception as e:
         print("Exception during training:", e)
-    finally:    
-        envs.close()
+    finally:
         print("Saving checkpoint...")
-        agent.checkpoint_save(path=checkpoint_base_path)
+        agent.checkpoint_save(path=checkpoint_base_path)    
+        envs.close()
     
 
 if __name__ == "__main__":

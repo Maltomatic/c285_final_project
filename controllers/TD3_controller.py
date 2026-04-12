@@ -62,7 +62,7 @@ class Agent(nn.Module):
         self.ang_hist = [deque(maxlen=5) for _ in range(num_envs)]
         self.hist_reset()
 
-        self.epsilon = 0.45
+        self.epsilon = 0.99
         self.epsilon_decay = 0.995
         self.epsilon_min = 0.05
         self.decay_steps = 10
