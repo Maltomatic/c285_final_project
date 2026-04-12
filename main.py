@@ -8,10 +8,10 @@ from envs.rewards import tracking_reward, sparse_reward
 G_STEPS = 1_000_000
 DISCOUNT = 0.97
 
-NUM_ENVS = 1#max(1, multiprocessing.cpu_count() - 1)
+NUM_ENVS = max(1, multiprocessing.cpu_count() - 1)
 RWD_FN = 'tracking' # 'tracking', 'sparse'
 
-RENDER_TRAINING = True
+RENDER_TRAINING = False
 DEBUG = False
 GPU_THREAD = False # True may be faster if GPU is strong and CPU is meh; on laptop 4070 basically no difference
 
@@ -66,7 +66,7 @@ def main():
     if GPU_THREAD:
         def train_fn():
             loss = agent.train_step()
-            print_d(f"Training step completed with losses: {loss}")
+            # print_d(f"Training step completed with losses: {loss}")
             train_losses[0] = loss
 
     # use log to find last episode
@@ -91,7 +91,7 @@ def main():
         print(e)
         print("No existing log file found, starting from global step 0.")
     episode_step = np.zeros(NUM_ENVS, dtype=int)
-    episode_cnt = np.arange(NUM_ENVS, dtype=int) + last_episode
+    episode_cnt = np.arange(NUM_ENVS, dtype=int) + last_episode + NUM_ENVS
     episode = episode_cnt.min()
     episode_rewards = np.zeros(NUM_ENVS, dtype=float)
     episode_discounted_rewards = np.zeros(NUM_ENVS, dtype=float)
@@ -132,7 +132,7 @@ def main():
                 train_thread.start()
             
             # make move
-            action = agent.make_decision(obs_t).detach().cpu().numpy()
+            action = agent.make_decision(obs_t, explore=True).detach().cpu().numpy()
             # action = np.zeros_like(action)
             bt3 = time.perf_counter()
             if bt0 != 0:
@@ -142,7 +142,7 @@ def main():
                 bench_steps -= 1
                 if bench_steps <= 0:
                     bench_steps = 100
-                    print_d(f"Per-step timing: {step_time/bench_steps:.4f}s step, {action_time/bench_steps:.4f}s action, {loop_time/bench_steps:.4f}s per loop")
+                    # print_d(f"Per-step timing: {step_time/bench_steps:.4f}s step, {action_time/bench_steps:.4f}s action, {loop_time/bench_steps:.4f}s per loop")
                     step_time = 0
                     action_time = 0
                     loop_time = 0
@@ -154,8 +154,8 @@ def main():
             # process transition, dones per env
             for i in range(NUM_ENVS):
                 act = action[i]
-                print_d(f"Env {i} obs: errs {obs[i][0:5]}, \n\tcurr-wheels {obs[i][5:11]}, \n\tbase-wheels {obs[i][11:17]}, \n\t\tprev-dev {obs[i][17:]}")
-                print_d(f"Made deviation {act} in environment {i} at episode {episode}, step {episode_step[i]} -- base action {obs[i][-12:-6]}")
+                # print_d(f"Env {i} obs: errs {obs[i][0:5]}, \n\tcurr-wheels {obs[i][5:11]}, \n\tbase-wheels {obs[i][11:17]}, \n\t\tprev-dev {obs[i][17:]}")
+                # print_d(f"Made deviation {act} in environment {i} at episode {episode}, step {episode_step[i]} -- base action {obs[i][-12:-6]}")
                 done = terminated[i] or truncated[i]
                 rwd = reward[i]
                 episode_rewards[i] += reward[i]
@@ -175,7 +175,7 @@ def main():
                     episode_start_q[i] = estimate_q(next_obs_t[i])
                     print(f"Episode {episode_cnt[i]} finished in environment {i} with total reward {episode_rewards[i]:.3f} and discounted reward {episode_discounted_rewards[i]:.3f} after {episode_step[i]} steps.")    
                     episode_step[i] = 0
-                    episode_cnt[i] += 1
+                    episode_cnt[i] += NUM_ENVS
                     episode_discounted_rewards[i] = 0.0
                     episode_rewards[i] = 0.0
                     agent.decay_epsilon()

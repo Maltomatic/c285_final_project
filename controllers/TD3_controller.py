@@ -31,12 +31,12 @@ class Agent(nn.Module):
 
         self.replay = deque(maxlen=1_000_000)
         self.batch_size = 1024
-        self.gamma = 0.97
+        self.gamma = 0.99
         self.tau = 0.005
         self.policy_noise = 0.5
         self.noise_clip = 1.5
         self.policy_freq = 2
-        self.max_action = 50.0
+        self.max_action = 15.0
         self.max_grad_norm = 3.0
         self.total_it = 0
         self._loss = None # store most recent loss for logging
@@ -110,8 +110,9 @@ class Agent(nn.Module):
             action = torch.empty(N, ACT_DIM, dtype=torch.float32, device=self.device).uniform_(-self.max_action, self.max_action)
         else:
             with torch.no_grad():
-                action = self.actor(obs_t) * self.max_action # target instead of actor to avoid gpu/cpu race
-                action = torch.clamp(action, -self.max_action, self.max_action)
+                action = self.actor(obs_t)# * self.max_action # target instead of actor to avoid gpu/cpu race
+                # print(f"Action before clamp: {action}")
+                # action = torch.clamp(action, -self.max_action, self.max_action)
 
         return action
 

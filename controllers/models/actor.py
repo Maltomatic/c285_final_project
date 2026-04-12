@@ -15,6 +15,11 @@ class Actor(nn.Module):
             # nn.Tanh()
             # placeholder
         )
+        # init to low weights
+        for m in self.network.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.uniform_(m.weight, -0.003, 0.003)
+                nn.init.zeros_(m.bias)
 
     def forward(self, obs):
         return self.network(obs)

@@ -50,7 +50,7 @@ _XML_PATH = os.path.join(os.path.dirname(__file__), "..", "assets", "robot.xml")
 _OBS_DIM = 23
 _OBS_STACK = 5           # timesteps stacked
 _ACTION_DIM = 6
-_ACTION_CLIP = 50.0       # rad/s (Need to tune this)
+_ACTION_CLIP = 15.0       # rad/s (Need to tune this)
 _FRAME_SKIP = 10         # physics steps per env step → 0.01 * 10 = 0.1 s (10 Hz control)
 _WHEEL_RADIUS = 0.15     # m
 _TRACK_WIDTH = 0.70      # m

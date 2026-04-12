@@ -10,7 +10,7 @@ Pass the desired function to SixWheelEnv via reward_fn=...
 
 import numpy as np
 
-_ACTION_CLIP = 50.0       # rad/s (Need to tune this)
+_ACTION_CLIP = 15.0       # rad/s (Need to tune this)
 
 def tracking_reward(
     obs_t: np.ndarray,
