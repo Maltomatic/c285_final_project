@@ -75,11 +75,10 @@ def eval_reward(
     delta_omega: np.ndarray,
     prev_delta_omega: np.ndarray,
     waypoint_reached: bool,
-    weights: tuple = (0.0, 10.0, -1.0),
+    weights: tuple = (0.0, 10.0, 1.0),
 ) -> float:
     """
-    Sparse reward — only waypoint bonuses, and a time penalty.
-    Logging only.
+    Only time penalty; env adds completion reward. Only for eval.
 
     weights:
         w1  waypoint reached bonus
@@ -87,6 +86,5 @@ def eval_reward(
     """
     w1, w2, w3 = weights
     r = 0.0
-    r += +w2 * float(waypoint_reached)
     r += -w3
     return r

@@ -12,7 +12,7 @@ from controllers.models.critic import Critic
 
 from controllers.utils.replay import ReplayBuffer
 
-from envs.env_configs import _ACTION_CLIP, STACK_OBS_DIM, _ACTION_DIM as ACT_DIM
+from envs.env_configs import _ACTION_CLIP, STACK_OBS_DIM, _ACTION_DIM as ACT_DIM, EVAL
 
 from controllers.utils.model_configs import EPS_START, EPS_DECAY, EPS_MIN, CAPACITY
 
@@ -44,7 +44,7 @@ class Agent(nn.Module):
         self.critic1_optimizer = torch.optim.Adam(self.critic1.parameters(), lr=1e-3)
         self.critic2_optimizer = torch.optim.Adam(self.critic2.parameters(), lr=1e-3)
 
-        self.replay = ReplayBuffer(CAPACITY, STACK_OBS_DIM, ACT_DIM)
+        self.replay = ReplayBuffer(CAPACITY, STACK_OBS_DIM, ACT_DIM) if not EVAL else None
         self.batch_size = 1024
         self.gamma = 0.995
         self.tau = 0.005

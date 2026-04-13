@@ -56,7 +56,7 @@ _CAM_LOOKAT = np.array([2.5, 2.5, 0.2], dtype=np.float32)
 _CAM_DISTANCE = 10.0
 _CAM_AZIMUTH = 90.0
 _CAM_ELEVATION = -25.0
-eval_fault_types = [0.0, 0.25, 0.5, 0.75]
+eval_fault_types = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
 
 class SixWheelEnv(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 50}
@@ -231,6 +231,9 @@ class SixWheelEnv(gym.Env):
                 obs_t, action, self._prev_delta_omega,
                 waypoint_reached
             )
+        # add completion reward in EVAL
+        if EVAL and self.wp_controller.is_done():
+            reward += 500.0
 
         # 8. Termination
         success = self.wp_controller.is_done()
@@ -285,7 +288,7 @@ class SixWheelEnv(gym.Env):
         """Inject or change a fault mid-episode (for evaluation experiments)."""
         assert 0 <= wheel_idx < _ACTION_DIM, "wheel_idx must be in [0, 5]"
         assert 0.0 <= alpha <= 1.0, "alpha must be in [0, 1]" # TODO: allow -1~1 for special malfunction? eg. blown tire, cause drag
-        print(f"Injecting fault in env {self.env_id} at step {self._steps}: wheel {wheel_idx} at {alpha:.2f}x effectiveness")
+        # print(f"Injecting fault in env {self.env_id} at step {self._steps}: wheel {wheel_idx} at {alpha:.2f}x effectiveness")
         self.fault_wheel_idx = wheel_idx
         self.fault_alpha     = alpha
 

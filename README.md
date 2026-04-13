@@ -210,3 +210,11 @@ uv run jupyter notebook test_robot.ipynb   # physics sanity checks
 - [ ] Expand waypoint trajectory to include a curved segment (currently only straight legs + 90° corners)
 - [ ] Tune reward weights once training begins (current defaults are untested under RL)
 - [ ] Consider `gymnasium.wrappers.NormalizeObservation` if training is unstable
+
+# HOW TO RUN
+
+Params are in `envs/env_configs.py`. `EVAL` and `EVAL_EPISODES` control whether in eval mode or not and how many rollouts.
+
+Training/eval is all the same (`python main.py --exp-name fault`, `python main.py --exp-name normal --no-fault`, `python main.py --exp-name baseline --no-op`, etc.).
+
+Plot eval graphs with `python eval_grapher.py`. PNGs are auto-generated. `python plot_training_metrics.py` plots training metrics if csvs are provided.

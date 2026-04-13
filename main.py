@@ -18,6 +18,13 @@ def print_d(*args, **kwargs):
 def main():
     parser = argparse.ArgumentParser(description="Train TD3 with parallel environments")
     parser.add_argument("--no-fault", action="store_true", help="Disable injected wheel faults (NO_FAULT mode)")
+    parser.add_argument(
+        "--no-op",
+        dest="no_op",
+        action="store_true",
+        default=False,
+        help="Disable agent actions and use zero actions instead",
+    )
     parser.add_argument("--exp-name", type=str, default=None, help="Experiment prefix for logs/checkpoints")
     parser.add_argument(
         "--num-envs",
@@ -28,11 +35,13 @@ def main():
     args = parser.parse_args()
 
     no_fault = bool(args.no_fault)
+    no_op = bool(args.no_op)
     exp_prefix = args.exp_name.strip() if args.exp_name else ("normal" if no_fault else "fault")
 
-    global NUM_ENVS, csv_path, csv_eps_log_path, checkpoint_base_path
+    global NUM_ENVS, csv_path, csv_eps_log_path, checkpoint_base_path, NO_OP
 
     NUM_ENVS = max(1, int(args.num_envs))
+    NO_OP = no_op
     csv_path = f"{exp_prefix}-training_log.csv"
     csv_eps_log_path = f"{exp_prefix}-episode_returns.csv"
     checkpoint_base_path = f"{exp_prefix}-td3_checkpoint"
@@ -95,11 +104,12 @@ def main():
                         int(success)
                     ])
 
-                    print(
-                        f"[EVAL] Episode {completed}/{EVAL_EPISODES} | env {i} | "
-                        f"reward {episode_rewards[i]:.3f} | wheel {damaged_wheel} | "
-                        f"alpha {float(fault_alpha):.2f} | success {success} | steps {fin_steps}"
-                    )
+                    if completed % 50 == 0 or completed == EVAL_EPISODES:
+                        print(
+                            f"[EVAL] Episode {completed}/{EVAL_EPISODES} | env {i} | "
+                            f"reward {episode_rewards[i]:.3f} | wheel {damaged_wheel} | "
+                            f"alpha {float(fault_alpha):.2f} | success {success} | steps {fin_steps}"
+                        )
 
                     episode_rewards[i] = 0.0
                     episode_steps[i] = 0
