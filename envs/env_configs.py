@@ -1,4 +1,13 @@
 # centralize parameters
+RENDER_TRAINING = False
+DEBUG = False
+GPU_THREAD = False # True may be faster if GPU is strong and CPU is meh; on laptop 4070 basically no difference
+
+
+NO_FAULT = False
+EVAL = False
+EVAL_EPISODES = 10
+
 _ACTION_DIM = 6
 _OBS_DIM = 23
 STACK_OBS_DIM = 6 * 3 * 5 + 2 * 5 # 6 wheels, base/dev/actual, 5 steps; heading and dist, 5 steps

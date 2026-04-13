@@ -10,7 +10,7 @@ Pass the desired function to SixWheelEnv via reward_fn=...
 
 import numpy as np
 
-from envs.configs import _ACTION_CLIP
+from envs.env_configs import _ACTION_CLIP
 
 def tracking_reward(
     obs_t: np.ndarray,
@@ -49,7 +49,6 @@ def tracking_reward(
     # print("Total step reward: ", r)
     return r
 
-
 def sparse_reward(
     obs_t: np.ndarray,
     delta_omega: np.ndarray,
@@ -67,6 +66,27 @@ def sparse_reward(
     """
     w1, w2, w3 = weights
     r  = -w1 * float(np.sum(delta_omega) - ((_ACTION_CLIP)*2 - 1) ** 2)
+    r += +w2 * float(waypoint_reached)
+    r += -w3
+    return r
+
+def eval_reward(
+    obs_t: np.ndarray,
+    delta_omega: np.ndarray,
+    prev_delta_omega: np.ndarray,
+    waypoint_reached: bool,
+    weights: tuple = (0.0, 10.0, -1.0),
+) -> float:
+    """
+    Sparse reward — only waypoint bonuses, and a time penalty.
+    Logging only.
+
+    weights:
+        w1  waypoint reached bonus
+        w2  time step penalty
+    """
+    w1, w2, w3 = weights
+    r = 0.0
     r += +w2 * float(waypoint_reached)
     r += -w3
     return r

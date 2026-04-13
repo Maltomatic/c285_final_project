@@ -45,7 +45,10 @@ import gymnasium as gym
 from controllers.base_controller import WaypointController, BaseAllocator, WAYPOINTS
 from envs.rewards import tracking_reward, sparse_reward
 
-from envs.configs import _ACTION_DIM, _OBS_DIM, _ACTION_CLIP, _OBS_STACK, _FRAME_SKIP, _WHEEL_RADIUS, _TRACK_WIDTH, _RESET_SETTLE_STEPS, _MAX_CTRL_ACCEL
+from envs.env_configs import _ACTION_DIM, _OBS_DIM, _ACTION_CLIP, _OBS_STACK, _FRAME_SKIP,\
+    _WHEEL_RADIUS, _TRACK_WIDTH, _RESET_SETTLE_STEPS, _MAX_CTRL_ACCEL,\
+    EVAL, EVAL_EPISODES, NO_FAULT
+
 
 # constants
 _XML_PATH = os.path.join(os.path.dirname(__file__), "..", "assets", "robot.xml")
@@ -53,8 +56,7 @@ _CAM_LOOKAT = np.array([2.5, 2.5, 0.2], dtype=np.float32)
 _CAM_DISTANCE = 10.0
 _CAM_AZIMUTH = 90.0
 _CAM_ELEVATION = -25.0
-
-NO_FAULT = False
+eval_fault_types = [0.0, 0.25, 0.5, 0.75]
 
 class SixWheelEnv(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 50}
@@ -79,6 +81,10 @@ class SixWheelEnv(gym.Env):
         self.reward_weights = reward_weights if reward_weights is not None else None
         self.env_id = env_id
         self.no_fault = NO_FAULT if no_fault is None else bool(no_fault)
+        # if eval, no_fault until step 150, then inject a random fault and keep it until the end of the episode
+        if EVAL:
+            self.no_fault = True
+        self._steps = 0
 
         # load MuJoCo model (once, shared across resets)
         self.model = mujoco.MjModel.from_xml_path(_XML_PATH)
@@ -121,6 +127,8 @@ class SixWheelEnv(gym.Env):
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)  # seeds self.np_random
+
+        self._steps = 0
 
         # Reset physics
         mujoco.mj_resetData(self.model, self.data)
@@ -181,6 +189,11 @@ class SixWheelEnv(gym.Env):
 
         # print(f"\nLast timestep base speed: {self._prev_omega_base}, delta_omega: {delta_omega}, output speed: {omega_cmd}")
 
+        if self._steps == 150 and EVAL:
+            self.inject_fault(
+                wheel_idx=int(self.np_random.integers(0, _ACTION_DIM)),
+                alpha=float(self.np_random.choice(eval_fault_types))
+            )
         # 2. Apply fault (hidden from policy)
         omega_faulted = omega_cmd.copy()
         omega_faulted[self.fault_wheel_idx] *= self.fault_alpha
@@ -220,6 +233,7 @@ class SixWheelEnv(gym.Env):
             )
 
         # 8. Termination
+        success = self.wp_controller.is_done()
         terminated = self._is_terminated(pos_xy)
         truncated  = False  # handled externally by TimeLimit wrapper
 
@@ -228,8 +242,13 @@ class SixWheelEnv(gym.Env):
         if self.render_mode == "human":
             self.render()
 
+        info = {
+            "success": bool(success),
+            "fault_wheel_idx": int(self.fault_wheel_idx),
+            "fault_alpha": float(self.fault_alpha),
+        }
         # return stacked, reward, terminated, truncated, {}
-        return obs_t, reward, terminated, truncated, {}
+        return obs_t, reward, terminated, truncated, info
 
     def render(self):
         if self.render_mode == "human":
@@ -263,7 +282,7 @@ class SixWheelEnv(gym.Env):
     def inject_fault(self, wheel_idx: int, alpha: float) -> None:
         """Inject or change a fault mid-episode (for evaluation experiments)."""
         assert 0 <= wheel_idx < _ACTION_DIM, "wheel_idx must be in [0, 5]"
-        assert 0.0 <= alpha <= 1.0, "alpha must be in [0, 1]"
+        assert 0.0 <= alpha <= 1.0, "alpha must be in [0, 1]" # TODO: allow -1~1 for special malfunction? eg. blown tire, cause drag
         self.fault_wheel_idx = wheel_idx
         self.fault_alpha     = alpha
 

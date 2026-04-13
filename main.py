@@ -3,56 +3,17 @@ import numpy as np
 import torch, envs, gymnasium as gym
 from envs.six_wheel_env import SixWheelEnv
 from controllers.TD3_controller import Agent
-import time, csv, os, multiprocessing, threading
-from envs.rewards import tracking_reward, sparse_reward
+import time, csv, multiprocessing, threading
 
-from controllers.utils.controller_config import DECAY_INTERVAL, DISCOUNT, G_STEPS
-
-RWD_FN = 'tracking' # 'tracking', 'sparse'
-
-RENDER_TRAINING = False
-DEBUG = False
-GPU_THREAD = False # True may be faster if GPU is strong and CPU is meh; on laptop 4070 basically no difference
-
-csv_path = 'training_log.csv'
-csv_eps_log_path = 'episode_log.csv'
-checkpoint_base_path = 'td3_checkpoint'
+from controllers.utils.model_configs import DECAY_INTERVAL, DISCOUNT, G_STEPS, RWD_FN
+from envs.utils.env_helpers import logging, eps_logging,\
+    csv_path, csv_eps_log_path, checkpoint_base_path,\
+    make_env, extract_car_info
+from envs.env_configs import DEBUG, EVAL, EVAL_EPISODES, GPU_THREAD
 
 def print_d(*args, **kwargs):
     if DEBUG:
         print(*args, **kwargs)
-
-def logging(episode, global_steps, critic1_loss, critic2_loss, actor_loss):
-    if not os.path.exists(csv_path):
-        with open(csv_path, mode='w', newline='') as log_file:
-            log_writer = csv.writer(log_file)
-            log_writer.writerow(['Episode', 'Global step', 'Critic1 Loss', 'Critic2 Loss', 'Actor Loss'])
-    with open(csv_path, mode='a', newline='') as log_file:
-        log_writer = csv.writer(log_file)
-        log_writer.writerow([episode, global_steps, critic1_loss, critic2_loss, actor_loss])
-
-def eps_logging(episode, steps, total_reward, discounted_reward, expected_q):
-    if not os.path.exists(csv_eps_log_path):
-        with open(csv_eps_log_path, mode='w', newline='') as log_file:
-            log_writer = csv.writer(log_file)
-            log_writer.writerow(['Episode', 'Steps', 'Total Reward', 'Discounted Reward', 'Expected Q'])
-    with open(csv_eps_log_path, mode='a', newline='') as log_file:
-        log_writer = csv.writer(log_file)
-        log_writer.writerow([episode, steps, total_reward, discounted_reward, expected_q])
-
-def reset():
-    env = gym.make("SixWheelSkidSteer-v0")
-    obs = env.reset()
-    return obs
-
-def make_env(rwd = "tracking", id=0, no_fault=False):
-    def _init():
-        return gym.make("SixWheelSkidSteer-v0",
-                        render_mode="human" if RENDER_TRAINING else None,
-                        reward_fn=tracking_reward if rwd == "tracking" else sparse_reward if rwd == "sparse" else None,
-                        env_id=id,
-                        no_fault=no_fault)
-    return _init
 
 def main():
     parser = argparse.ArgumentParser(description="Train TD3 with parallel environments")
@@ -70,10 +31,12 @@ def main():
     exp_prefix = args.exp_name.strip() if args.exp_name else ("normal" if no_fault else "fault")
 
     global NUM_ENVS, csv_path, csv_eps_log_path, checkpoint_base_path
+
     NUM_ENVS = max(1, int(args.num_envs))
     csv_path = f"{exp_prefix}-training_log.csv"
     csv_eps_log_path = f"{exp_prefix}-episode_returns.csv"
     checkpoint_base_path = f"{exp_prefix}-td3_checkpoint"
+    eval_csv_path = f"{exp_prefix}-eval_log.csv"
 
     envs = gym.vector.AsyncVectorEnv([make_env(RWD_FN, i, no_fault=no_fault) for i in range(NUM_ENVS)])
     agent = Agent(num_envs=NUM_ENVS, checkpoint_path=checkpoint_base_path)
@@ -83,6 +46,69 @@ def main():
     print(f"NO_FAULT: {no_fault}")
     print(f"Experiment prefix: {exp_prefix}")
     print(f"Training on device: {agent.device}, env action device: {'GPU' if agent.device.type == 'cuda' else 'CPU'}")
+
+    if EVAL:
+        print(f"EVAL mode enabled. Running {EVAL_EPISODES} evaluation episodes.")
+        with open(eval_csv_path, mode='w', newline='') as eval_file:
+            writer = csv.writer(eval_file)
+            writer.writerow(['Episode', 'Env', 'Steps', 'Total Reward', 'Damaged Wheel', 'Fault Alpha', 'Success'])
+
+            obs, _ = envs.reset()
+            obs_t = torch.stack([agent.parse_obs(obs[i], env_id=i)[1] for i in range(NUM_ENVS)])
+            episode_rewards = np.zeros(NUM_ENVS, dtype=float)
+            episode_steps = np.zeros(NUM_ENVS, dtype=int)
+            completed = 0
+            success_count = 0
+
+            while completed < EVAL_EPISODES:
+                action = agent.make_decision(obs_t, explore=False).detach().cpu().numpy()
+                obs, reward, terminated, truncated, infos = envs.step(action)
+                next_obs_t = torch.stack([agent.parse_obs(obs[i], env_id=i)[1] for i in range(NUM_ENVS)])
+
+                for i in range(NUM_ENVS):
+                    if completed >= EVAL_EPISODES:
+                        break
+                    episode_rewards[i] += reward[i]
+                    episode_steps[i] += 1
+                    done = bool(terminated[i] or truncated[i])
+                    if not done:
+                        continue
+
+                    success = bool(extract_car_info(infos, 'success', i, False))
+                    damaged_wheel = extract_car_info(infos, 'fault_wheel_idx', i, -1)
+                    fault_alpha = extract_car_info(infos, 'fault_alpha', i, np.nan)
+                    completed += 1
+                    success_count += int(success)
+
+                    writer.writerow([
+                        completed,
+                        i,
+                        episode_steps[i],
+                        episode_rewards[i],
+                        int(damaged_wheel) if damaged_wheel is not None else -1,
+                        float(fault_alpha) if fault_alpha is not None else np.nan,
+                        int(success),
+                    ])
+
+                    print(
+                        f"[EVAL] Episode {completed}/{EVAL_EPISODES} | env {i} | "
+                        f"reward {episode_rewards[i]:.3f} | wheel {damaged_wheel} | "
+                        f"alpha {float(fault_alpha):.2f} | success {success}"
+                    )
+
+                    episode_rewards[i] = 0.0
+                    episode_steps[i] = 0
+                    agent.hist_reset_single_env(i)
+                    next_obs_t[i] = agent.parse_obs(obs[i], env_id=i)[1]
+
+                obs_t = next_obs_t
+
+        success_rate = success_count / max(1, EVAL_EPISODES)
+        print(f"EVAL completed. Success rate: {success_count}/{EVAL_EPISODES} = {success_rate:.2%}")
+        print(f"Eval log saved to: {eval_csv_path}")
+        envs.close()
+        return
+
     train_thread = None
     train_losses = [None]
 
@@ -132,7 +158,7 @@ def main():
     try:
         obs, _ = envs.reset() # stacked, all obs
         obs_t = torch.stack([agent.parse_obs(obs[i], env_id=i)[1] for i in range(NUM_ENVS)])
-        episode_start_q = np.array([estimate_q(obs_t[i]) for i in range(NUM_ENVS)], dtype=float)
+        critic_estimated_q = np.zeros(NUM_ENVS, dtype=float)
         
         # Benchmarking: report every 10 seconds
         bench_start = time.time()
@@ -185,17 +211,19 @@ def main():
                 episode_discounted_rewards[i] += (DISCOUNT ** episode_step[i]) * reward[i]
                 agent.save_transition(obs_t[i], act, rwd, done, next_obs_t[i])
                 episode_step[i] += 1
+                if episode_step[i] == 100:
+                    critic_estimated_q[i] = estimate_q(obs_t[i])
                 if done:        
                     eps_logging(
                         episode_cnt[i],
                         episode_step[i],
                         episode_rewards[i],
                         episode_discounted_rewards[i],
-                        episode_start_q[i],
+                        critic_estimated_q[i],
                     )
                     agent.hist_reset_single_env(i)
                     next_obs_t[i] = agent.parse_obs(obs[i], env_id=i)[1]
-                    episode_start_q[i] = estimate_q(next_obs_t[i])
+                    critic_estimated_q[i] = 0.0
                     print(f"Episode {episode_cnt[i]} finished in environment {i} with total reward {episode_rewards[i]:.3f} and discounted reward {episode_discounted_rewards[i]:.3f} after {episode_step[i]} steps.")    
                     episode_step[i] = 0
                     episode_cnt[i] += NUM_ENVS

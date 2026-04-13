@@ -12,9 +12,9 @@ from controllers.models.critic import Critic
 
 from controllers.utils.replay import ReplayBuffer
 
-from envs.configs import _ACTION_CLIP, STACK_OBS_DIM, _ACTION_DIM as ACT_DIM
+from envs.env_configs import _ACTION_CLIP, STACK_OBS_DIM, _ACTION_DIM as ACT_DIM
 
-from controllers.utils.controller_config import EPS_START, EPS_DECAY, EPS_MIN, CAPACITY
+from controllers.utils.model_configs import EPS_START, EPS_DECAY, EPS_MIN, CAPACITY
 
 COMPILE = False
 

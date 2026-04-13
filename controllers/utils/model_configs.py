@@ -10,6 +10,8 @@ G_STEPS = 30_000_000
 DISCOUNT = 0.997 # agent gamma
 CAPACITY = 5_000_000
 
+RWD_FN = 'tracking' # 'tracking', 'sparse', 'eval'
+
 _decay_events = G_STEPS * EXPLORE_FRACTION / DECAY_INTERVAL # how many times to decay eps
 _decay_amount = (EPS_MIN/EPS_START)**(1.0 / _decay_events)
 EPS_DECAY = round(_decay_amount, 5)
