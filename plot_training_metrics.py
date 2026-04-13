@@ -1,12 +1,9 @@
 import argparse
 import csv
 from pathlib import Path
-
 import matplotlib.pyplot as plt
 
-
-N_PTS = 200
-
+N_PTS = 500
 
 def _normalize(name: str) -> str:
     return "".join(ch for ch in name.lower() if ch.isalnum())

@@ -8,8 +8,8 @@ import time, csv, multiprocessing, threading
 from controllers.utils.model_configs import DECAY_INTERVAL, DISCOUNT, G_STEPS, RWD_FN
 from envs.utils.env_helpers import logging, eps_logging,\
     csv_path, csv_eps_log_path, checkpoint_base_path,\
-    make_env, extract_car_info
-from envs.env_configs import DEBUG, EVAL, EVAL_EPISODES, GPU_THREAD
+    make_env, extract_eps_info
+from envs.env_configs import DEBUG, EVAL, EVAL_EPISODES, GPU_THREAD, NO_OP, _ACTION_DIM
 
 def print_d(*args, **kwargs):
     if DEBUG:
@@ -38,12 +38,13 @@ def main():
     checkpoint_base_path = f"{exp_prefix}-td3_checkpoint"
     eval_csv_path = f"{exp_prefix}-eval_log.csv"
 
+    print(f"Launching {NUM_ENVS} parallel environments.")
     envs = gym.vector.AsyncVectorEnv([make_env(RWD_FN, i, no_fault=no_fault) for i in range(NUM_ENVS)])
     agent = Agent(num_envs=NUM_ENVS, checkpoint_path=checkpoint_base_path)
-    print(f"Launching {NUM_ENVS} parallel environments.")
     print(f"GPU thread enabled: {GPU_THREAD}")
-    print(f"Reward function: {RWD_FN}")
+    print(f"Reward function: {RWD_FN if not EVAL else 'eval'}")
     print(f"NO_FAULT: {no_fault}")
+    print(f"Agent NO-OP mode: {NO_OP}")
     print(f"Experiment prefix: {exp_prefix}")
     print(f"Training on device: {agent.device}, env action device: {'GPU' if agent.device.type == 'cuda' else 'CPU'}")
 
@@ -61,7 +62,10 @@ def main():
             success_count = 0
 
             while completed < EVAL_EPISODES:
-                action = agent.make_decision(obs_t, explore=False).detach().cpu().numpy()
+                if NO_OP:
+                    action = np.zeros((NUM_ENVS, _ACTION_DIM), dtype=np.float32)
+                else:
+                    action = agent.make_decision(obs_t, explore=False).detach().cpu().numpy()
                 obs, reward, terminated, truncated, infos = envs.step(action)
                 next_obs_t = torch.stack([agent.parse_obs(obs[i], env_id=i)[1] for i in range(NUM_ENVS)])
 
@@ -74,26 +78,27 @@ def main():
                     if not done:
                         continue
 
-                    success = bool(extract_car_info(infos, 'success', i, False))
-                    damaged_wheel = extract_car_info(infos, 'fault_wheel_idx', i, -1)
-                    fault_alpha = extract_car_info(infos, 'fault_alpha', i, np.nan)
+                    fin_steps = extract_eps_info(infos, 'step', i, -1)
+                    success = bool(extract_eps_info(infos, 'success', i, False))
+                    damaged_wheel = extract_eps_info(infos, 'fault_wheel_idx', i, -1)
+                    fault_alpha = extract_eps_info(infos, 'fault_alpha', i, np.nan)
                     completed += 1
                     success_count += int(success)
 
                     writer.writerow([
                         completed,
                         i,
-                        episode_steps[i],
+                        fin_steps,
                         episode_rewards[i],
                         int(damaged_wheel) if damaged_wheel is not None else -1,
                         float(fault_alpha) if fault_alpha is not None else np.nan,
-                        int(success),
+                        int(success)
                     ])
 
                     print(
                         f"[EVAL] Episode {completed}/{EVAL_EPISODES} | env {i} | "
                         f"reward {episode_rewards[i]:.3f} | wheel {damaged_wheel} | "
-                        f"alpha {float(fault_alpha):.2f} | success {success}"
+                        f"alpha {float(fault_alpha):.2f} | success {success} | steps {fin_steps}"
                     )
 
                     episode_rewards[i] = 0.0
@@ -181,8 +186,10 @@ def main():
                 train_thread.start()
             
             # make move
-            action = agent.make_decision(obs_t, explore=True).detach().cpu().numpy()
-            # action = np.zeros_like(action)
+            if NO_OP:
+                action = np.zeros((NUM_ENVS, _ACTION_DIM), dtype=np.float32)
+            else:
+                action = agent.make_decision(obs_t, explore=True).detach().cpu().numpy()
             bt3 = time.perf_counter()
             if bt0 != 0:
                 step_time += bt1 - bt0

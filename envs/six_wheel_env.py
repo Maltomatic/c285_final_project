@@ -243,10 +243,12 @@ class SixWheelEnv(gym.Env):
             self.render()
 
         info = {
+            "step": self._steps,
             "success": bool(success),
             "fault_wheel_idx": int(self.fault_wheel_idx),
             "fault_alpha": float(self.fault_alpha),
         }
+        self._steps += 1
         # return stacked, reward, terminated, truncated, {}
         return obs_t, reward, terminated, truncated, info
 
@@ -283,6 +285,7 @@ class SixWheelEnv(gym.Env):
         """Inject or change a fault mid-episode (for evaluation experiments)."""
         assert 0 <= wheel_idx < _ACTION_DIM, "wheel_idx must be in [0, 5]"
         assert 0.0 <= alpha <= 1.0, "alpha must be in [0, 1]" # TODO: allow -1~1 for special malfunction? eg. blown tire, cause drag
+        print(f"Injecting fault in env {self.env_id} at step {self._steps}: wheel {wheel_idx} at {alpha:.2f}x effectiveness")
         self.fault_wheel_idx = wheel_idx
         self.fault_alpha     = alpha
 

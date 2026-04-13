@@ -35,7 +35,7 @@ def eps_logging(episode, steps, total_reward, discounted_reward, expected_q):
         log_writer = csv.writer(log_file)
         log_writer.writerow([episode, steps, total_reward, discounted_reward, expected_q])
 
-def extract_car_info(infos, key, idx, default=None):
+def extract_eps_info(infos, key, idx, default=None):
     if not isinstance(infos, dict) or key not in infos:
         return default
     values = infos[key]
