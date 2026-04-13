@@ -8,6 +8,7 @@ These are intentionally simple; the RL residual corrects for faults on top.
 """
 
 import numpy as np
+from envs.env_configs import EVAL
 
 # ── Waypoint trajectory ──────────────────────────────────────────────────────
 # L-shape + return: straight → 90° corner → back → home
@@ -25,6 +26,48 @@ WAYPOINTS = np.array([
     [2.0 / SCALE, 15.0 / SCALE],
     [0.0 / SCALE, 15.0 / SCALE],
     [0.0 / SCALE, 0.0 / SCALE],   # home
+], dtype=np.float64)
+
+REVERSE_WAYPOINTS = np.array([
+    [-12.0 / SCALE, 0.0 / SCALE],
+    [-18.0 / SCALE, 0.0 / SCALE],   # straight along X
+    [-20.0 / SCALE, 3.5 / SCALE],
+    [-15.5 / SCALE, 8.0 / SCALE],
+    [-20.0 / SCALE, 17.0 / SCALE],
+    [-20.0 / SCALE, 20.0 / SCALE],   # 90° left turn, then straight along Y
+    [-0.0 / SCALE, 20.0 / SCALE],   # 90° left turn, back toward X=0
+    [-0.0 / SCALE, 10.0 / SCALE],
+    [-4.0 / SCALE, 13.0 / SCALE],
+    [-2.0 / SCALE, 15.0 / SCALE],
+    [-0.0 / SCALE, 15.0 / SCALE],
+    [-0.0 / SCALE, 0.0 / SCALE],   # home
+], dtype=np.float64)
+
+EVAL_WAYPOINTS = np.array([
+    [12.0 / SCALE, 0.0 / SCALE],
+    [18.0 / SCALE, 0.0 / SCALE],   # straight along X
+    [20.0 / SCALE, 3.5 / SCALE],
+    [15.5 / SCALE, 8.0 / SCALE],
+    [20.0 / SCALE, 17.0 / SCALE],
+    [20.0 / SCALE, 20.0 / SCALE],   # 90° left turn, then straight along Y
+    [0.0 / SCALE, 20.0 / SCALE],   # 90° left turn, back toward X=0
+    [0.0 / SCALE, 10.0 / SCALE],
+    [4.0 / SCALE, 13.0 / SCALE],
+    [2.0 / SCALE, 15.0 / SCALE],
+    [0.0 / SCALE, 15.0 / SCALE],
+    [0.0 / SCALE, 0.0 / SCALE],   # home
+    [-12.0 / SCALE, 0.0 / SCALE],
+    [-18.0 / SCALE, 0.0 / SCALE],   # straight along X
+    [-20.0 / SCALE, 3.5 / SCALE],
+    [-15.5 / SCALE, 8.0 / SCALE],
+    [-20.0 / SCALE, 17.0 / SCALE],
+    [-20.0 / SCALE, 20.0 / SCALE],   # 90° left turn, then straight along Y
+    [-0.0 / SCALE, 20.0 / SCALE],   # 90° left turn, back toward X=0
+    [-0.0 / SCALE, 10.0 / SCALE],
+    [-4.0 / SCALE, 13.0 / SCALE],
+    [-2.0 / SCALE, 15.0 / SCALE],
+    [-0.0 / SCALE, 15.0 / SCALE],
+    [-0.0 / SCALE, 0.0 / SCALE],   # home
 ], dtype=np.float64)
 # WAYPOINTS = np.array([
 #     [5.0, 0.0],   # straight along X

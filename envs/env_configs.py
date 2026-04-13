@@ -7,6 +7,7 @@ GPU_THREAD = False # True may be faster if GPU is strong and CPU is meh; on lapt
 NO_FAULT = False
 EVAL = True
 EVAL_EPISODES = 1000
+FAULT_STEP = 150
 NO_OP = False # if True, agent takes no action. deviation is 0
 
 _ACTION_DIM = 6

@@ -75,7 +75,7 @@ def eval_reward(
     delta_omega: np.ndarray,
     prev_delta_omega: np.ndarray,
     waypoint_reached: bool,
-    weights: tuple = (0.0, 10.0, 1.0),
+    weights: tuple = (0.0, 10.0, 0.1),
 ) -> float:
     """
     Only time penalty; env adds completion reward. Only for eval.

@@ -42,12 +42,12 @@ from mujoco import viewer
 import numpy as np
 import gymnasium as gym
 
-from controllers.base_controller import WaypointController, BaseAllocator, WAYPOINTS
+from controllers.base_controller import WaypointController, BaseAllocator, WAYPOINTS, REVERSE_WAYPOINTS, EVAL_WAYPOINTS
 from envs.rewards import tracking_reward, sparse_reward
 
 from envs.env_configs import _ACTION_DIM, _OBS_DIM, _ACTION_CLIP, _OBS_STACK, _FRAME_SKIP,\
     _WHEEL_RADIUS, _TRACK_WIDTH, _RESET_SETTLE_STEPS, _MAX_CTRL_ACCEL,\
-    EVAL, EVAL_EPISODES, NO_FAULT
+    EVAL, EVAL_EPISODES, NO_FAULT, FAULT_STEP
 
 
 # constants
@@ -105,7 +105,8 @@ class SixWheelEnv(gym.Env):
         )
 
         # controllers (recreated on reset)
-        self.wp_controller  = WaypointController(WAYPOINTS)
+        wp = WAYPOINTS if env_if % 2 else REVERSE_WAYPOINTS
+        self.wp_controller  = WaypointController(wp if not EVAL else EVAL_WAYPOINTS)
         self.allocator = BaseAllocator(_WHEEL_RADIUS, _TRACK_WIDTH)
 
         # history buffer
@@ -189,7 +190,7 @@ class SixWheelEnv(gym.Env):
 
         # print(f"\nLast timestep base speed: {self._prev_omega_base}, delta_omega: {delta_omega}, output speed: {omega_cmd}")
 
-        if self._steps == 150 and EVAL:
+        if self._steps == FAULT_STEP and EVAL:
             self.inject_fault(
                 wheel_idx=int(self.np_random.integers(0, _ACTION_DIM)),
                 alpha=float(self.np_random.choice(eval_fault_types))
@@ -233,7 +234,7 @@ class SixWheelEnv(gym.Env):
             )
         # add completion reward in EVAL
         if EVAL and self.wp_controller.is_done():
-            reward += 500.0
+            reward += 100.0
 
         # 8. Termination
         success = self.wp_controller.is_done()
@@ -352,7 +353,7 @@ class SixWheelEnv(gym.Env):
         roll  = np.arctan2(2.0 * (qw * qx + qy * qz),
                            1.0 - 2.0 * (qx ** 2 + qy ** 2))
         pitch = np.arcsin(np.clip(2.0 * (qw * qy - qz * qx), -1.0, 1.0))
-        if abs(roll) > 1.5 or abs(pitch) > 1.5:
+        if abs(roll) > 1.0 or abs(pitch) > 1.0:
             return True
         # Out of bounds
         if np.any(np.abs(pos_xy) > 30.0):
