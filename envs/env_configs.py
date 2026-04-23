@@ -1,15 +1,14 @@
 # centralize parameters
-RENDER_TRAINING = False
+RENDER_TRAINING = True
 DEBUG = False
 GPU_THREAD = False # True may be faster if GPU is strong and CPU is meh; on laptop 4070 basically no difference
 
-
-NO_FAULT = False
+NO_FAULT = True
 EVAL = True
 EVAL_EPISODES = 1000
 FAULT_STEP = 150
 NO_OP = False # if True, agent takes no action. deviation is 0
-PURE_RL = False # if false, use residual policy w/ baseAllocator; if true, RL does everything
+PURE_RL = True # if false, use residual policy w/ baseAllocator; if true, RL does everything
 
 _ACTION_DIM = 6
 _OBS_DIM = 23

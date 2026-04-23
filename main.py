@@ -1,14 +1,15 @@
 import argparse
+from typing import Any, Optional
 import numpy as np
 import torch, envs, gymnasium as gym
 from envs.six_wheel_env import SixWheelEnv
-from controllers.TD3_controller import Agent
+from controllers.TD3_controller import Agent as TD3Agent
+from controllers.PPO_controller import Agent as PPOAgent
 import time, csv, multiprocessing, threading
 
 from controllers.utils.model_configs import DECAY_INTERVAL, DISCOUNT, G_STEPS, RWD_FN
-from envs.utils.env_helpers import logging, eps_logging,\
-    csv_path, csv_eps_log_path, checkpoint_base_path,\
-    make_env, extract_eps_info
+from envs.utils import env_helpers
+from envs.utils.env_helpers import logging, eps_logging, make_env, extract_eps_info
 from envs.env_configs import DEBUG, EVAL, EVAL_EPISODES, GPU_THREAD, NO_OP, _ACTION_DIM
 
 def print_d(*args, **kwargs):
@@ -16,7 +17,8 @@ def print_d(*args, **kwargs):
         print(*args, **kwargs)
 
 def main():
-    parser = argparse.ArgumentParser(description="Train TD3 with parallel environments")
+    parser = argparse.ArgumentParser(description="Train RL agent with parallel environments")
+    parser.add_argument("--algo", type=str, default="td3", choices=["td3", "ppo"], help="RL algorithm to use")
     parser.add_argument("--no-fault", action="store_true", help="Disable injected wheel faults (NO_FAULT mode)")
     parser.add_argument(
         "--no-op",
@@ -34,23 +36,26 @@ def main():
     )
     args = parser.parse_args()
 
+    algo = str(args.algo).lower().strip()
     no_fault = bool(args.no_fault)
     no_op = bool(args.no_op)
     exp_prefix = args.exp_name.strip() if args.exp_name else ("normal" if no_fault else "fault")
 
-    global NUM_ENVS, csv_path, csv_eps_log_path, checkpoint_base_path, NO_OP
+    global NUM_ENVS, NO_OP
 
     NUM_ENVS = max(1, int(args.num_envs))
     NO_OP = no_op
-    csv_path = f"{exp_prefix}-training_log.csv"
-    csv_eps_log_path = f"{exp_prefix}-episode_returns.csv"
-    checkpoint_base_path = f"{exp_prefix}-td3_checkpoint"
+    env_helpers.csv_path = f"{exp_prefix}-training_log.csv"
+    env_helpers.csv_eps_log_path = f"{exp_prefix}-episode_returns.csv"
+    checkpoint_base_path = f"{exp_prefix}-{algo}_checkpoint"
     eval_csv_path = f"{exp_prefix}-eval_log.csv"
 
     print(f"Launching {NUM_ENVS} parallel environments.")
     envs = gym.vector.AsyncVectorEnv([make_env(RWD_FN, i, no_fault=no_fault) for i in range(NUM_ENVS)])
-    agent = Agent(num_envs=NUM_ENVS, checkpoint_path=checkpoint_base_path)
+    agent_cls = PPOAgent if algo == "ppo" else TD3Agent
+    agent: Any = agent_cls(num_envs=NUM_ENVS, checkpoint_path=checkpoint_base_path)
     print(f"GPU thread enabled: {GPU_THREAD}")
+    print(f"Algorithm: {algo.upper()}")
     print(f"Reward function: {RWD_FN if not EVAL else 'eval'}")
     print(f"NO_FAULT: {no_fault}")
     print(f"Agent NO-OP mode: {NO_OP}")
@@ -127,7 +132,8 @@ def main():
     train_thread = None
     train_losses = [None]
 
-    if GPU_THREAD:
+    use_gpu_thread = GPU_THREAD and algo == "td3"
+    if use_gpu_thread:
         def train_fn():
             loss = agent.train_step()
             # print_d(f"Training step completed with losses: {loss}")
@@ -160,7 +166,9 @@ def main():
     episode_rewards = np.zeros(NUM_ENVS, dtype=float)
     episode_discounted_rewards = np.zeros(NUM_ENVS, dtype=float)
 
-    def estimate_q(obs_state: torch.Tensor) -> float:
+    def estimate_metric(obs_state: torch.Tensor) -> float:
+        if algo == "ppo":
+            return agent.estimate_value(obs_state)
         with torch.no_grad():
             obs = obs_state.to(agent.device).unsqueeze(0)
             act = torch.clamp(agent.actor(obs), -agent.max_action, agent.max_action)
@@ -189,7 +197,7 @@ def main():
         
         while global_step < G_STEPS:
             # sync train thread
-            if GPU_THREAD:
+            if use_gpu_thread:
                 if train_thread is not None:
                     train_thread.join()
                 train_thread = threading.Thread(target=train_fn, daemon=True)
@@ -226,10 +234,13 @@ def main():
                 rwd = reward[i]
                 episode_rewards[i] += reward[i]
                 episode_discounted_rewards[i] += (DISCOUNT ** episode_step[i]) * reward[i]
-                agent.save_transition(obs_t[i], act, rwd, done, next_obs_t[i])
+                if algo == "ppo":
+                    agent.save_transition(obs_t[i], act, rwd, done, next_obs_t[i], env_id=i)
+                else:
+                    agent.save_transition(obs_t[i], act, rwd, done, next_obs_t[i])
                 episode_step[i] += 1
                 if episode_step[i] == 100:
-                    critic_estimated_q[i] = estimate_q(obs_t[i])
+                    critic_estimated_q[i] = estimate_metric(obs_t[i])
                 if done:        
                     eps_logging(
                         episode_cnt[i],
@@ -248,15 +259,19 @@ def main():
                     episode_rewards[i] = 0.0
             # train, log, update
             bt2 = time.perf_counter()
-            losses = train_losses[0] if GPU_THREAD else agent.train_step()
+            losses = train_losses[0] if use_gpu_thread else agent.train_step()
             
             if (global_step > DECAY_INTERVAL and (global_step // DECAY_INTERVAL >  (global_step - NUM_ENVS) // DECAY_INTERVAL )):
-                # print("eps decay")
-                agent.decay_epsilon()
                 print(f"Episode {episode}, global step {global_step}, Losses: {losses}")
-                print(f"\tReplay buffer size: {len(agent.replay)}  |  Epsilon: {agent.epsilon:.3f}")
-                if losses:
+                if algo == "td3":
+                    agent.decay_epsilon()
+                    print(f"\tReplay buffer size: {len(agent.replay)}  |  Epsilon: {agent.epsilon:.3f}")
+                else:
+                    print(f"\tRollout size: {len(agent.rollout)} transitions")
+                if losses and algo == "td3":
                     logging(episode, global_step, losses['critic1_loss'], losses['critic2_loss'], losses['actor_loss'])
+                elif losses and algo == "ppo":
+                    logging(episode, global_step, losses['value_loss'], losses['policy_loss'], losses['entropy'])
             obs_t = next_obs_t
             global_step += NUM_ENVS
             episode = episode_cnt.min()
@@ -274,9 +289,10 @@ def main():
         print("Training interrupted by user.")
     except Exception as e:
         print("Exception during training:", e)
+        raise e
     finally:
         print("Saving checkpoint...")
-        agent.checkpoint_save(path=checkpoint_base_path)    
+        # agent.checkpoint_save(path=checkpoint_base_path)    
         envs.close()
     
 

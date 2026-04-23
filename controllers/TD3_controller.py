@@ -104,6 +104,8 @@ class Agent(nn.Module):
             self.dev_hist[env_id].clear()
         else:
             self.act_hist[env_id].clear()
+            self.heading_hist[env_id].clear()
+            self.dist_hist[env_id].clear()
         self.vels_hist[env_id].clear()
         self.ang_hist[env_id].clear()
         for _ in range(5):
@@ -113,6 +115,8 @@ class Agent(nn.Module):
                 self.dev_hist[env_id].append(np.zeros(6, dtype=np.float32))
             else:
                 self.act_hist[env_id].append(np.zeros(6, dtype=np.float32))
+                self.heading_hist[env_id].append(0.0)
+                self.dist_hist[env_id].append(0.0)
             self.vels_hist[env_id].append(0.0)
             self.ang_hist[env_id].append(0.0)
     
@@ -283,21 +287,23 @@ class Agent(nn.Module):
             self._optimizer_to_device(self.actor_optimizer)
             self._optimizer_to_device(self.critic1_optimizer)
             self._optimizer_to_device(self.critic2_optimizer)
+            print(f"Model checkpoint loaded from {ckpt_path}.")
         except FileNotFoundError:
             print(f"No checkpoint found at {ckpt_path}. Starting with uninitialized model.")
-        try:
-            replay_path = path + "_replay.npz"
-            data = np.load(replay_path)
-            self.replay.obs[:len(data['obs'])] = data['obs']
-            self.replay.next_obs[:len(data['next_obs'])] = data['next_obs']
-            self.replay.actions[:len(data['actions'])] = data['actions']
-            self.replay.rewards[:len(data['rewards'])] = data['rewards']
-            self.replay.dones[:len(data['dones'])] = data['dones']
-            self.replay.size = len(data['obs'])
-            self.replay.ptr = self.replay.size % self.replay.capacity
-            print(f"Replay buffer loaded from {replay_path} with size {self.replay.size}.")
-        except FileNotFoundError:
-            print(f"No replay buffer found at {replay_path}, starting with empty buffer.")
+        if not EVAL:
+            try:
+                replay_path = path + "_replay.npz"
+                data = np.load(replay_path)
+                self.replay.obs[:len(data['obs'])] = data['obs']
+                self.replay.next_obs[:len(data['next_obs'])] = data['next_obs']
+                self.replay.actions[:len(data['actions'])] = data['actions']
+                self.replay.rewards[:len(data['rewards'])] = data['rewards']
+                self.replay.dones[:len(data['dones'])] = data['dones']
+                self.replay.size = len(data['obs'])
+                self.replay.ptr = self.replay.size % self.replay.capacity
+                print(f"Replay buffer loaded from {replay_path} with size {self.replay.size}.")
+            except FileNotFoundError:
+                print(f"No replay buffer found at {replay_path}, starting with empty buffer.")
 
     def _soft_update(self, source: nn.Module, target: nn.Module):
         for target_param, source_param in zip(target.parameters(), source.parameters()):
