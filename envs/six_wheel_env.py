@@ -105,7 +105,7 @@ class SixWheelEnv(gym.Env):
         )
 
         # controllers (recreated on reset)
-        wp = WAYPOINTS if env_if % 2 else REVERSE_WAYPOINTS
+        wp = WAYPOINTS if env_id % 2 else REVERSE_WAYPOINTS
         self.wp_controller  = WaypointController(wp if not EVAL else EVAL_WAYPOINTS)
         self.allocator = BaseAllocator(_WHEEL_RADIUS, _TRACK_WIDTH)
 
@@ -191,9 +191,11 @@ class SixWheelEnv(gym.Env):
         # print(f"\nLast timestep base speed: {self._prev_omega_base}, delta_omega: {delta_omega}, output speed: {omega_cmd}")
 
         if self._steps == FAULT_STEP and EVAL:
+            wheel_idx =int(self.np_random.integers(0, _ACTION_DIM))
+            alpha = float(self.np_random.choice(eval_fault_types))
             self.inject_fault(
-                wheel_idx=int(self.np_random.integers(0, _ACTION_DIM)),
-                alpha=float(self.np_random.choice(eval_fault_types))
+                wheel_idx=wheel_idx,
+                alpha=alpha
             )
         # 2. Apply fault (hidden from policy)
         omega_faulted = omega_cmd.copy()
