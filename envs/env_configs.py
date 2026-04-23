@@ -9,6 +9,7 @@ EVAL = True
 EVAL_EPISODES = 1000
 FAULT_STEP = 150
 NO_OP = False # if True, agent takes no action. deviation is 0
+PURE_RL = False # if false, use residual policy w/ baseAllocator; if true, RL does everything
 
 _ACTION_DIM = 6
 _OBS_DIM = 23

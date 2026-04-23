@@ -207,3 +207,13 @@ class BaseAllocator:
              omega_right, omega_right, omega_right],
             dtype=np.float32,
         )
+
+class ZeroAllocator:
+    # Zero wheel commands for testing.
+    def __init__(self, wheel_radius: float = 0.15, track_width: float = 0.7):
+        self.wheel_radius = wheel_radius
+        self.track_width = track_width
+
+    def allocate(self, v: float, omega: float) -> np.ndarray:
+        # 0 for base speed; policy will train movement as residuals
+        return np.zeros(6, dtype=np.float32)

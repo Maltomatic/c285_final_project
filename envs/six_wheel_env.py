@@ -42,13 +42,12 @@ from mujoco import viewer
 import numpy as np
 import gymnasium as gym
 
-from controllers.base_controller import WaypointController, BaseAllocator, WAYPOINTS, REVERSE_WAYPOINTS, EVAL_WAYPOINTS
+from controllers.base_controller import WaypointController, BaseAllocator, ZeroAllocator, WAYPOINTS, REVERSE_WAYPOINTS, EVAL_WAYPOINTS
 from envs.rewards import tracking_reward, sparse_reward
 
 from envs.env_configs import _ACTION_DIM, _OBS_DIM, _ACTION_CLIP, _OBS_STACK, _FRAME_SKIP,\
     _WHEEL_RADIUS, _TRACK_WIDTH, _RESET_SETTLE_STEPS, _MAX_CTRL_ACCEL,\
-    EVAL, EVAL_EPISODES, NO_FAULT, FAULT_STEP
-
+    EVAL, EVAL_EPISODES, NO_FAULT, FAULT_STEP, PURE_RL
 
 # constants
 _XML_PATH = os.path.join(os.path.dirname(__file__), "..", "assets", "robot.xml")
@@ -95,19 +94,19 @@ class SixWheelEnv(gym.Env):
         self._max_ctrl_delta = float(_MAX_CTRL_ACCEL * self._ctrl_dt)
 
         # gymnasium spaces
-        obs_size = _OBS_DIM# * _OBS_STACK
+        self.obs_size = _OBS_DIM if not PURE_RL else (_OBS_DIM-6) # no base vel observation
         self.observation_space = gym.spaces.Box(
-            low=-np.inf, high=np.inf, shape=(obs_size,), dtype=np.float32
+            low=-np.inf, high=np.inf, shape=(self.obs_size,), dtype=np.float32
         )
         self.action_space = gym.spaces.Box(
-            low=-_ACTION_CLIP, high=_ACTION_CLIP,
+            low=-(_ACTION_CLIP if not PURE_RL else _ACTION_CLIP*2), high=(_ACTION_CLIP if not PURE_RL else _ACTION_CLIP*2),
             shape=(_ACTION_DIM,), dtype=np.float32,
         )
 
         # controllers (recreated on reset)
-        wp = WAYPOINTS if env_if % 2 else REVERSE_WAYPOINTS
+        wp = WAYPOINTS if env_id % 2 else REVERSE_WAYPOINTS
         self.wp_controller  = WaypointController(wp if not EVAL else EVAL_WAYPOINTS)
-        self.allocator = BaseAllocator(_WHEEL_RADIUS, _TRACK_WIDTH)
+        self.allocator = BaseAllocator(_WHEEL_RADIUS, _TRACK_WIDTH) if not PURE_RL else ZeroAllocator()
 
         # history buffer
         self._obs_history: deque = deque(maxlen=_OBS_STACK)
@@ -179,7 +178,7 @@ class SixWheelEnv(gym.Env):
         return obs, {}
 
     def step(self, action: np.ndarray):
-        delta_omega = np.clip(action, -_ACTION_CLIP, _ACTION_CLIP).astype(np.float32)
+        delta_omega = np.clip(action, -_ACTION_CLIP, _ACTION_CLIP).astype(np.float32) if not PURE_RL else action.astype(np.float32)
 
         # 1. Post-deviation speed
         omega_cmd_target = self._prev_omega_base + delta_omega
@@ -337,8 +336,12 @@ class SixWheelEnv(gym.Env):
             wheel_qvel,        # 6 — actual
             omega_base,        # 6 — base commanded
             prev_delta_omega,  # 6 — previous residual
+        ]).astype(np.float32) if not PURE_RL else np.concatenate([
+            [cross_track_error, heading_error, dist, v_forward, wz],  # 5
+            wheel_qvel,        # 6 — actual
+            prev_delta_omega,  # 6 — previous action
         ]).astype(np.float32)
-        assert obs.shape == (_OBS_DIM,), f"obs shape mismatch: {obs.shape}"
+        assert obs.shape == (self.obs_size,), f"obs shape mismatch: {obs.shape}"
         return obs
 
     def _get_stacked_obs(self) -> np.ndarray:
