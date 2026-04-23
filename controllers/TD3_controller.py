@@ -12,7 +12,7 @@ from controllers.models.critic import Critic
 
 from controllers.utils.replay import ReplayBuffer
 
-from envs.env_configs import _ACTION_CLIP, STACK_OBS_DIM, _ACTION_DIM as ACT_DIM, EVAL
+from envs.env_configs import _ACTION_CLIP, STACK_OBS_DIM, _ACTION_DIM as ACT_DIM, EVAL, PURE_RL
 
 from controllers.utils.model_configs import EPS_START, EPS_DECAY, EPS_MIN, CAPACITY
 
@@ -23,13 +23,13 @@ class Agent(nn.Module):
         super(Agent, self).__init__()
         self.num_envs = num_envs
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        state_dim = STACK_OBS_DIM
+        self.state_dim = (STACK_OBS_DIM - 6*5 + 5 + 5) if PURE_RL else STACK_OBS_DIM # no base vel history, add heading and dist history
         action_dim = ACT_DIM
-        self.actor = Actor(state_dim, action_dim).to(self.device)
+        self.actor = Actor(self.state_dim, action_dim).to(self.device)
         self.actor_target = copy.deepcopy(self.actor)
-        self.critic1 = Critic(state_dim, action_dim).to(self.device)
+        self.critic1 = Critic(self.state_dim, action_dim).to(self.device)
         self.critic1_target = copy.deepcopy(self.critic1)
-        self.critic2 = Critic(state_dim, action_dim).to(self.device)
+        self.critic2 = Critic(self.state_dim, action_dim).to(self.device)
         self.critic2_target = copy.deepcopy(self.critic2)
         # compile for faster training
         if self.device.type == 'cuda' and COMPILE:
@@ -44,21 +44,26 @@ class Agent(nn.Module):
         self.critic1_optimizer = torch.optim.Adam(self.critic1.parameters(), lr=1e-3)
         self.critic2_optimizer = torch.optim.Adam(self.critic2.parameters(), lr=1e-3)
 
-        self.replay = ReplayBuffer(CAPACITY, STACK_OBS_DIM, ACT_DIM) if not EVAL else None
+        self.replay = ReplayBuffer(CAPACITY, self.state_dim, ACT_DIM) if not EVAL else None
         self.batch_size = 1024
         self.gamma = 0.995
         self.tau = 0.005
         self.policy_noise = 0.2
         self.noise_clip = 0.5
         self.policy_freq = 2
-        self.max_action = _ACTION_CLIP
+        self.max_action = _ACTION_CLIP if not PURE_RL else _ACTION_CLIP * 2
         self.max_grad_norm = 3.0
         self.total_it = 0
         self._loss = None # store most recent loss for logging
 
         self.wheel_hist = [deque(maxlen=5) for _ in range(num_envs)]
-        self.base_hist = [deque(maxlen=5) for _ in range(num_envs)]
-        self.dev_hist = [deque(maxlen=5) for _ in range(num_envs)]
+        if not PURE_RL:
+            self.base_hist = [deque(maxlen=5) for _ in range(num_envs)]
+            self.dev_hist = [deque(maxlen=5) for _ in range(num_envs)]
+        else:
+            self.act_hist = [deque(maxlen=5) for _ in range(num_envs)]
+            self.heading_hist = [deque(maxlen=5) for _ in range(num_envs)]
+            self.dist_hist = [deque(maxlen=5) for _ in range(num_envs)]
         self.vels_hist = [deque(maxlen=5) for _ in range(num_envs)]
         self.ang_hist = [deque(maxlen=5) for _ in range(num_envs)]
         self.hist_reset()
@@ -73,7 +78,7 @@ class Agent(nn.Module):
     
     def printout(self):
         # print out hyperparameters
-        print(f"TD3 Agent initialized with:")
+        print(f"TD3 Non-Residual Agent initialized with:")
         print(f"\tDevice: {self.device}")
         print(f"\tReplay buffer capacity: {CAPACITY}")
         print(f"\tBatch size: {self.batch_size}")
@@ -94,40 +99,59 @@ class Agent(nn.Module):
     
     def hist_reset_single_env(self, env_id):
         self.wheel_hist[env_id].clear()
-        self.base_hist[env_id].clear()
-        self.dev_hist[env_id].clear()
+        if not PURE_RL:
+            self.base_hist[env_id].clear()
+            self.dev_hist[env_id].clear()
+        else:
+            self.act_hist[env_id].clear()
         self.vels_hist[env_id].clear()
         self.ang_hist[env_id].clear()
         for _ in range(5):
             self.wheel_hist[env_id].append(np.zeros(6, dtype=np.float32))
-            self.base_hist[env_id].append(np.zeros(6, dtype=np.float32))
-            self.dev_hist[env_id].append(np.zeros(6, dtype=np.float32))
+            if not PURE_RL:
+                self.base_hist[env_id].append(np.zeros(6, dtype=np.float32))
+                self.dev_hist[env_id].append(np.zeros(6, dtype=np.float32))
+            else:
+                self.act_hist[env_id].append(np.zeros(6, dtype=np.float32))
             self.vels_hist[env_id].append(0.0)
             self.ang_hist[env_id].append(0.0)
     
     def parse_obs(self, obs, device=None, env_id=0):
         obs_dict = {}
         obs_dict["cross_track_err"] = obs[0]
-        obs_dict["heading_err"] = obs[1]
-        obs_dict["waypoint_dist"] = obs[2]
+        if PURE_RL:
+            obs_dict["heading_err"] = obs[1]
+            self.heading_hist[env_id].append(obs[1])
+            obs_dict["waypoint_dist"] = obs[2]
+            self.dist_hist[env_id].append(obs[2])
         obs_dict["bot_vel"] = obs[3]
         self.vels_hist[env_id].append(obs[3])
         obs_dict["bot_ang"] = obs[4]
         self.ang_hist[env_id].append(obs[4])
         obs_dict["curr_wheel"] = obs[5:11]
         self.wheel_hist[env_id].append(obs[5:11])
-        obs_dict["curr_base"] = obs[11:17]
-        self.base_hist[env_id].append(obs[11:17])
-        obs_dict["curr_dev"] = obs[17:23]
-        self.dev_hist[env_id].append(obs[17:23])
+        if not PURE_RL:
+            obs_dict["curr_base"] = obs[11:17]
+            self.base_hist[env_id].append(obs[11:17])
+            obs_dict["curr_dev"] = obs[17:23]
+            self.dev_hist[env_id].append(obs[17:23])
+            _base_hist = np.concatenate(list(self.base_hist[env_id]))
+            _dev_hist = np.concatenate(list(self.dev_hist[env_id]))
+        else:
+            obs_dict["prev_act"] = obs[11:17]
+            self.act_hist[env_id].append(obs[11:17])
+            _act_hist = np.concatenate(list(self.act_hist[env_id]))
+            _heading_hist = np.array(self.heading_hist[env_id])
+            _dist_hist = np.array(self.dist_hist[env_id])
 
+        _wheel_hist = np.concatenate(list(self.wheel_hist[env_id]))
         _vels_hist = np.array(self.vels_hist[env_id])
         _ang_hist = np.array(self.ang_hist[env_id])
-        _wheel_hist = np.concatenate(list(self.wheel_hist[env_id]))
-        _base_hist = np.concatenate(list(self.base_hist[env_id]))
-        _dev_hist = np.concatenate(list(self.dev_hist[env_id]))
 
-        obs_arr = np.concatenate((_vels_hist, _ang_hist, _wheel_hist, _base_hist, _dev_hist)).astype(np.float32)
+        if not PURE_RL:
+            obs_arr = np.concatenate((_vels_hist, _ang_hist, _wheel_hist, _base_hist, _dev_hist)).astype(np.float32)
+        else:
+            obs_arr = np.concatenate((_heading_hist, _dist_hist, _vels_hist, _ang_hist, _wheel_hist, _act_hist)).astype(np.float32)
         target_device = self.device if device is None else torch.device(device)
         obs_t = torch.from_numpy(obs_arr).to(target_device)
 
