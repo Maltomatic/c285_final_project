@@ -10,7 +10,8 @@ import time, csv, multiprocessing, threading
 from controllers.utils.model_configs import DECAY_INTERVAL, DISCOUNT, G_STEPS, RWD_FN
 from envs.utils import env_helpers
 from envs.utils.env_helpers import logging, eps_logging, make_env, extract_eps_info
-from envs.env_configs import DEBUG, EVAL, EVAL_EPISODES, GPU_THREAD, NO_OP, _ACTION_DIM
+from envs.env_configs import DEBUG, EVAL, EVAL_EPISODES, GPU_THREAD, _ACTION_DIM
+import envs.env_configs as env_config
 
 def print_d(*args, **kwargs):
     if DEBUG:
@@ -27,6 +28,13 @@ def main():
         default=False,
         help="Disable agent actions and use zero actions instead",
     )
+    parser.add_argument(
+        "--pure",
+        dest="pure",
+        action="store_true",
+        default=False,
+        help="Pure RL, no residuals (use ZeroAllocator)",
+    )
     parser.add_argument("--exp-name", type=str, default=None, help="Experiment prefix for logs/checkpoints")
     parser.add_argument(
         "--num-envs",
@@ -39,26 +47,34 @@ def main():
     algo = str(args.algo).lower().strip()
     no_fault = bool(args.no_fault)
     no_op = bool(args.no_op)
+    pure = bool(args.pure)
     exp_prefix = args.exp_name.strip() if args.exp_name else ("normal" if no_fault else "fault")
 
-    global NUM_ENVS, NO_OP
-
-    NUM_ENVS = max(1, int(args.num_envs))
-    NO_OP = no_op
+    env_config.NUM_ENVS = max(1, int(args.num_envs))
+    env_config.NO_OP = no_op
+    env_config.PURE_RL = pure
+    env_config.NO_FAULT = no_fault
+    
+    if pure:
+        exp_prefix += "_pure"
     env_helpers.csv_path = f"{exp_prefix}-training_log.csv"
     env_helpers.csv_eps_log_path = f"{exp_prefix}-episode_returns.csv"
     checkpoint_base_path = f"{exp_prefix}-{algo}_checkpoint"
     eval_csv_path = f"{exp_prefix}-eval_log.csv"
 
-    print(f"Launching {NUM_ENVS} parallel environments.")
-    envs = gym.vector.AsyncVectorEnv([make_env(RWD_FN, i, no_fault=no_fault) for i in range(NUM_ENVS)])
+    print(f"Launching {env_config.NUM_ENVS} parallel environments.")
+    envs = gym.vector.AsyncVectorEnv([
+        make_env(RWD_FN, i, no_fault=no_fault, pure_rl=pure)
+        for i in range(env_config.NUM_ENVS)
+    ])
     agent_cls = PPOAgent if algo == "ppo" else TD3Agent
-    agent: Any = agent_cls(num_envs=NUM_ENVS, checkpoint_path=checkpoint_base_path)
+    agent: Any = agent_cls(num_envs=env_config.NUM_ENVS, checkpoint_path=checkpoint_base_path)
     print(f"GPU thread enabled: {GPU_THREAD}")
     print(f"Algorithm: {algo.upper()}")
     print(f"Reward function: {RWD_FN if not EVAL else 'eval'}")
     print(f"NO_FAULT: {no_fault}")
-    print(f"Agent NO-OP mode: {NO_OP}")
+    print(f"Agent NO-OP mode: {env_config.NO_OP}")
+    print(f"Residual mode: {not env_config.PURE_RL}")
     print(f"Experiment prefix: {exp_prefix}")
     print(f"Training on device: {agent.device}, env action device: {'GPU' if agent.device.type == 'cuda' else 'CPU'}")
 
@@ -69,21 +85,20 @@ def main():
             writer.writerow(['Episode', 'Env', 'Steps', 'Total Reward', 'Damaged Wheel', 'Fault Alpha', 'Success'])
 
             obs, _ = envs.reset()
-            obs_t = torch.stack([agent.parse_obs(obs[i], env_id=i)[1] for i in range(NUM_ENVS)])
-            episode_rewards = np.zeros(NUM_ENVS, dtype=float)
-            episode_steps = np.zeros(NUM_ENVS, dtype=int)
+            obs_t = torch.stack([agent.parse_obs(obs[i], env_id=i)[1] for i in range(env_config.NUM_ENVS)])
+            episode_rewards = np.zeros(env_config.NUM_ENVS, dtype=float)
+            episode_steps = np.zeros(env_config.NUM_ENVS, dtype=int)
             completed = 0
             success_count = 0
 
             while completed < EVAL_EPISODES:
-                if NO_OP:
-                    action = np.zeros((NUM_ENVS, _ACTION_DIM), dtype=np.float32)
+                if env_config.NO_OP:
+                    action = np.zeros((env_config.NUM_ENVS, _ACTION_DIM), dtype=np.float32)
                 else:
                     action = agent.make_decision(obs_t, explore=False).detach().cpu().numpy()
                 obs, reward, terminated, truncated, infos = envs.step(action)
-                next_obs_t = torch.stack([agent.parse_obs(obs[i], env_id=i)[1] for i in range(NUM_ENVS)])
-
-                for i in range(NUM_ENVS):
+                next_obs_t = torch.stack([agent.parse_obs(obs[i], env_id=i)[1] for i in range(env_config.NUM_ENVS)])
+                for i in range(env_config.NUM_ENVS):
                     if completed >= EVAL_EPISODES:
                         break
                     episode_rewards[i] += reward[i]
@@ -142,7 +157,7 @@ def main():
     # use log to find last episode
     last_episode = 0
     try:
-        reader = csv.reader(open(csv_eps_log_path, mode='r'))
+        reader = csv.reader(open(env_helpers.csv_eps_log_path, mode='r'))
         for row in reader:
             if row and row[0] != 'Episode':
                 last_episode = max(last_episode, int(row[0]))
@@ -153,18 +168,18 @@ def main():
     
     global_step = 0
     try:
-        reader = csv.reader(open(csv_path, mode='r'))
+        reader = csv.reader(open(env_helpers.csv_path, mode='r'))
         for row in reader:
             if row and row[1] != 'Global step':
                 global_step = max(global_step, int(row[1]))
     except Exception as e:
         print(e)
         print("No existing log file found, starting from global step 0.")
-    episode_step = np.zeros(NUM_ENVS, dtype=int)
-    episode_cnt = np.arange(NUM_ENVS, dtype=int) + last_episode + NUM_ENVS
+    episode_step = np.zeros(env_config.NUM_ENVS, dtype=int)
+    episode_cnt = np.arange(env_config.NUM_ENVS, dtype=int) + last_episode + env_config.NUM_ENVS
     episode = episode_cnt.min()
-    episode_rewards = np.zeros(NUM_ENVS, dtype=float)
-    episode_discounted_rewards = np.zeros(NUM_ENVS, dtype=float)
+    episode_rewards = np.zeros(env_config.NUM_ENVS, dtype=float)
+    episode_discounted_rewards = np.zeros(env_config.NUM_ENVS, dtype=float)
 
     def estimate_metric(obs_state: torch.Tensor) -> float:
         if algo == "ppo":
@@ -180,8 +195,8 @@ def main():
 
     try:
         obs, _ = envs.reset() # stacked, all obs
-        obs_t = torch.stack([agent.parse_obs(obs[i], env_id=i)[1] for i in range(NUM_ENVS)])
-        critic_estimated_q = np.zeros(NUM_ENVS, dtype=float)
+        obs_t = torch.stack([agent.parse_obs(obs[i], env_id=i)[1] for i in range(env_config.NUM_ENVS)])
+        critic_estimated_q = np.zeros(env_config.NUM_ENVS, dtype=float)
         
         # Benchmarking: report every 10 seconds
         bench_start = time.time()
@@ -204,8 +219,8 @@ def main():
                 train_thread.start()
             
             # make move
-            if NO_OP:
-                action = np.zeros((NUM_ENVS, _ACTION_DIM), dtype=np.float32)
+            if env_config.NO_OP:
+                action = np.zeros((env_config.NUM_ENVS, _ACTION_DIM), dtype=np.float32)
             else:
                 action = agent.make_decision(obs_t, explore=True).detach().cpu().numpy()
             bt3 = time.perf_counter()
@@ -224,9 +239,9 @@ def main():
             bt0 = time.perf_counter()
             obs, reward, terminated, truncated, _ = envs.step(action)
             bt1 = time.perf_counter()
-            next_obs_t = torch.stack([agent.parse_obs(obs[i], env_id=i)[1] for i in range(NUM_ENVS)])
+            next_obs_t = torch.stack([agent.parse_obs(obs[i], env_id=i)[1] for i in range(env_config.NUM_ENVS)])
             # process transition, dones per env
-            for i in range(NUM_ENVS):
+            for i in range(env_config.NUM_ENVS):
                 act = action[i]
                 # print_d(f"Env {i} obs: errs {obs[i][0:5]}, \n\tcurr-wheels {obs[i][5:11]}, \n\tbase-wheels {obs[i][11:17]}, \n\t\tprev-dev {obs[i][17:]}")
                 # print_d(f"Made deviation {act} in environment {i} at episode {episode}, step {episode_step[i]} -- base action {obs[i][-12:-6]}")
@@ -254,14 +269,14 @@ def main():
                     critic_estimated_q[i] = 0.0
                     print(f"Episode {episode_cnt[i]} finished in environment {i} with total reward {episode_rewards[i]:.3f} and discounted reward {episode_discounted_rewards[i]:.3f} after {episode_step[i]} steps.")    
                     episode_step[i] = 0
-                    episode_cnt[i] += NUM_ENVS
+                    episode_cnt[i] += env_config.NUM_ENVS
                     episode_discounted_rewards[i] = 0.0
                     episode_rewards[i] = 0.0
             # train, log, update
             bt2 = time.perf_counter()
             losses = train_losses[0] if use_gpu_thread else agent.train_step()
             
-            if (global_step > DECAY_INTERVAL and (global_step // DECAY_INTERVAL >  (global_step - NUM_ENVS) // DECAY_INTERVAL )):
+            if (global_step > DECAY_INTERVAL and (global_step // DECAY_INTERVAL >  (global_step - env_config.NUM_ENVS) // DECAY_INTERVAL )):
                 print(f"Episode {episode}, global step {global_step}, Losses: {losses}")
                 if algo == "td3":
                     agent.decay_epsilon()
@@ -273,7 +288,7 @@ def main():
                 elif losses and algo == "ppo":
                     logging(episode, global_step, losses['value_loss'], losses['policy_loss'], losses['entropy'])
             obs_t = next_obs_t
-            global_step += NUM_ENVS
+            global_step += env_config.NUM_ENVS
             episode = episode_cnt.min()
 
             # Benchmark: every half min, report throughput

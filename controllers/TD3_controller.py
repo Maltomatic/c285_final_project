@@ -12,7 +12,8 @@ from controllers.models.critic import Critic
 
 from controllers.utils.replay import ReplayBuffer
 
-from envs.env_configs import _ACTION_CLIP, STACK_OBS_DIM, _ACTION_DIM as ACT_DIM, EVAL, PURE_RL
+from envs.env_configs import _ACTION_CLIP, STACK_OBS_DIM, _ACTION_DIM as ACT_DIM, EVAL
+import envs.env_configs as env_config
 
 from controllers.utils.model_configs import EPS_START, EPS_DECAY, EPS_MIN, CAPACITY
 
@@ -23,7 +24,7 @@ class Agent(nn.Module):
         super(Agent, self).__init__()
         self.num_envs = num_envs
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.state_dim = (STACK_OBS_DIM - 6*5 + 5 + 5) if PURE_RL else STACK_OBS_DIM # no base vel history, add heading and dist history
+        self.state_dim = (STACK_OBS_DIM - 6*5 + 5 + 5) if env_config.PURE_RL else STACK_OBS_DIM # no base vel history, add heading and dist history
         action_dim = ACT_DIM
         self.actor = Actor(self.state_dim, action_dim).to(self.device)
         self.actor_target = copy.deepcopy(self.actor)
@@ -51,13 +52,13 @@ class Agent(nn.Module):
         self.policy_noise = 0.2
         self.noise_clip = 0.5
         self.policy_freq = 2
-        self.max_action = _ACTION_CLIP if not PURE_RL else _ACTION_CLIP * 2
+        self.max_action = _ACTION_CLIP if not env_config.PURE_RL else _ACTION_CLIP * 2
         self.max_grad_norm = 3.0
         self.total_it = 0
         self._loss = None # store most recent loss for logging
 
         self.wheel_hist = [deque(maxlen=5) for _ in range(num_envs)]
-        if not PURE_RL:
+        if not env_config.PURE_RL:
             self.base_hist = [deque(maxlen=5) for _ in range(num_envs)]
             self.dev_hist = [deque(maxlen=5) for _ in range(num_envs)]
         else:
@@ -99,7 +100,7 @@ class Agent(nn.Module):
     
     def hist_reset_single_env(self, env_id):
         self.wheel_hist[env_id].clear()
-        if not PURE_RL:
+        if not env_config.PURE_RL:
             self.base_hist[env_id].clear()
             self.dev_hist[env_id].clear()
         else:
@@ -110,7 +111,7 @@ class Agent(nn.Module):
         self.ang_hist[env_id].clear()
         for _ in range(5):
             self.wheel_hist[env_id].append(np.zeros(6, dtype=np.float32))
-            if not PURE_RL:
+            if not env_config.PURE_RL:
                 self.base_hist[env_id].append(np.zeros(6, dtype=np.float32))
                 self.dev_hist[env_id].append(np.zeros(6, dtype=np.float32))
             else:
@@ -122,8 +123,8 @@ class Agent(nn.Module):
     
     def parse_obs(self, obs, device=None, env_id=0):
         obs_dict = {}
-        obs_dict["cross_track_err"] = obs[0]
-        if PURE_RL:
+        # obs_dict["cross_track_err"] = obs[0]
+        if env_config.PURE_RL:
             obs_dict["heading_err"] = obs[1]
             self.heading_hist[env_id].append(obs[1])
             obs_dict["waypoint_dist"] = obs[2]
@@ -134,7 +135,7 @@ class Agent(nn.Module):
         self.ang_hist[env_id].append(obs[4])
         obs_dict["curr_wheel"] = obs[5:11]
         self.wheel_hist[env_id].append(obs[5:11])
-        if not PURE_RL:
+        if not env_config.PURE_RL:
             obs_dict["curr_base"] = obs[11:17]
             self.base_hist[env_id].append(obs[11:17])
             obs_dict["curr_dev"] = obs[17:23]
@@ -152,7 +153,7 @@ class Agent(nn.Module):
         _vels_hist = np.array(self.vels_hist[env_id])
         _ang_hist = np.array(self.ang_hist[env_id])
 
-        if not PURE_RL:
+        if not env_config.PURE_RL:
             obs_arr = np.concatenate((_vels_hist, _ang_hist, _wheel_hist, _base_hist, _dev_hist)).astype(np.float32)
         else:
             obs_arr = np.concatenate((_heading_hist, _dist_hist, _vels_hist, _ang_hist, _wheel_hist, _act_hist)).astype(np.float32)
@@ -168,6 +169,7 @@ class Agent(nn.Module):
             obs_t = obs.to(self.device)
         # obs_t is batched over N envs
         N = obs_t.shape[0]
+        # print(f"Shape of obs_t in make_decision: {obs_t.shape}")
         if explore and np.random.rand() < self.epsilon:
             action = torch.empty(N, ACT_DIM, dtype=torch.float32, device=self.device).uniform_(-self.max_action, self.max_action)
         else:

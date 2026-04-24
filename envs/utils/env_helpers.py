@@ -8,13 +8,14 @@ csv_path = 'training_log.csv'
 csv_eps_log_path = 'episode_returns.csv'
 checkpoint_base_path = 'td3_checkpoint'
 
-def make_env(rwd = "tracking", id=0, no_fault=False):
+def make_env(rwd = "tracking", id=0, no_fault=False, pure_rl=False):
     def _init():
         return gym.make("SixWheelSkidSteer-v0",
                         render_mode="human" if RENDER_TRAINING else None,
                         reward_fn=eval_reward if EVAL else tracking_reward if rwd == "tracking" else sparse_reward if rwd == "sparse" else None,
                         env_id=id,
-                        no_fault=no_fault)
+                        no_fault=no_fault,
+                        pure_rl=pure_rl)
     return _init
 
 def logging(episode, global_steps, critic1_loss, critic2_loss, actor_loss):

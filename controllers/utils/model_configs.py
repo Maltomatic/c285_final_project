@@ -16,7 +16,6 @@ _decay_events = G_STEPS * EXPLORE_FRACTION / DECAY_INTERVAL # how many times to 
 _decay_amount = (EPS_MIN/EPS_START)**(1.0 / _decay_events)
 EPS_DECAY = round(_decay_amount, 5)
 
-
 def verify_setup(dec = EPS_DECAY):
     # check how many steps to decay from EPS_START to EPS_MIN with EPS_DECAY
     ratio = EPS_MIN / EPS_START

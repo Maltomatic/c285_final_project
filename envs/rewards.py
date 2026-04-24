@@ -10,7 +10,8 @@ Pass the desired function to SixWheelEnv via reward_fn=...
 
 import numpy as np
 
-from envs.env_configs import _ACTION_CLIP, PURE_RL
+from envs.env_configs import _ACTION_CLIP
+import envs.env_configs as env_config
 
 def tracking_reward(
     obs_t: np.ndarray,
@@ -39,7 +40,7 @@ def tracking_reward(
     # print("Cross-track error: -", cross_track_err)
     r += -w2 * abs(heading_err)
     # print("Heading error: -", heading_err)
-    r += (-w3 * float(np.sum(delta_omega ** 2))) if not PURE_RL else 0.0
+    r += (-w3 * float(np.sum(delta_omega ** 2))) if not env_config.PURE_RL else 0.0
     # print("Action magnitude: -", float(np.sum(delta_omega ** 2)))
     r += -w4 * float(np.sum((delta_omega - prev_delta_omega) ** 2))
     # print("Action smoothness: -", float(np.sum((delta_omega - prev_delta_omega) ** 2)))
@@ -65,7 +66,7 @@ def sparse_reward(
         w2  time step penalty
     """
     w1, w2, w3 = weights
-    r  = -w1 * float(np.sum(delta_omega) - ((_ACTION_CLIP if not PURE_RL else (_ACTION_CLIP*2))*2 - 1) ** 2)
+    r  = -w1 * float(np.sum(delta_omega) - ((_ACTION_CLIP if not env_config.PURE_RL else (_ACTION_CLIP*2))*2 - 1) ** 2)
     r += +w2 * float(waypoint_reached)
     r += -w3
     return r

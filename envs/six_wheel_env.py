@@ -47,7 +47,8 @@ from envs.rewards import tracking_reward, sparse_reward
 
 from envs.env_configs import _ACTION_DIM, _OBS_DIM, _ACTION_CLIP, _OBS_STACK, _FRAME_SKIP,\
     _WHEEL_RADIUS, _TRACK_WIDTH, _RESET_SETTLE_STEPS, _MAX_CTRL_ACCEL,\
-    EVAL, EVAL_EPISODES, NO_FAULT, FAULT_STEP, PURE_RL
+    EVAL, EVAL_EPISODES, FAULT_STEP
+import envs.env_configs as env_config
 
 # constants
 _XML_PATH = os.path.join(os.path.dirname(__file__), "..", "assets", "robot.xml")
@@ -67,6 +68,7 @@ class SixWheelEnv(gym.Env):
         reward_weights: tuple | None = None,
         env_id = 0,
         no_fault: bool | None = None,
+        pure_rl: bool | None = None,
     ):
         super().__init__()
 
@@ -79,7 +81,10 @@ class SixWheelEnv(gym.Env):
         self.reward_fn = reward_fn
         self.reward_weights = reward_weights if reward_weights is not None else None
         self.env_id = env_id
-        self.no_fault = NO_FAULT if no_fault is None else bool(no_fault)
+        self.pure_rl = env_config.PURE_RL if pure_rl is None else bool(pure_rl)
+        # Keep reward helpers in this process consistent with the env mode.
+        env_config.PURE_RL = self.pure_rl
+        self.no_fault = bool(no_fault)
         # if eval, no_fault until step 150, then inject a random fault and keep it until the end of the episode
         if EVAL:
             self.no_fault = True
@@ -94,19 +99,19 @@ class SixWheelEnv(gym.Env):
         self._max_ctrl_delta = float(_MAX_CTRL_ACCEL * self._ctrl_dt)
 
         # gymnasium spaces
-        self.obs_size = _OBS_DIM if not PURE_RL else (_OBS_DIM-6) # no base vel observation
+        self.obs_size = _OBS_DIM if not self.pure_rl else (_OBS_DIM-6) # no base vel, no cross-track
         self.observation_space = gym.spaces.Box(
             low=-np.inf, high=np.inf, shape=(self.obs_size,), dtype=np.float32
         )
         self.action_space = gym.spaces.Box(
-            low=-(_ACTION_CLIP if not PURE_RL else _ACTION_CLIP*2), high=(_ACTION_CLIP if not PURE_RL else _ACTION_CLIP*2),
+            low=-(_ACTION_CLIP if not self.pure_rl else _ACTION_CLIP*2), high=(_ACTION_CLIP if not self.pure_rl else _ACTION_CLIP*2),
             shape=(_ACTION_DIM,), dtype=np.float32,
         )
 
         # controllers (recreated on reset)
         wp = WAYPOINTS if env_id % 2 else REVERSE_WAYPOINTS
         self.wp_controller  = WaypointController(wp if not EVAL else EVAL_WAYPOINTS)
-        self.allocator = BaseAllocator(_WHEEL_RADIUS, _TRACK_WIDTH) if not PURE_RL else ZeroAllocator()
+        self.allocator = BaseAllocator(_WHEEL_RADIUS, _TRACK_WIDTH) if not self.pure_rl else ZeroAllocator()
 
         # history buffer
         self._obs_history: deque = deque(maxlen=_OBS_STACK)
@@ -171,14 +176,14 @@ class SixWheelEnv(gym.Env):
         # Fill history buffer with zeros
         self._obs_history.clear()
         for _ in range(_OBS_STACK):
-            self._obs_history.append(np.zeros(_OBS_DIM, dtype=np.float32))
+            self._obs_history.append(np.zeros(self.obs_size, dtype=np.float32))
 
         # stack = self._get_stacked_obs()
         obs = self._single_obs(*self._chassis_pose(), self._prev_omega_base, self._prev_delta_omega)
         return obs, {}
 
     def step(self, action: np.ndarray):
-        delta_omega = np.clip(action, -_ACTION_CLIP, _ACTION_CLIP).astype(np.float32) if not PURE_RL else action.astype(np.float32)
+        delta_omega = np.clip(action, -_ACTION_CLIP, _ACTION_CLIP).astype(np.float32) if not self.pure_rl else action.astype(np.float32)
 
         # 1. Post-deviation speed
         omega_cmd_target = self._prev_omega_base + delta_omega
@@ -312,6 +317,7 @@ class SixWheelEnv(gym.Env):
         prev_delta_omega: np.ndarray,
     ) -> np.ndarray:
         """Build one 23-dim observation vector."""
+        # print(f"Residual: {not self.pure_rl}")
         wp = self.wp_controller.current_waypoint()
         dx, dy = wp - pos_xy
         dist    = float(np.hypot(dx, dy))
@@ -336,7 +342,7 @@ class SixWheelEnv(gym.Env):
             wheel_qvel,        # 6 — actual
             omega_base,        # 6 — base commanded
             prev_delta_omega,  # 6 — previous residual
-        ]).astype(np.float32) if not PURE_RL else np.concatenate([
+        ]).astype(np.float32) if not self.pure_rl else np.concatenate([
             [cross_track_error, heading_error, dist, v_forward, wz],  # 5
             wheel_qvel,        # 6 — actual
             prev_delta_omega,  # 6 — previous action

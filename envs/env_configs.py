@@ -1,15 +1,22 @@
-# centralize parameters
-RENDER_TRAINING = True
+################# centralize parameters #################
+
+# hardware setup controls
+RENDER_TRAINING = False
 DEBUG = False
 GPU_THREAD = False # True may be faster if GPU is strong and CPU is meh; on laptop 4070 basically no difference
 
-NO_FAULT = True
-EVAL = True
+# script controls - set through cmd args
+NUM_ENVS = 16
+NO_FAULT = False
+NO_OP = False # if True, agent takes no action. deviation is 0
+PURE_RL = False # if false, use residual policy w/ baseAllocator; if true, RL does everything
+
+# evaluation controls
+EVAL = False
 EVAL_EPISODES = 1000
 FAULT_STEP = 150
-NO_OP = False # if True, agent takes no action. deviation is 0
-PURE_RL = True # if false, use residual policy w/ baseAllocator; if true, RL does everything
 
+# env constants
 _ACTION_DIM = 6
 _OBS_DIM = 23
 STACK_OBS_DIM = 6 * 3 * 5 + 2 * 5 # 6 wheels, base/dev/actual, 5 steps; heading and dist, 5 steps
