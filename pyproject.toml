@@ -10,4 +10,5 @@ dependencies = [
     "matplotlib>=3.10.8",
     "mujoco>=3.6.0",
     "numpy>=2.4.4",
+    "torch>=2.0",
 ]
