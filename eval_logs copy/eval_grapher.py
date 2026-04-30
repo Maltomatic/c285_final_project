@@ -5,7 +5,6 @@ from collections import defaultdict
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-from matplotlib import cm
 from matplotlib import colors as mcolors
 
 
@@ -142,7 +141,7 @@ def _blend_towards_white(color, mix_factor):
 
 def _experiment_color_map(experiment_names):
     color_map = {}
-    tab20 = cm.get_cmap("tab20")
+    tab20 = plt.get_cmap("tab20")
     palette = [tab20(i) for i in range(20)]
     palette_idx = 0
     for name in experiment_names:
@@ -180,6 +179,42 @@ def _plot_grouped_bar_chart(ax, categories, labels, series_by_experiment, title,
         bbox_to_anchor=(0.5, -0.2),
         fontsize=8,
         ncol=max(1, min(5, len(series_by_experiment))),
+        frameon=True,
+    )
+
+
+def _plot_failure_step_density(ax, rows_by_experiment, color_map, max_step, step_bin):
+    for name, rows in rows_by_experiment.items():
+        step_counts = defaultdict(int)
+        for row in rows:
+            if row["success"] == 1:
+                continue
+
+            step = row["steps"]
+            if step < 0 or step > max_step:
+                continue
+
+            # Bin steps so nearby failures can be viewed as one dot.
+            binned_step = int(step // step_bin) * step_bin
+            step_counts[binned_step] += 1
+
+        if not step_counts:
+            continue
+
+        xs = sorted(step_counts.keys())
+        ys = [step_counts[x] for x in xs]
+        ax.scatter(xs, ys, s=24, alpha=0.8, color=color_map[name], label=name)
+
+    ax.set_title("Failure Density Over Steps")
+    ax.set_xlabel("Step")
+    ax.set_ylabel("Failure Count")
+    ax.set_xlim(0, max_step)
+    ax.grid(True, alpha=0.25)
+    ax.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.18),
+        fontsize=8,
+        ncol=3,
         frameon=True,
     )
 
@@ -284,8 +319,30 @@ def main():
         default="eval_overall_success_comparison.png",
         help="Output image path for overall success-rate chart",
     )
+    parser.add_argument(
+        "--failure-out",
+        default="eval_failure_step_density.png",
+        help="Output image path for failure step density chart",
+    )
+    parser.add_argument(
+        "--max-step",
+        type=int,
+        default=2000,
+        help="Maximum step shown on failure density x-axis",
+    )
+    parser.add_argument(
+        "--failure-step-bin",
+        type=int,
+        default=1,
+        help="Step-bin width for failure density points (1 means exact step)",
+    )
     parser.add_argument("--no-show", action="store_true", help="Do not display plot window")
     args = parser.parse_args()
+
+    if args.max_step <= 0:
+        raise ValueError("--max-step must be > 0")
+    if args.failure_step_bin <= 0:
+        raise ValueError("--failure-step-bin must be > 0")
 
     experiment_paths = _resolve_experiment_paths(args)
 
@@ -363,6 +420,15 @@ def main():
         color_map,
     )
 
+    failure_fig, failure_ax = plt.subplots(1, 1, figsize=(12, 6), constrained_layout=True)
+    _plot_failure_step_density(
+        failure_ax,
+        rows_by_experiment,
+        color_map,
+        max_step=args.max_step,
+        step_bin=args.failure_step_bin,
+    )
+
     wheel_fig, wheel_axes = plt.subplots(3, 1, figsize=(14, 14), constrained_layout=True)
 
     _plot_grouped_bar_chart(
@@ -411,6 +477,11 @@ def main():
     overall_out_path.parent.mkdir(parents=True, exist_ok=True)
     overall_fig.savefig(str(overall_out_path), dpi=170)
     print(f"Saved: {overall_out_path}")
+
+    failure_out_path = Path(args.failure_out)
+    failure_out_path.parent.mkdir(parents=True, exist_ok=True)
+    failure_fig.savefig(str(failure_out_path), dpi=170)
+    print(f"Saved: {failure_out_path}")
 
     wheel_fig.savefig(str(wheel_out_path), dpi=170)
     print(f"Saved: {wheel_out_path}")

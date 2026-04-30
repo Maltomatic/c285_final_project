@@ -163,8 +163,8 @@ class SixWheelEnv(gym.Env):
         self.fault_wheel_idx = int(self.np_random.integers(0, _ACTION_DIM))
         self.fault_alpha      = 1.0 if self.no_fault else float(self.np_random.uniform(0.0, 1.0))
         if EVAL:
-            injection_offset = int(self.np_random.integers(-5, 5))
-            self.inject_step = np.random.choice(FAULT_STEPS) + injection_offset
+            injection_offset = int(self.np_random.integers(-2, 2))
+            self.inject_step = np.random.choice(FAULT_STEPS)# + injection_offset
 
         # if not self.no_fault:
         #     print(f"Fault in env {self.env_id}: wheel {self.fault_wheel_idx} at {self.fault_alpha:.2f}x effectiveness")

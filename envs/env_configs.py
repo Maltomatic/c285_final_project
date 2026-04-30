@@ -14,7 +14,7 @@ PURE_RL = False # if false, use residual policy w/ baseAllocator; if true, RL do
 # evaluation controls
 EVAL = True
 EVAL_EPISODES = 2000
-FAULT_STEPS = [150, 450, 550, 600]
+FAULT_STEPS = [150, 700]
 
 # env constants
 _ACTION_DIM = 6
