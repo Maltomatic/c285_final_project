@@ -101,6 +101,7 @@ def main():
                 else:
                     action = agent.make_decision(obs_t, explore=False).detach().cpu().numpy()
                 obs, reward, terminated, truncated, infos = envs.step(action)
+                # input(f"step {episode_steps[0]}")
                 next_obs_t = torch.stack([agent.parse_obs(obs[i], env_id=i)[1] for i in range(env_config.NUM_ENVS)])
                 for i in range(env_config.NUM_ENVS):
                     if completed >= EVAL_EPISODES:
@@ -226,7 +227,7 @@ def main():
             if env_config.NO_OP:
                 action = np.zeros((env_config.NUM_ENVS, _ACTION_DIM), dtype=np.float32)
             else:
-                action = agent.make_decision(obs_t, explore=True).detach().cpu().numpy()
+                action = agent.make_decision(obs_t, explore=True, steps = global_step).detach().cpu().numpy()
             bt3 = time.perf_counter()
             if bt0 != 0:
                 step_time += bt1 - bt0

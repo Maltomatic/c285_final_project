@@ -6,9 +6,16 @@ EPS_MIN = 0.05
 EXPLORE_FRACTION = 0.7
 DECAY_INTERVAL = 1000
 
+NOISE_STD = 0.3
+NOISE_MIN = 0.05
+
 G_STEPS = 30_000_000
 DISCOUNT = 0.997 # agent gamma
 CAPACITY = 5_000_000
+
+def get_noise_std(step):
+    frac = min(step/(G_STEPS * 0.85), 1.0)
+    return NOISE_STD - (NOISE_STD - NOISE_MIN) * frac
 
 RWD_FN = 'tracking' # 'tracking', 'sparse', 'eval'
 

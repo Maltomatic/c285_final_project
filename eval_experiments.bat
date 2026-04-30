@@ -18,12 +18,12 @@ echo BASELINE:
 python main.py --exp-name baseline --no-op
 echo NORMAL:
 python main.py --exp-name normal
-@REM echo NORMAL-PURE:
-@REM python main.py --exp-name normal --pure
+echo NORMAL-PURE:
+python main.py --exp-name normal --pure
 echo FAULT:
 python main.py --exp-name fault
-@REM echo FAULT-PURE:
-@REM python main.py --exp-name fault --pure
+echo FAULT-PURE:
+python main.py --exp-name fault --pure
 
 echo Generating graphs
 cd eval_logs

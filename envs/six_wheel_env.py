@@ -47,7 +47,7 @@ from envs.rewards import tracking_reward, sparse_reward
 
 from envs.env_configs import _ACTION_DIM, _OBS_DIM, _ACTION_CLIP, _OBS_STACK, _FRAME_SKIP,\
     _WHEEL_RADIUS, _TRACK_WIDTH, _RESET_SETTLE_STEPS, _MAX_CTRL_ACCEL,\
-    EVAL, EVAL_EPISODES, FAULT_STEP
+    EVAL, EVAL_EPISODES, FAULT_STEPS
 import envs.env_configs as env_config
 
 # constants
@@ -122,7 +122,7 @@ class SixWheelEnv(gym.Env):
         self._prev_ctrl_cmd = np.zeros(_ACTION_DIM, dtype=np.float32)
         self.fault_wheel_idx: int = 0
         self.fault_alpha: float   = 1.0
-        self.inject_step = FAULT_STEP if EVAL else 0
+        self.inject_step = FAULT_STEPS[0] if EVAL else 0
 
         # rendering handles
         self._viewer   = None   # mujoco.viewer passive handle (human mode)
@@ -162,9 +162,9 @@ class SixWheelEnv(gym.Env):
         # Fault injection (sampled fresh every episode)
         self.fault_wheel_idx = int(self.np_random.integers(0, _ACTION_DIM))
         self.fault_alpha      = 1.0 if self.no_fault else float(self.np_random.uniform(0.0, 1.0))
-        # if EVAL:
-        #     injection_offset = int(self.np_random.integers(-10, 10))
-        #     self.inject_step = FAULT_STEP + injection_offset
+        if EVAL:
+            injection_offset = int(self.np_random.integers(-5, 5))
+            self.inject_step = np.random.choice(FAULT_STEPS) + injection_offset
 
         # if not self.no_fault:
         #     print(f"Fault in env {self.env_id}: wheel {self.fault_wheel_idx} at {self.fault_alpha:.2f}x effectiveness")

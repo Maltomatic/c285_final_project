@@ -165,6 +165,7 @@ class Agent(nn.Module):
             obs_arr = np.concatenate((_heading_hist, _dist_hist, _vels_hist, _ang_hist, _wheel_hist, _act_hist)).astype(np.float32)
         target_device = self.device if device is None else torch.device(device)
         obs_t = torch.from_numpy(obs_arr).to(target_device)
+        print(obs_dict)
 
         return obs_dict, obs_t
 
@@ -330,3 +331,19 @@ class Agent(nn.Module):
             for k, v in state.items():
                 if isinstance(v, torch.Tensor):
                     state[k] = v.to(self.device)
+    
+    def teacher_decision(self, obs, env_id=0):
+        # obs is a single observation for one env, not a batch
+        obs_dict, obs_t = self.parse_obs(obs, env_id=env_id)
+        # simple proportional heading controller as teacher
+        heading_err = obs_dict["heading_err"] if env_config.PURE_RL else 0.0
+        waypoint_dist = obs_dict["waypoint_dist"] if env_config.PURE_RL else 0.0
+        kp_heading = 2.0
+        v_max = 1.0
+        omega_max = 2.0
+        omega = float(np.clip(kp_heading * heading_err, -omega_max, omega_max))
+        v = float(np.clip(v_max * (1 - abs(heading_err)/np.pi) * (1 - waypoint_dist/5.0), 0.0, v_max))
+        action = np.zeros(ACT_DIM, dtype=np.float32)
+        action[0] = v + omega * env_config._TRACK_WIDTH / 2 / env_config._WHEEL_RADIUS
+        action[1] = v - omega * env_config._TRACK_WIDTH / 2 / env_config._WHEEL_RADIUS
+        return torch.from_numpy(action).to(self.device)
