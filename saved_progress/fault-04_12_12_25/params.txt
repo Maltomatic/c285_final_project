@@ -1,3 +1,0 @@
-20M Steps
-eps_decay 0.995; from 0.99 -> 0.05
-decay every 1000 steps

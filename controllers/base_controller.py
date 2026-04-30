@@ -56,7 +56,6 @@ EVAL_WAYPOINTS = np.array([
     [2.0 / SCALE, 15.0 / SCALE],
     [0.0 / SCALE, 15.0 / SCALE],
     [0.0 / SCALE, 0.0 / SCALE],   # home
-    [-12.0 / SCALE, 0.0 / SCALE],
     [-18.0 / SCALE, 0.0 / SCALE],   # straight along X
     [-20.0 / SCALE, 3.5 / SCALE],
     [-15.5 / SCALE, 8.0 / SCALE],
@@ -68,6 +67,10 @@ EVAL_WAYPOINTS = np.array([
     [-2.0 / SCALE, 15.0 / SCALE],
     [-0.0 / SCALE, 15.0 / SCALE],
     [-0.0 / SCALE, 0.0 / SCALE],   # home
+    [-12.0 / SCALE, 0.0 / SCALE],
+    [0.0 / SCALE, 5.0 / SCALE],
+    [0.0 / SCALE, 0.0 / SCALE],
+
 ], dtype=np.float64)
 # WAYPOINTS = np.array([
 #     [5.0, 0.0],   # straight along X

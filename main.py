@@ -36,6 +36,7 @@ def main():
         help="Pure RL, no residuals (use ZeroAllocator)",
     )
     parser.add_argument("--exp-name", type=str, default=None, help="Experiment prefix for logs/checkpoints")
+    parser.add_argument("--ckpt-name", type=str, default=None, help="Checkppoint name prefix for experiment")
     parser.add_argument(
         "--num-envs",
         type=int,
@@ -49,18 +50,21 @@ def main():
     no_op = bool(args.no_op)
     pure = bool(args.pure)
     exp_prefix = args.exp_name.strip() if args.exp_name else ("normal" if no_fault else "fault")
+    ckpt_prefix = args.ckpt_name.strip() if args.ckpt_name else exp_prefix
 
     env_config.NUM_ENVS = max(1, int(args.num_envs))
     env_config.NO_OP = no_op
     env_config.PURE_RL = pure
     env_config.NO_FAULT = no_fault
-    
+
     if pure:
         exp_prefix += "_pure"
+        ckpt_prefix += "_pure"
+    #
     env_helpers.csv_path = f"{exp_prefix}-training_log.csv"
     env_helpers.csv_eps_log_path = f"{exp_prefix}-episode_returns.csv"
-    checkpoint_base_path = f"{exp_prefix}-{algo}_checkpoint"
-    eval_csv_path = f"{exp_prefix}-eval_log.csv"
+    eval_csv_path = f"eval_logs/{exp_prefix}-eval_log.csv"
+    checkpoint_base_path = f"{ckpt_prefix}-{algo}_checkpoint"
 
     print(f"Launching {env_config.NUM_ENVS} parallel environments.")
     envs = gym.vector.AsyncVectorEnv([
@@ -307,7 +311,7 @@ def main():
         raise e
     finally:
         print("Saving checkpoint...")
-        # agent.checkpoint_save(path=checkpoint_base_path)    
+        agent.checkpoint_save(path=checkpoint_base_path)    
         envs.close()
     
 

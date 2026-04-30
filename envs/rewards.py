@@ -81,11 +81,5 @@ def eval_reward(
     """
     Only time penalty; env adds completion reward. Only for eval.
 
-    weights:
-        w1  waypoint reached bonus
-        w2  time step penalty
     """
-    w1, w2, w3 = weights
-    r = 0.0
-    r += -w3
-    return r
+    return -0.1

@@ -12,8 +12,8 @@ NO_OP = False # if True, agent takes no action. deviation is 0
 PURE_RL = False # if false, use residual policy w/ baseAllocator; if true, RL does everything
 
 # evaluation controls
-EVAL = False
-EVAL_EPISODES = 1000
+EVAL = True
+EVAL_EPISODES = 2000
 FAULT_STEP = 150
 
 # env constants

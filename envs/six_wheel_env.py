@@ -122,6 +122,7 @@ class SixWheelEnv(gym.Env):
         self._prev_ctrl_cmd = np.zeros(_ACTION_DIM, dtype=np.float32)
         self.fault_wheel_idx: int = 0
         self.fault_alpha: float   = 1.0
+        self.inject_step = FAULT_STEP if EVAL else 0
 
         # rendering handles
         self._viewer   = None   # mujoco.viewer passive handle (human mode)
@@ -161,6 +162,9 @@ class SixWheelEnv(gym.Env):
         # Fault injection (sampled fresh every episode)
         self.fault_wheel_idx = int(self.np_random.integers(0, _ACTION_DIM))
         self.fault_alpha      = 1.0 if self.no_fault else float(self.np_random.uniform(0.0, 1.0))
+        # if EVAL:
+        #     injection_offset = int(self.np_random.integers(-10, 10))
+        #     self.inject_step = FAULT_STEP + injection_offset
 
         # if not self.no_fault:
         #     print(f"Fault in env {self.env_id}: wheel {self.fault_wheel_idx} at {self.fault_alpha:.2f}x effectiveness")
@@ -194,7 +198,7 @@ class SixWheelEnv(gym.Env):
 
         # print(f"\nLast timestep base speed: {self._prev_omega_base}, delta_omega: {delta_omega}, output speed: {omega_cmd}")
 
-        if self._steps == FAULT_STEP and EVAL:
+        if self._steps == self.inject_step and EVAL:
             self.inject_fault(
                 wheel_idx=int(self.np_random.integers(0, _ACTION_DIM)),
                 alpha=float(self.np_random.choice(eval_fault_types))
@@ -238,7 +242,7 @@ class SixWheelEnv(gym.Env):
             )
         # add completion reward in EVAL
         if EVAL and self.wp_controller.is_done():
-            reward += 100.0
+            reward += 300.0
 
         # 8. Termination
         success = self.wp_controller.is_done()
@@ -293,7 +297,7 @@ class SixWheelEnv(gym.Env):
         """Inject or change a fault mid-episode (for evaluation experiments)."""
         assert 0 <= wheel_idx < _ACTION_DIM, "wheel_idx must be in [0, 5]"
         assert 0.0 <= alpha <= 1.0, "alpha must be in [0, 1]" # TODO: allow -1~1 for special malfunction? eg. blown tire, cause drag
-        print(f"Injecting fault in env {self.env_id} at step {self._steps}: wheel {wheel_idx} at {alpha:.2f}x effectiveness")
+        # print(f"Injecting fault in env {self.env_id} at step {self._steps}: wheel {wheel_idx} at {alpha:.2f}x effectiveness")
         self.fault_wheel_idx = wheel_idx
         self.fault_alpha     = alpha
 

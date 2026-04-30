@@ -79,7 +79,7 @@ class Agent(nn.Module):
     
     def printout(self):
         # print out hyperparameters
-        print(f"TD3 Non-Residual Agent initialized with:")
+        print(f"TD3 {'Non-Residual' if env_config.PURE_RL else 'Residual'} Agent initialized with:")
         print(f"\tDevice: {self.device}")
         print(f"\tReplay buffer capacity: {CAPACITY}")
         print(f"\tBatch size: {self.batch_size}")
