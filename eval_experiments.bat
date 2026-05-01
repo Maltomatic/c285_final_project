@@ -14,16 +14,16 @@
 @echo off
 echo Running fault-injected experiments with BASELINE controller, NORMAL controller, NORMAL-PURE controller, FAULT controller, and FAULT-PURE controller.
 
-echo BASELINE:
-python main.py --exp-name baseline --no-op
-echo NORMAL:
-python main.py --exp-name normal
-echo NORMAL-PURE:
-python main.py --exp-name normal --pure
+@REM echo BASELINE:
+@REM python main.py --exp-name baseline --no-op
+@REM echo NORMAL:
+@REM python main.py --exp-name normal
+@REM echo NORMAL-PURE:
+@REM python main.py --exp-name normal --pure
 echo FAULT:
 python main.py --exp-name fault
-echo FAULT-PURE:
-python main.py --exp-name fault --pure
+@REM echo FAULT-PURE:
+@REM python main.py --exp-name fault --pure
 
 echo Generating graphs
 cd eval_logs
