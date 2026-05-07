@@ -10,7 +10,7 @@ import time, csv, multiprocessing, threading
 from controllers.utils.model_configs import DECAY_INTERVAL, DISCOUNT, G_STEPS, RWD_FN
 from envs.utils import env_helpers
 from envs.utils.env_helpers import logging, eps_logging, make_env, extract_eps_info
-from envs.env_configs import DEBUG, EVAL, EVAL_EPISODES, GPU_THREAD, _ACTION_DIM
+from envs.env_configs import DEBUG, EVAL_EPISODES, GPU_THREAD, _ACTION_DIM, EVAL
 import envs.env_configs as env_config
 
 def print_d(*args, **kwargs):
@@ -21,34 +21,21 @@ def main():
     parser = argparse.ArgumentParser(description="Train RL agent with parallel environments")
     parser.add_argument("--algo", type=str, default="td3", choices=["td3", "ppo"], help="RL algorithm to use")
     parser.add_argument("--no-fault", action="store_true", help="Disable injected wheel faults (NO_FAULT mode)")
-    parser.add_argument(
-        "--no-op",
-        dest="no_op",
-        action="store_true",
-        default=False,
-        help="Disable agent actions and use zero actions instead",
-    )
-    parser.add_argument(
-        "--pure",
-        dest="pure",
-        action="store_true",
-        default=False,
-        help="Pure RL, no residuals (use ZeroAllocator)",
-    )
+    parser.add_argument("--no-op", action="store_true", default=False, help="Disable agent actions and use zero actions instead")
+    parser.add_argument("--pure", action="store_true", default=False, help="Pure RL, no residuals (use ZeroAllocator)")
+    parser.add_argument("--ft", action="store_true", default=False, help="Use fine tuning training process")
+    parser.add_argument("--eval", action="store_true", help="Enable eval mode")
     parser.add_argument("--exp-name", type=str, default=None, help="Experiment prefix for logs/checkpoints")
     parser.add_argument("--ckpt-name", type=str, default=None, help="Checkppoint name prefix for experiment")
-    parser.add_argument(
-        "--num-envs",
-        type=int,
-        default=max(1, multiprocessing.cpu_count()-1),
-        help="Number of parallel environments to launch",
-    )
+    parser.add_argument("--num-envs", type=int, default=max(1, multiprocessing.cpu_count()-1), help="Number of parallel environments to launch")
     args = parser.parse_args()
 
     algo = str(args.algo).lower().strip()
     no_fault = bool(args.no_fault)
     no_op = bool(args.no_op)
     pure = bool(args.pure)
+    ft = bool(args.ft)
+    eval_mode = bool(args.eval)
     exp_prefix = args.exp_name.strip() if args.exp_name else ("normal" if no_fault else "fault")
     ckpt_prefix = args.ckpt_name.strip() if args.ckpt_name else exp_prefix
 
@@ -56,10 +43,17 @@ def main():
     env_config.NO_OP = no_op
     env_config.PURE_RL = pure
     env_config.NO_FAULT = no_fault
+    env_config.FINE_TUNE = ft
+    env_config.EVAL = eval_mode
 
     if pure:
         exp_prefix += "_pure"
         ckpt_prefix += "_pure"
+    if ft:
+        exp_prefix += "_ft"
+        ckpt_prefix += "_ft"
+    # ensure ft only if pure
+    assert not ft or pure, "Fine-tuning mode only applies if using pure RL (no residuals). Please set --pure if using --ft."
     #
     env_helpers.csv_path = f"{exp_prefix}-training_log.csv"
     env_helpers.csv_eps_log_path = f"{exp_prefix}-episode_returns.csv"
@@ -68,7 +62,7 @@ def main():
 
     print(f"Launching {env_config.NUM_ENVS} parallel environments.")
     envs = gym.vector.AsyncVectorEnv([
-        make_env(RWD_FN, i, no_fault=no_fault, pure_rl=pure)
+        make_env(RWD_FN if not EVAL else 'eval', i, no_fault=no_fault, pure_rl=pure)
         for i in range(env_config.NUM_ENVS)
     ])
     agent_cls = PPOAgent if algo == "ppo" else TD3Agent
@@ -79,6 +73,7 @@ def main():
     print(f"NO_FAULT: {no_fault}")
     print(f"Agent NO-OP mode: {env_config.NO_OP}")
     print(f"Residual mode: {not env_config.PURE_RL}")
+    print(f"Fine-tuning mode: {env_config.FINE_TUNE}")
     print(f"Experiment prefix: {exp_prefix}")
     print(f"Training on device: {agent.device}, env action device: {'GPU' if agent.device.type == 'cuda' else 'CPU'}")
 
@@ -312,7 +307,8 @@ def main():
         raise e
     finally:
         print("Saving checkpoint...")
-        agent.checkpoint_save(path=checkpoint_base_path)    
+        agent.checkpoint_save(path=checkpoint_base_path)
+        print("Checkpoint saved to:", checkpoint_base_path)
         envs.close()
     
 

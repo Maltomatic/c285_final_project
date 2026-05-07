@@ -8,7 +8,7 @@ These are intentionally simple; the RL residual corrects for faults on top.
 """
 
 import numpy as np
-from envs.env_configs import EVAL
+import envs.env_configs as env_config
 
 # ── Waypoint trajectory ──────────────────────────────────────────────────────
 # L-shape + return: straight → 90° corner → back → home

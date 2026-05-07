@@ -43,12 +43,13 @@ import numpy as np
 import gymnasium as gym
 
 from controllers.base_controller import WaypointController, BaseAllocator, ZeroAllocator, WAYPOINTS, REVERSE_WAYPOINTS, EVAL_WAYPOINTS
-from envs.rewards import tracking_reward, sparse_reward
+from envs.rewards import tracking_reward, sparse_reward, eval_reward
 
 from envs.env_configs import _ACTION_DIM, _OBS_DIM, _ACTION_CLIP, _OBS_STACK, _FRAME_SKIP,\
     _WHEEL_RADIUS, _TRACK_WIDTH, _RESET_SETTLE_STEPS, _MAX_CTRL_ACCEL,\
     EVAL, EVAL_EPISODES, FAULT_STEPS
 import envs.env_configs as env_config
+from controllers.utils.model_configs import G_STEPS, FT_RATIO
 
 # constants
 _XML_PATH = os.path.join(os.path.dirname(__file__), "..", "assets", "robot.xml")
@@ -79,6 +80,7 @@ class SixWheelEnv(gym.Env):
         )
         self.render_mode = render_mode
         self.reward_fn = reward_fn
+        print(f"Using {reward_fn.__name__} reward function.")
         self.reward_weights = reward_weights if reward_weights is not None else None
         self.env_id = env_id
         self.pure_rl = env_config.PURE_RL if pure_rl is None else bool(pure_rl)
@@ -89,6 +91,10 @@ class SixWheelEnv(gym.Env):
         if EVAL:
             self.no_fault = True
         self._steps = 0
+        self.total_steps = 0 # track when to switch to fault for fine tune mode
+        if env_config.FINE_TUNE and not EVAL:
+            self.no_fault = True
+            print(f"FINE_TUNE MODE: no fault for first {G_STEPS * FT_RATIO:.0f} steps, then fault for remaining {G_STEPS * (1-FT_RATIO):.0f} steps")
 
         # load MuJoCo model (once, shared across resets)
         self.model = mujoco.MjModel.from_xml_path(_XML_PATH)
@@ -160,8 +166,12 @@ class SixWheelEnv(gym.Env):
             mujoco.mj_step(self.model, self.data)
 
         # Fault injection (sampled fresh every episode)
-        self.fault_wheel_idx = int(self.np_random.integers(0, _ACTION_DIM))
-        self.fault_alpha      = 1.0 if self.no_fault else float(self.np_random.uniform(0.0, 1.0))
+        if self.no_fault:
+            self.fault_wheel_idx = -1
+            self.fault_alpha = 1.0
+        else:
+            self.fault_wheel_idx = int(self.np_random.integers(0, _ACTION_DIM))
+            self.fault_alpha = float(self.np_random.uniform(0.0, 1.0))
         if EVAL:
             injection_offset = int(self.np_random.integers(-2, 2))
             self.inject_step = np.random.choice(FAULT_STEPS)# + injection_offset
@@ -176,6 +186,8 @@ class SixWheelEnv(gym.Env):
         self._prev_delta_omega = np.zeros(_ACTION_DIM, dtype=np.float32)
         self._prev_omega_base = np.zeros(_ACTION_DIM, dtype=np.float32)
         self._prev_ctrl_cmd = np.zeros(_ACTION_DIM, dtype=np.float32)
+        if EVAL:
+            self.no_fault = True
 
         # Fill history buffer with zeros
         self._obs_history.clear()
@@ -203,9 +215,11 @@ class SixWheelEnv(gym.Env):
                 wheel_idx=int(self.np_random.integers(0, _ACTION_DIM)),
                 alpha=float(self.np_random.choice(eval_fault_types))
             )
+            self.no_fault = False
         # 2. Apply fault (hidden from policy)
         omega_faulted = omega_cmd.copy()
-        omega_faulted[self.fault_wheel_idx] *= self.fault_alpha
+        if not self.no_fault:
+            omega_faulted[self.fault_wheel_idx] *= self.fault_alpha
 
         # 3. Step physics
         self.data.ctrl[:] = omega_faulted
@@ -261,6 +275,10 @@ class SixWheelEnv(gym.Env):
             "fault_alpha": float(self.fault_alpha),
         }
         self._steps += 1
+        self.total_steps += 1
+        if not EVAL and env_config.FINE_TUNE and self.no_fault and self.total_steps >= G_STEPS * FT_RATIO:
+            self.no_fault = False
+            print(f"START FINE TUNING: start faults at total step {self.total_steps} for env {self.env_id}")
         # return stacked, reward, terminated, truncated, {}
         return obs_t, reward, terminated, truncated, info
 

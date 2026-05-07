@@ -15,7 +15,7 @@ from controllers.utils.replay import ReplayBuffer
 from envs.env_configs import _ACTION_CLIP, STACK_OBS_DIM, _ACTION_DIM as ACT_DIM, EVAL
 import envs.env_configs as env_config
 
-from controllers.utils.model_configs import EPS_START, EPS_DECAY, EPS_MIN, CAPACITY, get_noise_std, G_STEPS
+from controllers.utils.model_configs import EPS_START, EPS_DECAY, EPS_MIN, CAPACITY, G_STEPS, FT_RATIO
 
 COMPILE = False
 
@@ -53,6 +53,7 @@ class Agent(nn.Module):
         self.noise_clip = 0.5
         self.policy_freq = 2
         self.max_action = _ACTION_CLIP if not env_config.PURE_RL else _ACTION_CLIP * 2
+        self.action_scale = self.max_action
         self.max_grad_norm = 3.0
         self.total_it = 0
         self._loss = None # store most recent loss for logging
@@ -71,10 +72,11 @@ class Agent(nn.Module):
 
         self.epsilon = EPS_START
         self.epsilon_decay = EPS_DECAY
+        if env_config.FINE_TUNE:
+            self.epsilon_decay = 0.99978
         self.epsilon_min = EPS_MIN
-
-        self.noise_std = get_noise_std(0)
-        self.action_scale = self.max_action
+        self.ft_start_step = int(G_STEPS * FT_RATIO)
+        self.ft_reset = False
 
         self.checkpoint_load(checkpoint_path)
 
@@ -93,9 +95,40 @@ class Agent(nn.Module):
         print(f"\tPolicy update frequency: {self.policy_freq}")
         print(f"\tMax action: {self.max_action}")
         print(f"\tMax grad norm: {self.max_grad_norm}")
-        print(f"\tEpsilon start: {EPS_START}")
-        print(f"\tEpsilon decay: {EPS_DECAY}")
-        print(f"\tEpsilon min: {EPS_MIN}")
+        # print(f"\tEpsilon start: {EPS_START}")
+        # print(f"\tEpsilon decay: {EPS_DECAY}")
+        # print(f"\tEpsilon min: {EPS_MIN}")
+    
+    def set_for_fine_tune(self):
+        # set learning rate
+        for param_group in self.actor_optimizer.param_groups:
+            param_group['lr'] = 1e-5
+        for param_group in self.critic1_optimizer.param_groups:
+            param_group['lr'] = 1e-4
+        for param_group in self.critic2_optimizer.param_groups:
+            param_group['lr'] = 1e-4
+        # # freeze all but last 2 layers of actor and critics
+        # for param in self.actor.parameters():
+        #     param.requires_grad = False
+        # for param in list(self.actor.parameters())[-4:]:
+        #     param.requires_grad = True
+        # for critic in [self.critic1, self.critic2]:
+        #     for param in critic.parameters():
+        #         param.requires_grad = False
+        #     for param in list(critic.parameters())[-4:]:
+        #         param.requires_grad = True
+        # clear histories
+        self.hist_reset()
+        # clear replay buffer
+        del self.replay
+        self.replay = ReplayBuffer(CAPACITY, self.state_dim, ACT_DIM)
+
+        self.epsilon = EPS_START
+        self.epsilon_decay = 0.99945
+
+        print("Agent is reset for fine tuning.")
+
+        self.ft_reset = True
 
     def hist_reset(self):
         for env_id in range(self.num_envs):
@@ -176,14 +209,14 @@ class Agent(nn.Module):
         # obs_t is batched over N envs
         N = obs_t.shape[0]
         # print(f"Shape of obs_t in make_decision: {obs_t.shape}")
-        if explore:
-            if steps < 0.05 * G_STEPS:
-                action = torch.empty(N, ACT_DIM, dtype=torch.float32, device=self.device).uniform_(-self.max_action, self.max_action)
-            else:
-                std = get_noise_std(steps) * self.action_scale
-                noise = (torch.randn((N, ACT_DIM), device=self.device) * std).clamp(-self.noise_clip * self.action_scale, self.noise_clip * self.action_scale)
-                with torch.no_grad():
-                    action = (self.actor(obs_t) + noise)#.clamp(-self.max_action, self.max_action)
+        if not EVAL and env_config.FINE_TUNE and steps >= self.ft_start_step and not self.ft_reset:
+            self.set_for_fine_tune()
+        if explore and np.random.rand() < self.epsilon:
+            # if steps < 0.05 * G_STEPS or (self.ft_reset and steps < self.ft_start_step + 0.001 * G_STEPS):
+            action = torch.empty(N, ACT_DIM, dtype=torch.float32, device=self.device).uniform_(-self.max_action, self.max_action)
+            # else:
+            #     with torch.no_grad():
+            #         action = self.actor(obs_t)
         else:
             with torch.no_grad():
                 action = self.actor(obs_t)# * self.max_action # target instead of actor to avoid gpu/cpu race
@@ -274,7 +307,7 @@ class Agent(nn.Module):
             'actor_optimizer': self.actor_optimizer.state_dict(),
             'critic1_optimizer': self.critic1_optimizer.state_dict(),
             'critic2_optimizer': self.critic2_optimizer.state_dict(),
-            'noise_std': self.noise_std,
+            'epsilon': self.epsilon,
         }, path + ".pth")
         # save_replay = input("Save replay buffer? (y/n): ")
         sz = len(self.replay)

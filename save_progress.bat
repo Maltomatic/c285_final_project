@@ -5,11 +5,12 @@ set "hh=%time:~0,2%"
 set "hh=%hh: =0%"
 set "date_str=%date:~4,2%_%date:~7,2%_%hh%_%time:~3,2%"
 
-call :move_group "baseline" "baseline-*"
-call :move_group "fault" "fault-*"
-call :move_group "normal" "normal-*"
-call :move_group "normal_pure" "normal_pure-*"
-call :move_group "fault_pure" "fault_pure-*"
+@REM call :move_group "baseline" "baseline-*"
+@REM call :move_group "fault" "fault-*"
+@REM call :move_group "normal" "normal-*"
+@REM call :move_group "normal_pure" "normal_pure-*"
+@REM call :move_group "fault_pure" "fault_pure-*"
+@REM call :move_group "rl_7_ft_3_pure_ft" "rl_7_ft_3_pure_ft-*"
 goto :eof
 
 :move_group

@@ -3,6 +3,7 @@ import os
 import gymnasium as gym
 from envs.rewards import tracking_reward, sparse_reward, eval_reward
 from envs.env_configs import RENDER_TRAINING, DEBUG, EVAL
+import envs.env_configs as env_config
 
 csv_path = 'training_log.csv'
 csv_eps_log_path = 'episode_returns.csv'
@@ -12,7 +13,7 @@ def make_env(rwd = "tracking", id=0, no_fault=False, pure_rl=False):
     def _init():
         return gym.make("SixWheelSkidSteer-v0",
                         render_mode="human" if RENDER_TRAINING else None,
-                        reward_fn=eval_reward if EVAL else tracking_reward if rwd == "tracking" else sparse_reward if rwd == "sparse" else None,
+                        reward_fn=eval_reward if rwd=="eval" else tracking_reward if rwd == "tracking" else sparse_reward if rwd == "sparse" else None,
                         env_id=id,
                         no_fault=no_fault,
                         pure_rl=pure_rl)

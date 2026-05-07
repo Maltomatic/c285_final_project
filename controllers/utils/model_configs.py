@@ -10,12 +10,23 @@ NOISE_STD = 0.3
 NOISE_MIN = 0.05
 
 G_STEPS = 30_000_000
+FT_RATIO = 0.7
 DISCOUNT = 0.997 # agent gamma
 CAPACITY = 5_000_000
 
-def get_noise_std(step):
-    frac = min(step/(G_STEPS * 0.85), 1.0)
-    return NOISE_STD - (NOISE_STD - NOISE_MIN) * frac
+# def get_noise_std(step, ft=False):
+#     total_steps = G_STEPS
+#     if ft:
+#         total_steps = G_STEPS * 0.7
+#     frac = min(step/(total_steps * 0.85), 1.0)
+#     std = NOISE_STD - (NOISE_STD - NOISE_MIN) * frac
+#     return std
+
+# def ft_noise(step):
+#     total_steps = G_STEPS * 0.3
+#     frac = min(step/(total_steps * 0.85), 1.0)
+#     std = NOISE_STD - (NOISE_STD - NOISE_MIN) * frac
+#     return std
 
 RWD_FN = 'tracking' # 'tracking', 'sparse', 'eval'
 
@@ -33,6 +44,6 @@ def verify_setup(dec = EPS_DECAY):
 if __name__ == "__main__":
     print("Verifying epsilon decay setup...")
     verify_setup()
-    # test_decays = 0.9955
-    # print("Testing with decay =", test_decays)
-    # verify_setup(test_decays)
+    # 0.99986 w/o tuning run
+    # 0.99978 pre-tuning
+    # 0.99945 for tuning

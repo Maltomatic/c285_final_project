@@ -9,7 +9,8 @@ GPU_THREAD = False # True may be faster if GPU is strong and CPU is meh; on lapt
 NUM_ENVS = 16
 NO_FAULT = False
 NO_OP = False # if True, agent takes no action. deviation is 0
-PURE_RL = False # if false, use residual policy w/ baseAllocator; if true, RL does everything
+PURE_RL = True # if false, use residual policy w/ baseAllocator; if true, RL does everything
+FINE_TUNE = True # if true, no-fault for 70% G_STEPS, fault for remianing 30%
 
 # evaluation controls
 EVAL = True
