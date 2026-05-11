@@ -12,7 +12,7 @@ from controllers.models.critic import Critic
 
 from controllers.utils.replay import ReplayBuffer
 
-from envs.env_configs import _ACTION_CLIP, STACK_OBS_DIM, _ACTION_DIM as ACT_DIM, EVAL
+from envs.env_configs import _ACTION_CLIP, _ACTION_DIM as ACT_DIM, EVAL
 import envs.env_configs as env_config
 
 from controllers.utils.model_configs import EPS_START, EPS_DECAY, EPS_MIN, CAPACITY, G_STEPS, FT_RATIO
@@ -24,7 +24,10 @@ class Agent(nn.Module):
         super(Agent, self).__init__()
         self.num_envs = num_envs
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.state_dim = (STACK_OBS_DIM - 6*5 + 5 + 5) if env_config.PURE_RL else STACK_OBS_DIM # no base vel history, add heading and dist history
+        k = env_config._OBS_STACK
+        # Residual obs: k × (vel + ang + 6 wheels + 6 base + 6 dev) = k × 20
+        # Pure RL obs:  k × (heading + dist + vel + ang + 6 wheels + 6 act) = k × 16
+        self.state_dim = k * 16 if env_config.PURE_RL else k * 20
         action_dim = ACT_DIM
         self.actor = Actor(self.state_dim, action_dim).to(self.device)
         self.actor_target = copy.deepcopy(self.actor)
@@ -58,16 +61,16 @@ class Agent(nn.Module):
         self.total_it = 0
         self._loss = None # store most recent loss for logging
 
-        self.wheel_hist = [deque(maxlen=5) for _ in range(num_envs)]
+        self.wheel_hist = [deque(maxlen=env_config._OBS_STACK) for _ in range(num_envs)]
         if not env_config.PURE_RL:
-            self.base_hist = [deque(maxlen=5) for _ in range(num_envs)]
-            self.dev_hist = [deque(maxlen=5) for _ in range(num_envs)]
+            self.base_hist = [deque(maxlen=env_config._OBS_STACK) for _ in range(num_envs)]
+            self.dev_hist = [deque(maxlen=env_config._OBS_STACK) for _ in range(num_envs)]
         else:
-            self.act_hist = [deque(maxlen=5) for _ in range(num_envs)]
-            self.heading_hist = [deque(maxlen=5) for _ in range(num_envs)]
-            self.dist_hist = [deque(maxlen=5) for _ in range(num_envs)]
-        self.vels_hist = [deque(maxlen=5) for _ in range(num_envs)]
-        self.ang_hist = [deque(maxlen=5) for _ in range(num_envs)]
+            self.act_hist = [deque(maxlen=env_config._OBS_STACK) for _ in range(num_envs)]
+            self.heading_hist = [deque(maxlen=env_config._OBS_STACK) for _ in range(num_envs)]
+            self.dist_hist = [deque(maxlen=env_config._OBS_STACK) for _ in range(num_envs)]
+        self.vels_hist = [deque(maxlen=env_config._OBS_STACK) for _ in range(num_envs)]
+        self.ang_hist = [deque(maxlen=env_config._OBS_STACK) for _ in range(num_envs)]
         self.hist_reset()
 
         self.epsilon = EPS_START
@@ -145,7 +148,7 @@ class Agent(nn.Module):
             self.dist_hist[env_id].clear()
         self.vels_hist[env_id].clear()
         self.ang_hist[env_id].clear()
-        for _ in range(5):
+        for _ in range(env_config._OBS_STACK):
             self.wheel_hist[env_id].append(np.zeros(6, dtype=np.float32))
             if not env_config.PURE_RL:
                 self.base_hist[env_id].append(np.zeros(6, dtype=np.float32))

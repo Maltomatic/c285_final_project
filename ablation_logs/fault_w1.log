@@ -1,0 +1,85 @@
+Launching 19 parallel environments.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Using eval_reward reward function.
+Model checkpoint loaded from fault-td3_checkpoint.pth.
+TD3 Residual Agent initialized with:
+	Device: cuda
+	Replay buffer capacity: 5000000
+	Batch size: 1024
+	Gamma (discount): 0.995
+	Tau (target update rate): 0.005
+	Policy noise: 0.2
+	Noise clip: 0.5
+	Policy update frequency: 2
+	Max action: 15.0
+	Max grad norm: 3.0
+GPU thread enabled: False
+Algorithm: TD3
+Reward function: eval
+NO_FAULT: False
+Agent NO-OP mode: False
+Residual mode: True
+Fine-tuning mode: False
+Experiment prefix: fault_w1
+Training on device: cuda, env action device: GPU
+EVAL mode enabled. Running 2000 evaluation episodes.
+[EVAL] Episode 50/2000 | env 18 | reward 196.900 | wheel 1 | alpha 0.40 | success True | steps 1030
+[EVAL] Episode 100/2000 | env 16 | reward 212.100 | wheel 3 | alpha 0.30 | success True | steps 878
+[EVAL] Episode 150/2000 | env 12 | reward 200.200 | wheel 2 | alpha 0.20 | success True | steps 997
+[EVAL] Episode 200/2000 | env 2 | reward 190.200 | wheel 2 | alpha 0.00 | success True | steps 1097
+[EVAL] Episode 250/2000 | env 18 | reward 209.400 | wheel 5 | alpha 0.40 | success True | steps 905
+[EVAL] Episode 300/2000 | env 2 | reward 194.100 | wheel 0 | alpha 0.40 | success True | steps 1058
+[EVAL] Episode 350/2000 | env 7 | reward 203.300 | wheel 0 | alpha 0.50 | success True | steps 966
+[EVAL] Episode 400/2000 | env 14 | reward 206.900 | wheel 2 | alpha 0.10 | success True | steps 930
+[EVAL] Episode 450/2000 | env 1 | reward 212.600 | wheel 3 | alpha 0.30 | success True | steps 873
+[EVAL] Episode 500/2000 | env 11 | reward 208.900 | wheel 5 | alpha 0.40 | success True | steps 910
+[EVAL] Episode 550/2000 | env 4 | reward 201.700 | wheel 1 | alpha 0.30 | success True | steps 982
+[EVAL] Episode 600/2000 | env 5 | reward -70.500 | wheel 0 | alpha 0.00 | success False | steps 704
+[EVAL] Episode 650/2000 | env 14 | reward 201.400 | wheel 5 | alpha 0.50 | success True | steps 985
+[EVAL] Episode 700/2000 | env 17 | reward 208.400 | wheel 3 | alpha 0.00 | success True | steps 915
+[EVAL] Episode 750/2000 | env 3 | reward 183.000 | wheel 2 | alpha 0.00 | success True | steps 1169
+[EVAL] Episode 800/2000 | env 9 | reward 177.600 | wheel 5 | alpha 0.10 | success True | steps 1223
+[EVAL] Episode 850/2000 | env 8 | reward 208.100 | wheel 0 | alpha 0.50 | success True | steps 918
+[EVAL] Episode 900/2000 | env 16 | reward 203.800 | wheel 3 | alpha 0.40 | success True | steps 961
+[EVAL] Episode 950/2000 | env 13 | reward 203.100 | wheel 4 | alpha 0.50 | success True | steps 968
+[EVAL] Episode 1000/2000 | env 15 | reward 193.300 | wheel 2 | alpha 0.10 | success True | steps 1066
+[EVAL] Episode 1050/2000 | env 13 | reward 206.100 | wheel 5 | alpha 0.00 | success True | steps 938
+[EVAL] Episode 1100/2000 | env 17 | reward 201.200 | wheel 1 | alpha 0.00 | success True | steps 987
+[EVAL] Episode 1150/2000 | env 10 | reward 202.800 | wheel 0 | alpha 0.30 | success True | steps 971
+[EVAL] Episode 1200/2000 | env 13 | reward 205.200 | wheel 4 | alpha 0.30 | success True | steps 947
+[EVAL] Episode 1250/2000 | env 6 | reward 208.100 | wheel 5 | alpha 0.40 | success True | steps 918
+[EVAL] Episode 1300/2000 | env 13 | reward 200.800 | wheel 3 | alpha 0.50 | success True | steps 991
+[EVAL] Episode 1350/2000 | env 7 | reward 197.100 | wheel 2 | alpha 0.50 | success True | steps 1028
+[EVAL] Episode 1400/2000 | env 2 | reward 199.500 | wheel 0 | alpha 0.00 | success True | steps 1004
+[EVAL] Episode 1450/2000 | env 17 | reward 201.400 | wheel 5 | alpha 0.10 | success True | steps 985
+[EVAL] Episode 1500/2000 | env 5 | reward 197.400 | wheel 0 | alpha 0.00 | success True | steps 1025
+[EVAL] Episode 1550/2000 | env 15 | reward 205.200 | wheel 3 | alpha 0.20 | success True | steps 947
+[EVAL] Episode 1600/2000 | env 9 | reward 205.400 | wheel 5 | alpha 0.30 | success True | steps 945
+[EVAL] Episode 1650/2000 | env 1 | reward 207.300 | wheel 5 | alpha 0.30 | success True | steps 926
+[EVAL] Episode 1700/2000 | env 16 | reward 195.600 | wheel 2 | alpha 0.40 | success True | steps 1043
+[EVAL] Episode 1750/2000 | env 2 | reward 213.400 | wheel 4 | alpha 0.20 | success True | steps 865
+[EVAL] Episode 1800/2000 | env 16 | reward 205.400 | wheel 2 | alpha 0.10 | success True | steps 945
+[EVAL] Episode 1850/2000 | env 8 | reward 187.500 | wheel 0 | alpha 0.00 | success True | steps 1124
+[EVAL] Episode 1900/2000 | env 11 | reward 184.800 | wheel 1 | alpha 0.20 | success True | steps 1151
+[EVAL] Episode 1950/2000 | env 6 | reward 202.200 | wheel 3 | alpha 0.30 | success True | steps 977
+[EVAL] Episode 2000/2000 | env 0 | reward 201.600 | wheel 1 | alpha 0.40 | success True | steps 983
+EVAL completed. Success rate: 1883/2000 = 94.15%
+Eval log saved to: eval_logs/fault_w1-eval_log.csv

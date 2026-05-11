@@ -28,6 +28,10 @@ def main():
     parser.add_argument("--exp-name", type=str, default=None, help="Experiment prefix for logs/checkpoints")
     parser.add_argument("--ckpt-name", type=str, default=None, help="Checkppoint name prefix for experiment")
     parser.add_argument("--num-envs", type=int, default=max(1, multiprocessing.cpu_count()-1), help="Number of parallel environments to launch")
+    parser.add_argument("--obs-stack", type=int, default=5, help="History window length: number of timesteps stacked into the observation (default 5)")
+    parser.add_argument("--num-fault-wheels", type=int, default=1, choices=[1, 2, 3], help="Eval: number of wheels to fault simultaneously (1=single, 2-3=multi-wheel)")
+    parser.add_argument("--jitter-fault", action="store_true", default=False, help="Eval: fault alpha varies randomly every JITTER_INTERVAL steps")
+    parser.add_argument("--same-side", action="store_true", default=False, help="Eval: force all faulted wheels to the same side (left 0-2 or right 3-5)")
     args = parser.parse_args()
 
     algo = str(args.algo).lower().strip()
@@ -36,6 +40,10 @@ def main():
     pure = bool(args.pure)
     ft = bool(args.ft)
     eval_mode = bool(args.eval)
+    obs_stack = int(args.obs_stack)
+    num_fault_wheels = int(args.num_fault_wheels)
+    jitter_fault = bool(args.jitter_fault)
+    same_side = bool(args.same_side)
     exp_prefix = args.exp_name.strip() if args.exp_name else ("normal" if no_fault else "fault")
     ckpt_prefix = args.ckpt_name.strip() if args.ckpt_name else exp_prefix
 
@@ -45,6 +53,10 @@ def main():
     env_config.NO_FAULT = no_fault
     env_config.FINE_TUNE = ft
     env_config.EVAL = eval_mode
+    env_config._OBS_STACK = obs_stack
+    env_config.NUM_FAULT_WHEELS = num_fault_wheels
+    env_config.FAULT_JITTER = jitter_fault
+    env_config.SAME_SIDE_FAULT = same_side
 
     if pure:
         exp_prefix += "_pure"
@@ -81,7 +93,7 @@ def main():
         print(f"EVAL mode enabled. Running {EVAL_EPISODES} evaluation episodes.")
         with open(eval_csv_path, mode='w', newline='') as eval_file:
             writer = csv.writer(eval_file)
-            writer.writerow(['Episode', 'Env', 'Steps', 'Total Reward', 'Damaged Wheel', 'Fault Alpha', 'Success'])
+            writer.writerow(['Episode', 'Env', 'Steps', 'Total Reward', 'Damaged Wheel', 'Fault Alpha', 'Fault Alphas', 'Success'])
 
             obs, _ = envs.reset()
             obs_t = torch.stack([agent.parse_obs(obs[i], env_id=i)[1] for i in range(env_config.NUM_ENVS)])
@@ -111,6 +123,7 @@ def main():
                     success = bool(extract_eps_info(infos, 'success', i, False))
                     damaged_wheel = extract_eps_info(infos, 'fault_wheel_idx', i, -1)
                     fault_alpha = extract_eps_info(infos, 'fault_alpha', i, np.nan)
+                    fault_alphas_str = extract_eps_info(infos, 'fault_alphas', i, '')
                     completed += 1
                     success_count += int(success)
 
@@ -121,6 +134,7 @@ def main():
                         episode_rewards[i],
                         int(damaged_wheel) if damaged_wheel is not None else -1,
                         float(fault_alpha) if fault_alpha is not None else np.nan,
+                        fault_alphas_str if fault_alphas_str else '',
                         int(success)
                     ])
 

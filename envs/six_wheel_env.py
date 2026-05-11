@@ -26,11 +26,13 @@ Action
 
 Fault model
 ───────────
-  Sampled at reset:
-    fault_wheel_idx ~ Uniform{0,...,5}
-    fault_alpha     ~ Uniform[0, 1]
-  Applied:
-    omega_actual[fault_wheel_idx] *= fault_alpha
+  Represented as fault_alphas[6]: per-wheel effectiveness multiplier (1.0=healthy, 0.0=dead).
+  Single fault (default, NUM_FAULT_WHEELS=1): one random wheel, alpha from eval_fault_types
+  Multi-fault (NUM_FAULT_WHEELS>1): N wheels; SAME_SIDE_FAULT forces all to one side
+  Fault jitter (FAULT_JITTER): per-step multiplicative noise on faulted wheels:
+                               omega_f = clip(alpha*(1+noise), 0, 1) * omega_cmd
+                               noise ~ N(0, JITTER_STD^2), healthy wheels unaffected
+  Applied: omega_actual = omega_cmd * fault_alphas  (vectorized)
   The policy does NOT observe fault parameters.
 """
 
@@ -126,8 +128,9 @@ class SixWheelEnv(gym.Env):
         self._prev_delta_omega = np.zeros(_ACTION_DIM, dtype=np.float32)
         self._prev_omega_base = np.zeros(_ACTION_DIM, dtype=np.float32)
         self._prev_ctrl_cmd = np.zeros(_ACTION_DIM, dtype=np.float32)
-        self.fault_wheel_idx: int = 0
-        self.fault_alpha: float   = 1.0
+        self.fault_alphas: np.ndarray = np.ones(_ACTION_DIM, dtype=np.float32)
+        self.fault_wheel_idx: int = -1   # primary faulted wheel (backward compat / logging)
+        self.fault_alpha: float   = 1.0  # primary alpha (backward compat / logging)
         self.inject_step = FAULT_STEPS[0] if EVAL else 0
 
         # rendering handles
@@ -166,12 +169,14 @@ class SixWheelEnv(gym.Env):
             mujoco.mj_step(self.model, self.data)
 
         # Fault injection (sampled fresh every episode)
+        self.fault_alphas = np.ones(_ACTION_DIM, dtype=np.float32)
         if self.no_fault:
             self.fault_wheel_idx = -1
             self.fault_alpha = 1.0
         else:
             self.fault_wheel_idx = int(self.np_random.integers(0, _ACTION_DIM))
             self.fault_alpha = float(self.np_random.uniform(0.0, 1.0))
+            self.fault_alphas[self.fault_wheel_idx] = self.fault_alpha
         if EVAL:
             injection_offset = int(self.np_random.integers(-2, 2))
             self.inject_step = np.random.choice(FAULT_STEPS)# + injection_offset
@@ -211,15 +216,25 @@ class SixWheelEnv(gym.Env):
         # print(f"\nLast timestep base speed: {self._prev_omega_base}, delta_omega: {delta_omega}, output speed: {omega_cmd}")
 
         if self._steps == self.inject_step and EVAL:
-            self.inject_fault(
-                wheel_idx=int(self.np_random.integers(0, _ACTION_DIM)),
-                alpha=float(self.np_random.choice(eval_fault_types))
-            )
+            self._inject_fault_eval()
             self.no_fault = False
-        # 2. Apply fault (hidden from policy)
-        omega_faulted = omega_cmd.copy()
+
+        # 2. Apply fault (hidden from policy) — vectorized per-wheel multiplier
         if not self.no_fault:
-            omega_faulted[self.fault_wheel_idx] *= self.fault_alpha
+            if env_config.FAULT_JITTER:
+                # omega_faulted = clip(alpha * (1 + noise), 0, 1) * omega_cmd
+                # noise ~ N(0, JITTER_STD^2), applied only to faulted wheels (alpha < 1)
+                noise = self.np_random.normal(0.0, env_config.JITTER_STD, _ACTION_DIM).astype(np.float32)
+                effective = np.where(
+                    self.fault_alphas < 1.0,
+                    np.clip(self.fault_alphas * (1.0 + noise), 0.0, 1.0),
+                    self.fault_alphas,
+                )
+                omega_faulted = omega_cmd * effective
+            else:
+                omega_faulted = omega_cmd * self.fault_alphas
+        else:
+            omega_faulted = omega_cmd.copy()
 
         # 3. Step physics
         self.data.ctrl[:] = omega_faulted
@@ -273,6 +288,7 @@ class SixWheelEnv(gym.Env):
             "success": bool(success),
             "fault_wheel_idx": int(self.fault_wheel_idx),
             "fault_alpha": float(self.fault_alpha),
+            "fault_alphas": ";".join(f"{a:.3f}" for a in self.fault_alphas),
         }
         self._steps += 1
         self.total_steps += 1
@@ -312,12 +328,32 @@ class SixWheelEnv(gym.Env):
     # mid-episode fault injection (evaluation only)
 
     def inject_fault(self, wheel_idx: int, alpha: float) -> None:
-        """Inject or change a fault mid-episode (for evaluation experiments)."""
+        """Inject a single-wheel fault mid-episode (used during training)."""
         assert 0 <= wheel_idx < _ACTION_DIM, "wheel_idx must be in [0, 5]"
-        assert 0.0 <= alpha <= 1.0, "alpha must be in [0, 1]" # TODO: allow -1~1 for special malfunction? eg. blown tire, cause drag
-        # print(f"Injecting fault in env {self.env_id} at step {self._steps}: wheel {wheel_idx} at {alpha:.2f}x effectiveness")
+        assert 0.0 <= alpha <= 1.0, "alpha must be in [0, 1]"
+        self.fault_alphas = np.ones(_ACTION_DIM, dtype=np.float32)
+        self.fault_alphas[wheel_idx] = alpha
         self.fault_wheel_idx = wheel_idx
         self.fault_alpha     = alpha
+
+    def _inject_fault_eval(self) -> None:
+        """Inject faults mid-episode for eval. Handles N=1 (single) through N=3 (multi-wheel).
+        NUM_FAULT_WHEELS=1 → one random wheel, any position.
+        NUM_FAULT_WHEELS>1 → N wheels; if SAME_SIDE_FAULT, all from the same side (0-2 or 3-5),
+                             otherwise drawn uniformly from all 6.
+        """
+        self.fault_alphas = np.ones(_ACTION_DIM, dtype=np.float32)
+        n = min(env_config.NUM_FAULT_WHEELS, _ACTION_DIM)
+        if env_config.SAME_SIDE_FAULT and n > 1:
+            side = int(self.np_random.integers(0, 2))
+            candidates = np.array([0, 1, 2] if side == 0 else [3, 4, 5])
+        else:
+            candidates = np.arange(_ACTION_DIM)
+        idxs = self.np_random.choice(candidates, size=min(n, len(candidates)), replace=False)
+        for idx in idxs:
+            self.fault_alphas[int(idx)] = float(self.np_random.choice(eval_fault_types))
+        self.fault_wheel_idx = int(idxs[0])
+        self.fault_alpha = float(self.fault_alphas[self.fault_wheel_idx])
 
     # internal helpers
 
