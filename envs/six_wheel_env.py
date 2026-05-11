@@ -49,7 +49,7 @@ from envs.rewards import tracking_reward, sparse_reward, eval_reward
 
 from envs.env_configs import _ACTION_DIM, _OBS_DIM, _ACTION_CLIP, _OBS_STACK, _FRAME_SKIP,\
     _WHEEL_RADIUS, _TRACK_WIDTH, _RESET_SETTLE_STEPS, _MAX_CTRL_ACCEL,\
-    EVAL, EVAL_EPISODES, FAULT_STEPS
+    EVAL_EPISODES, FAULT_STEPS
 import envs.env_configs as env_config
 from controllers.utils.model_configs import G_STEPS, FT_RATIO
 
@@ -90,11 +90,11 @@ class SixWheelEnv(gym.Env):
         env_config.PURE_RL = self.pure_rl
         self.no_fault = bool(no_fault)
         # if eval, no_fault until step 150, then inject a random fault and keep it until the end of the episode
-        if EVAL:
+        if env_config.EVAL:
             self.no_fault = True
         self._steps = 0
         self.total_steps = 0 # track when to switch to fault for fine tune mode
-        if env_config.FINE_TUNE and not EVAL:
+        if env_config.FINE_TUNE and not env_config.EVAL:
             self.no_fault = True
             print(f"FINE_TUNE MODE: no fault for first {G_STEPS * FT_RATIO:.0f} steps, then fault for remaining {G_STEPS * (1-FT_RATIO):.0f} steps")
 
@@ -118,7 +118,7 @@ class SixWheelEnv(gym.Env):
 
         # controllers (recreated on reset)
         wp = WAYPOINTS if env_id % 2 else REVERSE_WAYPOINTS
-        self.wp_controller  = WaypointController(wp if not EVAL else EVAL_WAYPOINTS)
+        self.wp_controller  = WaypointController(wp if not env_config.EVAL else EVAL_WAYPOINTS)
         self.allocator = BaseAllocator(_WHEEL_RADIUS, _TRACK_WIDTH) if not self.pure_rl else ZeroAllocator()
 
         # history buffer
@@ -131,7 +131,7 @@ class SixWheelEnv(gym.Env):
         self.fault_alphas: np.ndarray = np.ones(_ACTION_DIM, dtype=np.float32)
         self.fault_wheel_idx: int = -1   # primary faulted wheel (backward compat / logging)
         self.fault_alpha: float   = 1.0  # primary alpha (backward compat / logging)
-        self.inject_step = FAULT_STEPS[0] if EVAL else 0
+        self.inject_step = FAULT_STEPS[0] if env_config.EVAL else 0
 
         # rendering handles
         self._viewer   = None   # mujoco.viewer passive handle (human mode)
@@ -177,7 +177,7 @@ class SixWheelEnv(gym.Env):
             self.fault_wheel_idx = int(self.np_random.integers(0, _ACTION_DIM))
             self.fault_alpha = float(self.np_random.uniform(0.0, 1.0))
             self.fault_alphas[self.fault_wheel_idx] = self.fault_alpha
-        if EVAL:
+        if env_config.EVAL:
             injection_offset = int(self.np_random.integers(-2, 2))
             self.inject_step = np.random.choice(FAULT_STEPS)# + injection_offset
 
@@ -191,7 +191,7 @@ class SixWheelEnv(gym.Env):
         self._prev_delta_omega = np.zeros(_ACTION_DIM, dtype=np.float32)
         self._prev_omega_base = np.zeros(_ACTION_DIM, dtype=np.float32)
         self._prev_ctrl_cmd = np.zeros(_ACTION_DIM, dtype=np.float32)
-        if EVAL:
+        if env_config.EVAL:
             self.no_fault = True
 
         # Fill history buffer with zeros
@@ -215,19 +215,19 @@ class SixWheelEnv(gym.Env):
 
         # print(f"\nLast timestep base speed: {self._prev_omega_base}, delta_omega: {delta_omega}, output speed: {omega_cmd}")
 
-        if self._steps == self.inject_step and EVAL:
+        if self._steps == self.inject_step and env_config.EVAL:
             self._inject_fault_eval()
             self.no_fault = False
 
         # 2. Apply fault (hidden from policy) — vectorized per-wheel multiplier
         if not self.no_fault:
             if env_config.FAULT_JITTER:
-                # omega_faulted = clip(alpha * (1 + noise), 0, 1) * omega_cmd
-                # noise ~ N(0, JITTER_STD^2), applied only to faulted wheels (alpha < 1)
-                noise = self.np_random.normal(0.0, env_config.JITTER_STD, _ACTION_DIM).astype(np.float32)
+                # noise = self.np_random.normal(0.0, env_config.JITTER_STD, _ACTION_DIM).astype(np.float32)
+                jitter = self.np_random.uniform(-0.1, 0.1, _ACTION_DIM).astype(np.float32)
                 effective = np.where(
                     self.fault_alphas < 1.0,
-                    np.clip(self.fault_alphas * (1.0 + noise), 0.0, 1.0),
+                    # np.clip(self.fault_alphas * (1.0 + noise), 0.0, 1.0),
+                    np.clip(self.fault_alphas + jitter, 0.0, 1.0),
                     self.fault_alphas,
                 )
                 omega_faulted = omega_cmd * effective
@@ -269,8 +269,8 @@ class SixWheelEnv(gym.Env):
                 obs_t, action, self._prev_delta_omega,
                 waypoint_reached
             )
-        # add completion reward in EVAL
-        if EVAL and self.wp_controller.is_done():
+        # add completion reward in env_config.EVAL
+        if env_config.EVAL and self.wp_controller.is_done():
             reward += 300.0
 
         # 8. Termination
@@ -288,11 +288,12 @@ class SixWheelEnv(gym.Env):
             "success": bool(success),
             "fault_wheel_idx": int(self.fault_wheel_idx),
             "fault_alpha": float(self.fault_alpha),
+            "fault_wheels": ";".join(str(i) for i in np.where(self.fault_alphas < 1.0)[0]),
             "fault_alphas": ";".join(f"{a:.3f}" for a in self.fault_alphas),
         }
         self._steps += 1
         self.total_steps += 1
-        if not EVAL and env_config.FINE_TUNE and self.no_fault and self.total_steps >= G_STEPS * FT_RATIO:
+        if not env_config.EVAL and env_config.FINE_TUNE and self.no_fault and self.total_steps >= G_STEPS * FT_RATIO:
             self.no_fault = False
             print(f"START FINE TUNING: start faults at total step {self.total_steps} for env {self.env_id}")
         # return stacked, reward, terminated, truncated, {}
@@ -340,7 +341,7 @@ class SixWheelEnv(gym.Env):
         """Inject faults mid-episode for eval. Handles N=1 (single) through N=3 (multi-wheel).
         NUM_FAULT_WHEELS=1 → one random wheel, any position.
         NUM_FAULT_WHEELS>1 → N wheels; if SAME_SIDE_FAULT, all from the same side (0-2 or 3-5),
-                             otherwise drawn uniformly from all 6.
+                             otherwise drawn uniformly from all 6 if only 2 faults (at most 2 per side).
         """
         self.fault_alphas = np.ones(_ACTION_DIM, dtype=np.float32)
         n = min(env_config.NUM_FAULT_WHEELS, _ACTION_DIM)
@@ -350,8 +351,19 @@ class SixWheelEnv(gym.Env):
         else:
             candidates = np.arange(_ACTION_DIM)
         idxs = self.np_random.choice(candidates, size=min(n, len(candidates)), replace=False)
+        # enforce: if 3 faults and not SAME_SIDE_FAULT, at most 2 faults per side
+        if not env_config.SAME_SIDE_FAULT and n == 3:
+            side_counts = np.bincount(idxs // 3)
+            if side_counts[0] > 2:
+                idxs = self.np_random.choice([0, 1, 2], size=2, replace=False).tolist() + self.np_random.choice([3, 4, 5], size=1, replace=False).tolist()
+            elif side_counts[1] > 2:
+                idxs = self.np_random.choice([0, 1, 2], size=1, replace=False).tolist() + self.np_random.choice([3, 4, 5], size=2, replace=False).tolist()
         for idx in idxs:
             self.fault_alphas[int(idx)] = float(self.np_random.choice(eval_fault_types))
+        # if self.env_id == 0:
+        #     print(f"Expected: inject {env_config.NUM_FAULT_WHEELS} fault(s) at step {self.inject_step}")
+        #     print(idxs)
+        #     print(f"Injecting to wheels {idxs} with alphas {[self.fault_alphas[int(idx)] for idx in idxs]} at step {self._steps}")
         self.fault_wheel_idx = int(idxs[0])
         self.fault_alpha = float(self.fault_alphas[self.fault_wheel_idx])
 

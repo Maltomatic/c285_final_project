@@ -3,7 +3,7 @@
 # hardware setup controls
 RENDER_TRAINING = False
 DEBUG = False
-GPU_THREAD = True  # True may be faster if GPU is strong and CPU is meh; on laptop 4070 basically no difference
+GPU_THREAD = False  # True may be faster if GPU is strong and CPU is meh; on laptop 4070 basically no difference
 
 # script controls - set through cmd args
 NUM_ENVS = 16
@@ -13,7 +13,7 @@ PURE_RL = True # if false, use residual policy w/ baseAllocator; if true, RL doe
 FINE_TUNE = True # if true, no-fault for 70% G_STEPS, fault for remianing 30%
 
 # evaluation controls
-EVAL = False
+EVAL = True
 EVAL_EPISODES = 2000
 FAULT_STEPS = [150, 700]
 NUM_FAULT_WHEELS = 1     # eval only: number of wheels to fault simultaneously (1=single, 2-3=multi)

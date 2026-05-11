@@ -9,8 +9,23 @@ csv_path = 'training_log.csv'
 csv_eps_log_path = 'episode_returns.csv'
 checkpoint_base_path = 'td3_checkpoint'
 
-def make_env(rwd = "tracking", id=0, no_fault=False, pure_rl=False):
+def make_env(rwd = "tracking", id=0, eval = False, no_fault=False, pure_rl=False,
+             num_fault_wheels=None, jitter_fault=None, same_side=None, obs_stack=None, ft = False):
     def _init():
+        # Ensure child worker process has the same env-level config values
+        import envs.env_configs as env_config
+        env_config.NO_FAULT = bool(no_fault)
+        env_config.PURE_RL = bool(pure_rl)
+        env_config.FINE_TUNE = bool(ft)
+        env_config.EVAL = bool(eval)
+        if num_fault_wheels is not None:
+            env_config.NUM_FAULT_WHEELS = int(num_fault_wheels)
+        if jitter_fault is not None:
+            env_config.FAULT_JITTER = bool(jitter_fault)
+        if same_side is not None:
+            env_config.SAME_SIDE_FAULT = bool(same_side)
+        if obs_stack is not None:
+            env_config._OBS_STACK = int(obs_stack)
         return gym.make("SixWheelSkidSteer-v0",
                         render_mode="human" if RENDER_TRAINING else None,
                         reward_fn=eval_reward if rwd=="eval" else tracking_reward if rwd == "tracking" else sparse_reward if rwd == "sparse" else None,
