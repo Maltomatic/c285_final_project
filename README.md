@@ -25,14 +25,36 @@ WaypointController → (v, ω)
 ```
 c285_final_project/
 ├── assets/
-│   └── robot.xml               MuJoCo MJCF model
+│   └── robot.xml                   MuJoCo MJCF model
 ├── controllers/
-│   └── base_controller.py      WaypointController + BaseAllocator
+│   ├── TD3_controller.py           TD3 agent (history-stacked obs, replay buffer)
+│   ├── base_controller.py          WaypointController + BaseAllocator
+│   └── utils/
+│       └── model_configs.py        TD3 hyperparameters (G_STEPS, discount, etc.)
 ├── envs/
-│   ├── __init__.py             gym.register call (set max episode length here)
-│   ├── six_wheel_env.py        Gymnasium environment
-│   └── rewards.py              Reward functions definition (two versions)
-└── test_robot.ipynb            MuJoCo physics & base controller test
+│   ├── __init__.py                 gym.register call
+│   ├── env_configs.py              Central config (all runtime flags live here)
+│   ├── six_wheel_env.py            Gymnasium environment
+│   └── rewards.py                  Reward functions
+├── eval_logs/
+│   ├── ablation_grapher.py         Plot ablation study results
+│   ├── history_grapher.py          Plot history window ablation results
+│   └── eval_grapher.py             Per-alpha / per-wheel breakdown plots
+├── scripts/
+│   └── modal_run.py                Modal cloud training launcher
+├── run_ablation.sh                 Run all 9 eval ablation experiments
+├── run_history_ablation.sh         Train 3 history-window models (k=1,3,10)
+├── run_history_eval.sh             Eval the 3 history-window checkpoints
+└── main.py                         Training + eval entrypoint
+```
+
+---
+
+## Setup
+
+```bash
+# requires uv (https://github.com/astral-sh/uv)
+uv sync
 ```
 
 ---
@@ -97,12 +119,6 @@ Left wheels = indices 0,1,2. Right wheels = indices 3,4,5.
 
 **Registration ID:** `"SixWheelSkidSteer-v0"`
 
-```python
-import envs  # must import to trigger gym.register
-import gymnasium as gym
-env = gym.make("SixWheelSkidSteer-v0")
-```
-
 ### Timing
 
 | Level | Duration |
@@ -111,9 +127,9 @@ env = gym.make("SixWheelSkidSteer-v0")
 | Env step (`_FRAME_SKIP=10`) | 0.02 s (50 Hz control) |
 | Max episode (`max_episode_steps=2000`) | 40 s simulated |
 
-### Observation Space — `Box(115,)` float32
+### Observation Space
 
-23 values per timestep, stacked over the last K=5 timesteps (100 ms of history):
+23 values per timestep, stacked over the last **K timesteps** (default K=5, i.e. 100 ms of history):
 
 | Index | Signal | Why it's there |
 |---|---|---|
@@ -122,99 +138,217 @@ env = gym.make("SixWheelSkidSteer-v0")
 | 2 | dist to waypoint (m) | how far to go |
 | 3 | v_forward (m/s) | chassis speed in robot frame |
 | 4 | omega_z (rad/s) | yaw rate |
-| 5:11 | **current wheel velocities** (rad/s) | what the wheels actually did |
-| 11:17 | **base wheel velocities** — base allocator output (rad/s) | what the controller commanded |
+| 5:11 | current wheel velocities (rad/s) | what the wheels actually did |
+| 11:17 | base wheel velocities (rad/s) | what the base controller commanded |
 | 17:23 | previous deviation (rad/s) | last RL action |
 
-> **Fault detection relies on indices 5:17.** When a wheel is degraded, `actual[i] < omega_base[i] + delta_omega[i]`. The 5-frame stack lets the policy see this discrepancy persisting over time, distinguishing a permanent fault from a transient slip.
+State dim = K × 20 (residual) or K × 16 (pure RL). Change K with `--obs-stack`.
 
-### Action Space — `Box(6,)` float32, clipped to ±15 rad/s
+### Action Space
 
-`delta_omega` — additive wheel velocity corrections on top of `omega_base`. The actual command sent to MuJoCo is:
-
-```python
-omega_cmd = omega_base + delta_omega
-# fault applied (hidden from policy):
-omega_cmd[fault_idx] *= fault_alpha
-data.ctrl[:] = omega_cmd
-```
+`delta_omega` — additive wheel velocity corrections, clipped to ±15 rad/s.
 
 ### Fault Model
 
-Sampled fresh at every `reset()`:
-
+**Training:** one wheel is randomly degraded at each `reset()`:
 ```python
-fault_wheel_idx ~ Uniform{0, 1, 2, 3, 4, 5}
-fault_alpha     ~ Uniform[0.0, 1.0]   # 0 = dead wheel, 1 = healthy
+fault_wheel_idx ~ Uniform{0,..,5}
+fault_alpha     ~ Uniform[0.0, 1.0]   # 0 = dead, 1 = healthy
+omega_actual = omega_cmd * fault_alpha
 ```
 
-Applied as a multiplicative degradation to one wheel's command. The policy never sees `fault_wheel_idx` or `fault_alpha` directly.
+**Evaluation:** fault injected mid-episode at steps 150 and 700. Controlled via CLI flags:
 
-For evaluation, inject faults mid-episode:
+| Flag | Effect |
+|---|---|
+| `--num-fault-wheels 2` | fault 2 wheels simultaneously |
+| `--num-fault-wheels 3` | fault 3 wheels simultaneously |
+| `--same-side` | all faulted wheels on the same side (0-2 or 3-5) |
+| `--jitter-fault` | fault alpha varies each step: `clip(alpha*(1+N(0,0.1²)), 0, 1)` |
 
-```python
-env.unwrapped.inject_fault(wheel_idx=2, alpha=0.0)  # kill wheel 2
+### Reward
+
+**`tracking_reward`** (training default):
+```
+r = -0.2|cross_track| - 0.5|heading_err| - 0.01‖δω‖² - 0.01‖δω - δω_prev‖² + 50·reached - 0.05
 ```
 
-### Reward (`envs/rewards.py`)
-
-Two reward functions are available, passed via `reward_fn=` at construction:
-
-**`tracking_reward`** (default) — weights `(0.2, 0.5, 0.01, 0.01, 50.0, 0.05)`:
-
-```
-r = -w1*|cross_track_err| - w2*|heading_err|
-  - w3*sum(delta_omega²) - w4*sum((delta_omega - prev_delta_omega)²)
-  + w5*(waypoint_reached) - w6
-```
-
-**`sparse_reward`** — weights `(100.0, 0.1)`:
-
-```
-r = +w1*(waypoint_reached) - w2
-```
+**`eval_reward`** (used automatically in eval mode) — success-focused variant.
 
 ### Termination
 
 | Condition | Type |
 |---|---|
 | All waypoints reached | `terminated=True` |
-| Roll or pitch > 0.7 rad (~40°) | `terminated=True` |
+| Roll or pitch > 0.7 rad | `terminated=True` |
 | Position > 30 m from origin | `terminated=True` |
-| 2000 env steps elapsed | `truncated=True` (TimeLimit wrapper) |
+| 2000 steps elapsed | `truncated=True` |
 
 ---
 
-## Setup
+## Training
+
+### Local training
 
 ```bash
-# requires uv (https://github.com/astral-sh/uv)
-uv sync        # installs mujoco, gymnasium, numpy
-uv run jupyter notebook test_robot.ipynb   # physics sanity checks
+# Residual RL (default) — fault-trained
+uv run python main.py --exp-name fault
+
+# Pure RL (no base controller)
+uv run python main.py --exp-name fault_pure --pure
+
+# No-fault baseline
+uv run python main.py --exp-name normal --no-fault
+
+# With W&B logging
+uv run python main.py --exp-name fault --wandb --wandb-project 285-final-project
+
+# History window ablation (custom obs stack size)
+uv run python main.py --exp-name fault_k3 --obs-stack 3 --wandb
+```
+
+Key flags:
+
+| Flag | Default | Description |
+|---|---|---|
+| `--exp-name` | `fault` | Prefix for checkpoint and log files |
+| `--obs-stack` | `5` | History window length (timesteps stacked) |
+| `--num-envs` | cpu_count-1 | Parallel environments |
+| `--pure` | off | Pure RL instead of residual |
+| `--no-fault` | off | Disable fault injection (healthy baseline) |
+| `--wandb` | off | Enable Weights & Biases logging |
+| `--wandb-project` | `285-final-project` | W&B project name |
+
+Checkpoints saved as `{exp_name}-td3_checkpoint.pth`. Training logs saved as `{exp_name}-training_log.csv` and `{exp_name}-episode_returns.csv`.
+
+### Cloud training on Modal
+
+Run a single experiment on an A10G GPU (32 CPUs, 32 GB RAM) — detached so you can close your terminal:
+
+```bash
+modal run --detach scripts/modal_run.py --exp-name fault_k1 --obs-stack 1 --wandb
+```
+
+Run the 3 history ablation experiments in parallel (open 3 terminals):
+
+```bash
+# Terminal 1
+modal run --detach scripts/modal_run.py --exp-name fault_k1  --obs-stack 1  --wandb
+
+# Terminal 2
+modal run --detach scripts/modal_run.py --exp-name fault_k3  --obs-stack 3  --wandb
+
+# Terminal 3
+modal run --detach scripts/modal_run.py --exp-name fault_k10 --obs-stack 10 --wandb
+```
+
+Monitor jobs: `modal app list`
+
+Download results after training:
+```bash
+modal volume get six-wheel-rl-volume fault_k10-td3_checkpoint.pth .
+modal volume get six-wheel-rl-volume fault_k10-training_log.csv .
+```
+
+Reset the volume (start fresh, removes all checkpoints):
+```bash
+modal volume delete six-wheel-rl-volume
+```
+
+All Modal flags mirror `main.py` flags — see `modal run scripts/modal_run.py --help`.
+
+---
+
+## Evaluation
+
+### Single eval run
+
+```bash
+# Evaluate default fault checkpoint (1 wheel, random placement)
+uv run python main.py --eval --exp-name fault_w1 --ckpt-name fault
+
+# Multi-wheel fault
+uv run python main.py --eval --exp-name fault_w2 --ckpt-name fault --num-fault-wheels 2
+uv run python main.py --eval --exp-name fault_w3 --ckpt-name fault --num-fault-wheels 3
+
+# Same-side fault placement
+uv run python main.py --eval --exp-name fault_w2_sameside --ckpt-name fault --num-fault-wheels 2 --same-side
+
+# Fault jitter robustness
+uv run python main.py --eval --exp-name fault_jitter --ckpt-name fault --jitter-fault
+
+# Pure RL vs residual comparison
+uv run python main.py --eval --exp-name pure_w2 --ckpt-name fault_pure --pure --num-fault-wheels 2
+```
+
+Results saved to `eval_logs/{exp_name}-eval_log.csv`.
+
+### Full ablation study (9 experiments)
+
+```bash
+bash run_ablation.sh
+```
+
+Runs all 9 experiments sequentially. Logs to `ablation_logs/`. Results to `eval_logs/`.
+
+### History window ablation (train + eval)
+
+```bash
+# Step 1: train (or use Modal above)
+bash run_history_ablation.sh   # trains fault_k1, fault_k3, fault_k10
+
+# Step 2: eval each checkpoint
+bash run_history_eval.sh
 ```
 
 ---
 
-## What's Left To Do
+## Plotting
 
-### SAC + training
+### Ablation study overview (9 experiments)
 
-- [ ] Implement SAC
-- [ ] Wrap env with `gym.make("SixWheelSkidSteer-v0")` — `TimeLimit` is already applied
-- [ ] Train a **no-fault baseline** (`inject_fault(idx, alpha=1.0)` at reset) — verify the base controller + zero residual gets reasonable reward before adding fault randomness
-- [ ] Train with full fault distribution (default: fault sampled at each reset)
-- [ ] Evaluation: inject specific faults mid-episode via `env.unwrapped.inject_fault(idx, alpha)`, measure cross-track error vs. base-controller-only baseline
+```bash
+uv run python eval_logs/ablation_grapher.py
+```
 
-### Environment
+Outputs to `eval_logs/`:
+- `ablation_overall.png` — success rate across all 9 experiments
+- `ablation_multiwheels.png` — residual vs pure RL as fault count increases
+- `ablation_sameside.png` — same-side vs random fault placement
+- `ablation_jitter.png` — constant vs jittered fault
 
-- [ ] Expand waypoint trajectory to include a curved segment (currently only straight legs + 90° corners)
-- [ ] Tune reward weights once training begins (current defaults are untested under RL)
-- [ ] Consider `gymnasium.wrappers.NormalizeObservation` if training is unstable
+### History window ablation
 
-# HOW TO RUN
+```bash
+uv run python eval_logs/history_grapher.py
+```
 
-Params are in `envs/env_configs.py`. `EVAL` and `EVAL_EPISODES` control whether in eval mode or not and how many rollouts.
+Outputs to `eval_logs/`:
+- `history_success.png` — success rate vs window size (k=1, 3, 5, 10)
+- `history_reward.png` — avg episode reward vs window size
+- `history_steps.png` — avg episode length vs window size
 
-Training/eval is all the same (`python main.py --exp-name fault`, `python main.py --exp-name normal --no-fault`, `python main.py --exp-name baseline --no-op`, etc.).
+### Per-alpha / per-wheel breakdown
 
-Plot eval graphs with `python eval_grapher.py`. PNGs are auto-generated. `python plot_training_metrics.py` plots training metrics if csvs are provided.
+```bash
+uv run python eval_logs/eval_grapher.py \
+    --experiment fault_w1=fault_w1-eval_log.csv \
+    --experiment fault_w2=fault_w2-eval_log.csv \
+    --experiment fault_w3=fault_w3-eval_log.csv
+```
+
+---
+
+## W&B Logging
+
+Login (one-time):
+```bash
+uv run wandb login
+```
+
+Add `--wandb` to any training command. Runs appear at [wandb.ai](https://wandb.ai) under project `285-final-project`.
+
+Metrics logged:
+- `train/critic1_loss`, `train/critic2_loss`, `train/actor_loss` — every 1000 steps
+- `train/epsilon`, `train/replay_buffer_size` — every 1000 steps
+- `episode/total_reward`, `episode/discounted_reward`, `episode/steps`, `episode/expected_q` — every episode

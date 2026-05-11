@@ -11,4 +11,5 @@ dependencies = [
     "mujoco>=3.6.0",
     "numpy>=2.4.4",
     "torch>=2.0",
+    "wandb>=0.26.1",
 ]

@@ -1,0 +1,28 @@
+[Errno 2] No such file or directory: 'fault_k3_test-episode_returns.csv'
+No existing log file found, starting from episode 0.
+[Errno 2] No such file or directory: 'fault_k3_test-training_log.csv'
+No existing log file found, starting from global step 0.
+Episode 19, global step 1007, Losses: {'critic1_loss': 82.6766128540039, 'critic2_loss': 87.25592041015625, 'actor_loss': 12.654455184936523}
+	Replay buffer size: 3002  |  Epsilon: 0.990
+Episode 19, global step 2014, Losses: {'critic1_loss': 76.0167236328125, 'critic2_loss': 76.54415130615234, 'actor_loss': 18.431833267211914}
+	Replay buffer size: 4009  |  Epsilon: 0.990
+Training interrupted by user.
+Saving checkpoint...
+Checkpoint saved to: fault_k3_test-td3_checkpoint
+Traceback (most recent call last):
+  File "/home/twchen1258/c285_final_project/main.py", line 370, in <module>
+    main()
+  File "/home/twchen1258/c285_final_project/main.py", line 364, in main
+    envs.close()
+  File "/home/twchen1258/c285_final_project/.venv/lib/python3.12/site-packages/gymnasium/vector/vector_env.py", line 234, in close
+    self.close_extras(**kwargs)
+  File "/home/twchen1258/c285_final_project/.venv/lib/python3.12/site-packages/gymnasium/vector/async_vector_env.py", line 625, in close_extras
+    pipe.send(("close", None))
+  File "/home/twchen1258/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/connection.py", line 206, in send
+    self._send_bytes(_ForkingPickler.dumps(obj))
+  File "/home/twchen1258/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/home/twchen1258/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe

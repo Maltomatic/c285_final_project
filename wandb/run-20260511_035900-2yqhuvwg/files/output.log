@@ -1,0 +1,1039 @@
+[Errno 2] No such file or directory: 'fault_k3_test-episode_returns.csv'
+No existing log file found, starting from episode 0.
+Episode 19, global step 2014, Losses: None
+	Replay buffer size: 4455  |  Epsilon: 0.989
+Episode 19, global step 3002, Losses: {'critic1_loss': 50.825531005859375, 'critic2_loss': 56.49861526489258, 'actor_loss': 19.61351776123047}
+	Replay buffer size: 5443  |  Epsilon: 0.989
+Episode 19, global step 4009, Losses: {'critic1_loss': 47.74735641479492, 'critic2_loss': 50.38048553466797, 'actor_loss': 20.359233856201172}
+	Replay buffer size: 6450  |  Epsilon: 0.989
+Episode 19, global step 5016, Losses: {'critic1_loss': 40.875823974609375, 'critic2_loss': 44.681541442871094, 'actor_loss': 21.1097469329834}
+	Replay buffer size: 7457  |  Epsilon: 0.989
+Episode 19, global step 6004, Losses: {'critic1_loss': 34.2856330871582, 'critic2_loss': 35.573516845703125, 'actor_loss': 21.650053024291992}
+	Replay buffer size: 8445  |  Epsilon: 0.989
+Episode 19, global step 7011, Losses: {'critic1_loss': 40.42008972167969, 'critic2_loss': 47.93744659423828, 'actor_loss': 19.90292739868164}
+	Replay buffer size: 9452  |  Epsilon: 0.989
+Episode 19, global step 8018, Losses: {'critic1_loss': 37.683631896972656, 'critic2_loss': 39.4858283996582, 'actor_loss': 20.276458740234375}
+	Replay buffer size: 10459  |  Epsilon: 0.989
+Episode 19, global step 9006, Losses: {'critic1_loss': 34.99344253540039, 'critic2_loss': 36.11674499511719, 'actor_loss': 21.97805404663086}
+	Replay buffer size: 11447  |  Epsilon: 0.988
+Episode 19, global step 10013, Losses: {'critic1_loss': 29.452342987060547, 'critic2_loss': 26.451889038085938, 'actor_loss': 23.183488845825195}
+	Replay buffer size: 12454  |  Epsilon: 0.988
+Episode 19, global step 11001, Losses: {'critic1_loss': 29.317262649536133, 'critic2_loss': 31.960918426513672, 'actor_loss': 20.940832138061523}
+	Replay buffer size: 13442  |  Epsilon: 0.988
+Episode 30 finished in environment 11 with total reward -6642.618 and discounted reward -3487.495 after 501 steps.
+Episode 19, global step 12008, Losses: {'critic1_loss': 37.06884002685547, 'critic2_loss': 35.78727722167969, 'actor_loss': 21.28026580810547}
+	Replay buffer size: 14449  |  Epsilon: 0.988
+Episode 19 finished in environment 0 with total reward -7257.161 and discounted reward -3677.327 after 534 steps.
+Episode 27 finished in environment 8 with total reward -7123.027 and discounted reward -3525.169 after 538 steps.
+Episode 23 finished in environment 4 with total reward -7425.583 and discounted reward -3711.281 after 543 steps.
+Episode 32 finished in environment 13 with total reward -7412.295 and discounted reward -3526.310 after 569 steps.
+Episode 24 finished in environment 5 with total reward -7664.644 and discounted reward -3605.556 after 579 steps.
+Episode 20, global step 13015, Losses: {'critic1_loss': 33.31614303588867, 'critic2_loss': 35.085453033447266, 'actor_loss': 23.491683959960938}
+	Replay buffer size: 15456  |  Epsilon: 0.988
+Episode 36 finished in environment 17 with total reward -7758.432 and discounted reward -3612.440 after 590 steps.
+Episode 20, global step 14003, Losses: {'critic1_loss': 41.91368103027344, 'critic2_loss': 41.48497009277344, 'actor_loss': 21.623247146606445}
+	Replay buffer size: 16444  |  Epsilon: 0.988
+Episode 31 finished in environment 12 with total reward -8425.710 and discounted reward -3794.398 after 637 steps.
+Episode 34 finished in environment 15 with total reward -8784.154 and discounted reward -3861.359 after 645 steps.
+Episode 37 finished in environment 18 with total reward -8751.714 and discounted reward -3938.920 after 645 steps.
+Episode 22 finished in environment 3 with total reward -9252.239 and discounted reward -3994.049 after 679 steps.
+Episode 20, global step 15010, Losses: {'critic1_loss': 49.06534194946289, 'critic2_loss': 48.13551712036133, 'actor_loss': 23.982969284057617}
+	Replay buffer size: 17451  |  Epsilon: 0.988
+Episode 20 finished in environment 1 with total reward -9393.613 and discounted reward -3882.484 after 703 steps.
+Episode 21 finished in environment 2 with total reward -9430.116 and discounted reward -4050.360 after 708 steps.
+Episode 29 finished in environment 10 with total reward -9804.249 and discounted reward -4136.141 after 721 steps.
+Episode 26 finished in environment 7 with total reward -9610.625 and discounted reward -3895.314 after 734 steps.
+Episode 28 finished in environment 9 with total reward -9898.065 and discounted reward -3993.011 after 734 steps.
+Episode 25, global step 16017, Losses: {'critic1_loss': 37.092926025390625, 'critic2_loss': 39.10419845581055, 'actor_loss': 24.93556785583496}
+	Replay buffer size: 18458  |  Epsilon: 0.988
+Episode 35 finished in environment 16 with total reward -10283.053 and discounted reward -4132.945 after 756 steps.
+Episode 25 finished in environment 6 with total reward -10288.257 and discounted reward -4006.279 after 758 steps.
+Episode 33, global step 17005, Losses: {'critic1_loss': 43.966312408447266, 'critic2_loss': 47.16094207763672, 'actor_loss': 24.64461326599121}
+	Replay buffer size: 19446  |  Epsilon: 0.987
+Episode 33, global step 18012, Losses: {'critic1_loss': 44.70486068725586, 'critic2_loss': 50.6004638671875, 'actor_loss': 26.54572105407715}
+	Replay buffer size: 20453  |  Epsilon: 0.987
+Episode 33 finished in environment 14 with total reward -11782.798 and discounted reward -4346.101 after 868 steps.
+Episode 38, global step 19000, Losses: {'critic1_loss': 46.00013732910156, 'critic2_loss': 45.75731658935547, 'actor_loss': 25.806196212768555}
+	Replay buffer size: 21441  |  Epsilon: 0.987
+Episode 38, global step 20007, Losses: {'critic1_loss': 52.132110595703125, 'critic2_loss': 48.42388916015625, 'actor_loss': 27.729612350463867}
+	Replay buffer size: 22448  |  Epsilon: 0.987
+Episode 38, global step 21014, Losses: {'critic1_loss': 54.95880126953125, 'critic2_loss': 60.18560028076172, 'actor_loss': 27.903350830078125}
+	Replay buffer size: 23455  |  Epsilon: 0.987
+Episode 49 finished in environment 11 with total reward -7232.996 and discounted reward -3522.727 after 551 steps.
+Episode 38, global step 22002, Losses: {'critic1_loss': 46.9440803527832, 'critic2_loss': 42.28098678588867, 'actor_loss': 28.630033493041992}
+	Replay buffer size: 24443  |  Epsilon: 0.987
+Episode 51 finished in environment 13 with total reward -6853.666 and discounted reward -3437.116 after 531 steps.
+Episode 38, global step 23009, Losses: {'critic1_loss': 45.60313034057617, 'critic2_loss': 47.14802932739258, 'actor_loss': 30.43305778503418}
+	Replay buffer size: 25450  |  Epsilon: 0.987
+Episode 38 finished in environment 0 with total reward -8294.957 and discounted reward -3873.613 after 613 steps.
+Episode 39, global step 24016, Losses: {'critic1_loss': 68.465576171875, 'critic2_loss': 66.50463104248047, 'actor_loss': 31.200605392456055}
+	Replay buffer size: 26457  |  Epsilon: 0.986
+Episode 43 finished in environment 5 with total reward -8176.579 and discounted reward -3714.987 after 608 steps.
+Episode 39, global step 25004, Losses: {'critic1_loss': 50.52695083618164, 'critic2_loss': 50.91633605957031, 'actor_loss': 30.754911422729492}
+	Replay buffer size: 27445  |  Epsilon: 0.986
+Episode 41 finished in environment 3 with total reward -6855.496 and discounted reward -3399.374 after 540 steps.
+Episode 46 finished in environment 8 with total reward -9513.313 and discounted reward -4017.724 after 707 steps.
+Episode 39, global step 26011, Losses: {'critic1_loss': 59.23115921020508, 'critic2_loss': 60.37128448486328, 'actor_loss': 33.53083419799805}
+	Replay buffer size: 28452  |  Epsilon: 0.986
+Episode 56 finished in environment 18 with total reward -8523.521 and discounted reward -3707.270 after 644 steps.
+Episode 42 finished in environment 4 with total reward -10720.754 and discounted reward -4219.979 after 761 steps.
+Episode 45 finished in environment 7 with total reward -7552.578 and discounted reward -3555.587 after 571 steps.
+Episode 53 finished in environment 15 with total reward -8894.722 and discounted reward -3808.482 after 663 steps.
+Episode 39 finished in environment 1 with total reward -8065.784 and discounted reward -3642.455 after 612 steps.
+Episode 40, global step 27018, Losses: {'critic1_loss': 55.62989044189453, 'critic2_loss': 60.96062469482422, 'actor_loss': 33.81869888305664}
+	Replay buffer size: 29459  |  Epsilon: 0.986
+Episode 44 finished in environment 6 with total reward -8138.236 and discounted reward -3780.308 after 600 steps.
+Episode 40, global step 28006, Losses: {'critic1_loss': 66.49435424804688, 'critic2_loss': 67.22115325927734, 'actor_loss': 32.4971923828125}
+	Replay buffer size: 30447  |  Epsilon: 0.986
+Episode 40 finished in environment 2 with total reward -9477.495 and discounted reward -3971.727 after 691 steps.
+Episode 47, global step 29013, Losses: {'critic1_loss': 49.228904724121094, 'critic2_loss': 48.087615966796875, 'actor_loss': 35.005958557128906}
+	Replay buffer size: 31454  |  Epsilon: 0.986
+Episode 50 finished in environment 12 with total reward -10954.870 and discounted reward -4249.030 after 795 steps.
+Episode 48 finished in environment 10 with total reward -9661.339 and discounted reward -4001.666 after 717 steps.
+Episode 55 finished in environment 17 with total reward -11368.461 and discounted reward -4173.630 after 851 steps.
+Episode 47 finished in environment 9 with total reward -9893.948 and discounted reward -3853.774 after 735 steps.
+Episode 52, global step 30001, Losses: {'critic1_loss': 58.05561065673828, 'critic2_loss': 57.37904357910156, 'actor_loss': 34.23462677001953}
+	Replay buffer size: 32442  |  Epsilon: 0.986
+Episode 52 finished in environment 14 with total reward -8303.765 and discounted reward -3866.715 after 621 steps.
+Episode 54, global step 31008, Losses: {'critic1_loss': 57.45115661621094, 'critic2_loss': 59.698673248291016, 'actor_loss': 35.725181579589844}
+	Replay buffer size: 33449  |  Epsilon: 0.985
+Episode 54, global step 32015, Losses: {'critic1_loss': 61.35691833496094, 'critic2_loss': 64.53665161132812, 'actor_loss': 36.16927719116211}
+	Replay buffer size: 34456  |  Epsilon: 0.985
+Episode 54, global step 33003, Losses: {'critic1_loss': 68.98175048828125, 'critic2_loss': 72.91932678222656, 'actor_loss': 37.85416793823242}
+	Replay buffer size: 35444  |  Epsilon: 0.985
+Episode 54, global step 34010, Losses: {'critic1_loss': 65.29107666015625, 'critic2_loss': 64.34353637695312, 'actor_loss': 36.668704986572266}
+	Replay buffer size: 36451  |  Epsilon: 0.985
+Episode 54 finished in environment 16 with total reward -13145.255 and discounted reward -4402.173 after 960 steps.
+Episode 70 finished in environment 13 with total reward -8159.996 and discounted reward -3700.116 after 624 steps.
+Episode 57, global step 35017, Losses: {'critic1_loss': 50.249996185302734, 'critic2_loss': 50.28282165527344, 'actor_loss': 38.864627838134766}
+	Replay buffer size: 37458  |  Epsilon: 0.985
+Episode 57, global step 36005, Losses: {'critic1_loss': 51.7044792175293, 'critic2_loss': 55.3828125, 'actor_loss': 40.191402435302734}
+	Replay buffer size: 38446  |  Epsilon: 0.985
+Episode 68 finished in environment 11 with total reward -10096.409 and discounted reward -3879.357 after 743 steps.
+Episode 57, global step 37012, Losses: {'critic1_loss': 48.871376037597656, 'critic2_loss': 51.92167663574219, 'actor_loss': 41.61579132080078}
+	Replay buffer size: 39453  |  Epsilon: 0.985
+Episode 61 finished in environment 4 with total reward -7007.761 and discounted reward -3460.936 after 541 steps.
+Episode 65 finished in environment 8 with total reward -7927.782 and discounted reward -3735.103 after 601 steps.
+Episode 57 finished in environment 0 with total reward -10023.806 and discounted reward -4087.729 after 731 steps.
+Episode 58, global step 38000, Losses: {'critic1_loss': 61.437828063964844, 'critic2_loss': 63.404449462890625, 'actor_loss': 40.940486907958984}
+	Replay buffer size: 40441  |  Epsilon: 0.984
+Episode 58, global step 39007, Losses: {'critic1_loss': 65.176513671875, 'critic2_loss': 64.06037902832031, 'actor_loss': 42.6658935546875}
+	Replay buffer size: 41448  |  Epsilon: 0.984
+Episode 62 finished in environment 5 with total reward -10621.766 and discounted reward -4029.275 after 793 steps.
+Episode 58 finished in environment 1 with total reward -8804.698 and discounted reward -3791.633 after 666 steps.
+Episode 59, global step 40014, Losses: {'critic1_loss': 73.43732452392578, 'critic2_loss': 76.9182357788086, 'actor_loss': 43.139591217041016}
+	Replay buffer size: 42455  |  Epsilon: 0.984
+Episode 64 finished in environment 7 with total reward -9638.770 and discounted reward -4007.440 after 721 steps.
+Episode 66 finished in environment 9 with total reward -7488.579 and discounted reward -3579.255 after 568 steps.
+Episode 59, global step 41002, Losses: {'critic1_loss': 61.04848861694336, 'critic2_loss': 57.816131591796875, 'actor_loss': 43.97220230102539}
+	Replay buffer size: 43443  |  Epsilon: 0.984
+Episode 63 finished in environment 6 with total reward -9573.635 and discounted reward -4069.627 after 707 steps.
+Episode 74 finished in environment 17 with total reward -8264.948 and discounted reward -3600.889 after 627 steps.
+Episode 59 finished in environment 2 with total reward -9440.043 and discounted reward -3975.224 after 693 steps.
+Episode 60, global step 42009, Losses: {'critic1_loss': 56.88201141357422, 'critic2_loss': 58.784996032714844, 'actor_loss': 44.424461364746094}
+	Replay buffer size: 44450  |  Epsilon: 0.984
+Episode 60 finished in environment 3 with total reward -12002.192 and discounted reward -4160.548 after 888 steps.
+Episode 69 finished in environment 12 with total reward -9602.834 and discounted reward -3978.108 after 709 steps.
+Episode 67 finished in environment 10 with total reward -9745.885 and discounted reward -4151.033 after 704 steps.
+Episode 71, global step 43016, Losses: {'critic1_loss': 68.05309295654297, 'critic2_loss': 72.83954620361328, 'actor_loss': 45.28225326538086}
+	Replay buffer size: 45457  |  Epsilon: 0.984
+Episode 71, global step 44004, Losses: {'critic1_loss': 59.895748138427734, 'critic2_loss': 62.9238166809082, 'actor_loss': 45.633155822753906}
+	Replay buffer size: 46445  |  Epsilon: 0.984
+Episode 71 finished in environment 14 with total reward -10116.869 and discounted reward -4058.844 after 750 steps.
+Episode 75 finished in environment 18 with total reward -12918.611 and discounted reward -4252.050 after 950 steps.
+Episode 87 finished in environment 11 with total reward -5715.094 and discounted reward -3074.996 after 464 steps.
+Episode 72, global step 45011, Losses: {'critic1_loss': 68.11587524414062, 'critic2_loss': 67.77999114990234, 'actor_loss': 49.378997802734375}
+	Replay buffer size: 47452  |  Epsilon: 0.984
+Episode 72 finished in environment 15 with total reward -13186.153 and discounted reward -4195.806 after 989 steps.
+Episode 73, global step 46018, Losses: {'critic1_loss': 53.51203155517578, 'critic2_loss': 61.383201599121094, 'actor_loss': 48.616249084472656}
+	Replay buffer size: 48459  |  Epsilon: 0.983
+Episode 89 finished in environment 13 with total reward -8129.917 and discounted reward -3539.418 after 638 steps.
+Episode 73, global step 47006, Losses: {'critic1_loss': 63.753028869628906, 'critic2_loss': 65.18146514892578, 'actor_loss': 48.33572769165039}
+	Replay buffer size: 49447  |  Epsilon: 0.983
+Episode 80 finished in environment 4 with total reward -7092.265 and discounted reward -3374.466 after 562 steps.
+	[BENCH] 1595.0 iter/s
+Episode 73, global step 48013, Losses: {'critic1_loss': 51.563926696777344, 'critic2_loss': 59.65504837036133, 'actor_loss': 51.245216369628906}
+	Replay buffer size: 50454  |  Epsilon: 0.983
+Episode 73 finished in environment 16 with total reward -9382.144 and discounted reward -3831.277 after 724 steps.
+Episode 76, global step 49001, Losses: {'critic1_loss': 58.3458251953125, 'critic2_loss': 68.66110229492188, 'actor_loss': 50.98738479614258}
+	Replay buffer size: 51442  |  Epsilon: 0.983
+Episode 84 finished in environment 8 with total reward -9100.080 and discounted reward -3944.811 after 678 steps.
+Episode 76, global step 50008, Losses: {'critic1_loss': 55.9094123840332, 'critic2_loss': 55.14030838012695, 'actor_loss': 53.012264251708984}
+	Replay buffer size: 52449  |  Epsilon: 0.983
+Episode 76 finished in environment 0 with total reward -8966.126 and discounted reward -3909.603 after 669 steps.
+Episode 77, global step 51015, Losses: {'critic1_loss': 63.21678924560547, 'critic2_loss': 60.99248123168945, 'actor_loss': 51.40802764892578}
+	Replay buffer size: 53456  |  Epsilon: 0.983
+Episode 83 finished in environment 7 with total reward -7838.250 and discounted reward -3762.410 after 566 steps.
+Episode 81 finished in environment 5 with total reward -8797.277 and discounted reward -3893.692 after 642 steps.
+Episode 77, global step 52003, Losses: {'critic1_loss': 88.79058074951172, 'critic2_loss': 87.16389465332031, 'actor_loss': 54.416419982910156}
+	Replay buffer size: 54444  |  Epsilon: 0.983
+Episode 85 finished in environment 9 with total reward -7958.905 and discounted reward -3735.064 after 596 steps.
+Episode 77, global step 53010, Losses: {'critic1_loss': 52.8009033203125, 'critic2_loss': 59.55465316772461, 'actor_loss': 52.674171447753906}
+	Replay buffer size: 55451  |  Epsilon: 0.982
+Episode 79 finished in environment 3 with total reward -7725.128 and discounted reward -3607.106 after 583 steps.
+Episode 77, global step 54017, Losses: {'critic1_loss': 49.79112243652344, 'critic2_loss': 51.184200286865234, 'actor_loss': 54.61686706542969}
+	Replay buffer size: 56458  |  Epsilon: 0.982
+Episode 77 finished in environment 1 with total reward -9885.922 and discounted reward -3829.588 after 761 steps.
+Episode 88 finished in environment 12 with total reward -8161.368 and discounted reward -3779.829 after 612 steps.
+Episode 82 finished in environment 6 with total reward -9454.438 and discounted reward -3900.402 after 715 steps.
+Episode 78, global step 55005, Losses: {'critic1_loss': 63.88594055175781, 'critic2_loss': 63.65286636352539, 'actor_loss': 53.79833221435547}
+	Replay buffer size: 57446  |  Epsilon: 0.982
+Episode 78, global step 56012, Losses: {'critic1_loss': 48.85480499267578, 'critic2_loss': 48.3840217590332, 'actor_loss': 57.016700744628906}
+	Replay buffer size: 58453  |  Epsilon: 0.982
+Episode 91 finished in environment 15 with total reward -7600.813 and discounted reward -3580.565 after 578 steps.
+Episode 78, global step 57000, Losses: {'critic1_loss': 58.755035400390625, 'critic2_loss': 59.330814361572266, 'actor_loss': 56.5553092956543}
+	Replay buffer size: 59441  |  Epsilon: 0.982
+Episode 78 finished in environment 2 with total reward -11157.308 and discounted reward -4285.079 after 807 steps.
+Episode 94 finished in environment 18 with total reward -8889.532 and discounted reward -3869.218 after 665 steps.
+Episode 90 finished in environment 14 with total reward -9439.985 and discounted reward -3957.902 after 687 steps.
+Episode 93 finished in environment 17 with total reward -11674.599 and discounted reward -4169.511 after 866 steps.
+Episode 86 finished in environment 10 with total reward -10957.624 and discounted reward -4135.401 after 803 steps.
+Episode 92, global step 58007, Losses: {'critic1_loss': 60.05671691894531, 'critic2_loss': 53.638980865478516, 'actor_loss': 60.000938415527344}
+	Replay buffer size: 60448  |  Epsilon: 0.982
+Episode 103 finished in environment 8 with total reward -6046.267 and discounted reward -3307.103 after 469 steps.
+Episode 106 finished in environment 11 with total reward -9834.033 and discounted reward -3930.243 after 741 steps.
+Episode 92, global step 59014, Losses: {'critic1_loss': 58.452781677246094, 'critic2_loss': 57.86102294921875, 'actor_loss': 57.58366012573242}
+	Replay buffer size: 61455  |  Epsilon: 0.982
+Episode 92, global step 60002, Losses: {'critic1_loss': 54.8795051574707, 'critic2_loss': 56.377410888671875, 'actor_loss': 59.87073516845703}
+	Replay buffer size: 62443  |  Epsilon: 0.981
+Episode 108 finished in environment 13 with total reward -9566.025 and discounted reward -3870.848 after 706 steps.
+Episode 92, global step 61009, Losses: {'critic1_loss': 54.661720275878906, 'critic2_loss': 54.4991340637207, 'actor_loss': 59.805908203125}
+	Replay buffer size: 63450  |  Epsilon: 0.981
+Episode 104 finished in environment 9 with total reward -6850.426 and discounted reward -3482.225 after 518 steps.
+Episode 92, global step 62016, Losses: {'critic1_loss': 67.93537902832031, 'critic2_loss': 71.35671997070312, 'actor_loss': 59.63795852661133}
+	Replay buffer size: 64457  |  Epsilon: 0.981
+Episode 92, global step 63004, Losses: {'critic1_loss': 58.23074722290039, 'critic2_loss': 61.08097457885742, 'actor_loss': 60.387210845947266}
+	Replay buffer size: 65445  |  Epsilon: 0.981
+Episode 96 finished in environment 1 with total reward -6611.001 and discounted reward -3413.547 after 506 steps.
+Episode 92 finished in environment 16 with total reward -10955.774 and discounted reward -4111.730 after 810 steps.
+Episode 99 finished in environment 4 with total reward -11569.003 and discounted reward -4142.707 after 852 steps.
+Episode 95, global step 64011, Losses: {'critic1_loss': 56.844139099121094, 'critic2_loss': 61.15434646606445, 'actor_loss': 62.80598449707031}
+	Replay buffer size: 66452  |  Epsilon: 0.981
+Episode 95, global step 65018, Losses: {'critic1_loss': 54.9050178527832, 'critic2_loss': 53.37818145751953, 'actor_loss': 62.46070861816406}
+	Replay buffer size: 67459  |  Epsilon: 0.981
+Episode 100 finished in environment 5 with total reward -10035.357 and discounted reward -4005.010 after 747 steps.
+Episode 95, global step 66006, Losses: {'critic1_loss': 78.27865600585938, 'critic2_loss': 76.50949096679688, 'actor_loss': 64.01284790039062}
+	Replay buffer size: 68447  |  Epsilon: 0.981
+Episode 101 finished in environment 6 with total reward -7858.812 and discounted reward -3624.648 after 597 steps.
+Episode 95 finished in environment 0 with total reward -11152.326 and discounted reward -4072.332 after 841 steps.
+Episode 97, global step 67013, Losses: {'critic1_loss': 74.72308349609375, 'critic2_loss': 79.32363891601562, 'actor_loss': 64.49589538574219}
+	Replay buffer size: 69454  |  Epsilon: 0.980
+Episode 112 finished in environment 17 with total reward -6510.974 and discounted reward -3358.311 after 508 steps.
+Episode 109 finished in environment 14 with total reward -6859.463 and discounted reward -3368.572 after 548 steps.
+Episode 97, global step 68001, Losses: {'critic1_loss': 51.77894592285156, 'critic2_loss': 48.32952880859375, 'actor_loss': 64.93608856201172}
+	Replay buffer size: 70442  |  Epsilon: 0.980
+Episode 102 finished in environment 7 with total reward -11767.920 and discounted reward -4016.272 after 898 steps.
+Episode 110 finished in environment 15 with total reward -8118.286 and discounted reward -3659.957 after 615 steps.
+Episode 97, global step 69008, Losses: {'critic1_loss': 63.147483825683594, 'critic2_loss': 62.978328704833984, 'actor_loss': 64.71121215820312}
+	Replay buffer size: 71449  |  Epsilon: 0.980
+Episode 98 finished in environment 3 with total reward -11558.025 and discounted reward -4108.066 after 861 steps.
+Episode 97, global step 70015, Losses: {'critic1_loss': 77.21691131591797, 'critic2_loss': 77.18643188476562, 'actor_loss': 66.63581085205078}
+	Replay buffer size: 72456  |  Epsilon: 0.980
+Episode 122 finished in environment 8 with total reward -7624.301 and discounted reward -3581.992 after 589 steps.
+Episode 113 finished in environment 18 with total reward -9059.710 and discounted reward -3778.772 after 700 steps.
+Episode 127 finished in environment 13 with total reward -7104.790 and discounted reward -3479.147 after 537 steps.
+Episode 107 finished in environment 12 with total reward -11585.676 and discounted reward -4197.618 after 858 steps.
+Episode 97, global step 71003, Losses: {'critic1_loss': 52.43761444091797, 'critic2_loss': 51.818565368652344, 'actor_loss': 67.33348846435547}
+	Replay buffer size: 73444  |  Epsilon: 0.980
+Episode 125 finished in environment 11 with total reward -9227.624 and discounted reward -3978.670 after 666 steps.
+Episode 97, global step 72010, Losses: {'critic1_loss': 55.78569412231445, 'critic2_loss': 56.814353942871094, 'actor_loss': 67.560302734375}
+	Replay buffer size: 74451  |  Epsilon: 0.980
+Episode 123 finished in environment 9 with total reward -7786.383 and discounted reward -3750.578 after 573 steps.
+Episode 97 finished in environment 2 with total reward -10746.120 and discounted reward -4048.301 after 831 steps.
+Episode 105, global step 73017, Losses: {'critic1_loss': 57.497310638427734, 'critic2_loss': 60.50289535522461, 'actor_loss': 70.08222198486328}
+	Replay buffer size: 75458  |  Epsilon: 0.980
+Episode 105, global step 74005, Losses: {'critic1_loss': 46.81965637207031, 'critic2_loss': 45.444515228271484, 'actor_loss': 69.61100769042969}
+	Replay buffer size: 76446  |  Epsilon: 0.980
+Episode 111 finished in environment 16 with total reward -7264.917 and discounted reward -3558.696 after 561 steps.
+Episode 105, global step 75012, Losses: {'critic1_loss': 57.26491928100586, 'critic2_loss': 55.904876708984375, 'actor_loss': 70.11416625976562}
+	Replay buffer size: 77453  |  Epsilon: 0.979
+Episode 105 finished in environment 10 with total reward -12239.460 and discounted reward -4244.094 after 917 steps.
+Episode 119 finished in environment 5 with total reward -6752.969 and discounted reward -3471.680 after 511 steps.
+Episode 114, global step 76000, Losses: {'critic1_loss': 50.67586898803711, 'critic2_loss': 52.73017883300781, 'actor_loss': 73.18595886230469}
+	Replay buffer size: 78441  |  Epsilon: 0.979
+Episode 114, global step 77007, Losses: {'critic1_loss': 59.99454879760742, 'critic2_loss': 54.01017379760742, 'actor_loss': 73.62155151367188}
+	Replay buffer size: 79448  |  Epsilon: 0.979
+Episode 131 finished in environment 17 with total reward -6844.787 and discounted reward -3449.770 after 520 steps.
+Episode 115 finished in environment 1 with total reward -9787.014 and discounted reward -3921.515 after 737 steps.
+Episode 114, global step 78014, Losses: {'critic1_loss': 58.63322448730469, 'critic2_loss': 56.87023162841797, 'actor_loss': 71.9574203491211}
+	Replay buffer size: 80455  |  Epsilon: 0.979
+Episode 114, global step 79002, Losses: {'critic1_loss': 54.28403854370117, 'critic2_loss': 50.376304626464844, 'actor_loss': 73.87210845947266}
+	Replay buffer size: 81443  |  Epsilon: 0.979
+Episode 118 finished in environment 4 with total reward -10943.499 and discounted reward -4195.563 after 797 steps.
+Episode 114, global step 80009, Losses: {'critic1_loss': 53.04964828491211, 'critic2_loss': 50.09749221801758, 'actor_loss': 74.15696716308594}
+	Replay buffer size: 82450  |  Epsilon: 0.979
+Episode 117 finished in environment 3 with total reward -7490.526 and discounted reward -3634.326 after 561 steps.
+Episode 114 finished in environment 0 with total reward -9683.468 and discounted reward -3990.034 after 734 steps.
+Episode 129 finished in environment 15 with total reward -8664.773 and discounted reward -3793.049 after 660 steps.
+Episode 116, global step 81016, Losses: {'critic1_loss': 69.74789428710938, 'critic2_loss': 77.67078399658203, 'actor_loss': 74.78102111816406}
+	Replay buffer size: 83457  |  Epsilon: 0.979
+Episode 132 finished in environment 18 with total reward -7340.767 and discounted reward -3591.416 after 559 steps.
+Episode 128 finished in environment 14 with total reward -9564.773 and discounted reward -3927.161 after 725 steps.
+Episode 116, global step 82004, Losses: {'critic1_loss': 70.83244323730469, 'critic2_loss': 64.3128662109375, 'actor_loss': 75.11830139160156}
+	Replay buffer size: 84445  |  Epsilon: 0.978
+Episode 146 finished in environment 13 with total reward -8388.219 and discounted reward -3734.031 after 635 steps.
+Episode 144 finished in environment 11 with total reward -7609.408 and discounted reward -3561.690 after 582 steps.
+Episode 116, global step 83011, Losses: {'critic1_loss': 53.60900115966797, 'critic2_loss': 50.71284484863281, 'actor_loss': 77.82546997070312}
+	Replay buffer size: 85452  |  Epsilon: 0.978
+Episode 141 finished in environment 8 with total reward -9402.779 and discounted reward -3921.530 after 708 steps.
+Episode 116, global step 84018, Losses: {'critic1_loss': 58.3720703125, 'critic2_loss': 61.840065002441406, 'actor_loss': 77.8596420288086}
+	Replay buffer size: 86459  |  Epsilon: 0.978
+Episode 116, global step 85006, Losses: {'critic1_loss': 55.79778289794922, 'critic2_loss': 50.91397476196289, 'actor_loss': 77.80325317382812}
+	Replay buffer size: 87447  |  Epsilon: 0.978
+Episode 121 finished in environment 7 with total reward -12220.424 and discounted reward -4243.152 after 893 steps.
+Episode 116 finished in environment 2 with total reward -9044.755 and discounted reward -3924.408 after 683 steps.
+Episode 120, global step 86013, Losses: {'critic1_loss': 66.05978393554688, 'critic2_loss': 66.04218292236328, 'actor_loss': 78.86613464355469}
+	Replay buffer size: 88454  |  Epsilon: 0.978
+Episode 130 finished in environment 16 with total reward -8321.314 and discounted reward -3712.216 after 632 steps.
+Episode 120, global step 87001, Losses: {'critic1_loss': 54.162269592285156, 'critic2_loss': 59.89760971069336, 'actor_loss': 80.37775421142578}
+	Replay buffer size: 89442  |  Epsilon: 0.978
+Episode 126 finished in environment 12 with total reward -12391.889 and discounted reward -4412.772 after 880 steps.
+Episode 124 finished in environment 10 with total reward -8576.769 and discounted reward -3714.410 after 656 steps.
+Episode 120 finished in environment 6 with total reward -15654.845 and discounted reward -4474.988 after 1149 steps.
+Episode 133, global step 88008, Losses: {'critic1_loss': 49.86550521850586, 'critic2_loss': 52.184814453125, 'actor_loss': 80.13229370117188}
+	Replay buffer size: 90449  |  Epsilon: 0.978
+Episode 133, global step 89015, Losses: {'critic1_loss': 49.80731201171875, 'critic2_loss': 60.6157112121582, 'actor_loss': 81.96849822998047}
+	Replay buffer size: 91456  |  Epsilon: 0.977
+Episode 138 finished in environment 5 with total reward -9444.811 and discounted reward -3858.682 after 722 steps.
+Episode 150 finished in environment 17 with total reward -8507.602 and discounted reward -3786.875 after 644 steps.
+Episode 133, global step 90003, Losses: {'critic1_loss': 51.419189453125, 'critic2_loss': 49.610931396484375, 'actor_loss': 81.62076568603516}
+	Replay buffer size: 92444  |  Epsilon: 0.977
+Episode 134 finished in environment 1 with total reward -8869.383 and discounted reward -3881.972 after 665 steps.
+Episode 137 finished in environment 4 with total reward -8364.291 and discounted reward -3785.386 after 626 steps.
+Episode 133, global step 91010, Losses: {'critic1_loss': 71.13581085205078, 'critic2_loss': 72.7894515991211, 'actor_loss': 81.78628540039062}
+	Replay buffer size: 93451  |  Epsilon: 0.977
+	[BENCH] 1439.7 iter/s
+Episode 133, global step 92017, Losses: {'critic1_loss': 61.09212875366211, 'critic2_loss': 59.87761306762695, 'actor_loss': 83.84732055664062}
+	Replay buffer size: 94458  |  Epsilon: 0.977
+Episode 142 finished in environment 9 with total reward -13919.681 and discounted reward -4323.439 after 1027 steps.
+Episode 163 finished in environment 11 with total reward -6873.714 and discounted reward -3439.156 after 528 steps.
+Episode 147 finished in environment 14 with total reward -7762.058 and discounted reward -3689.272 after 581 steps.
+Episode 136 finished in environment 3 with total reward -8894.328 and discounted reward -3775.977 after 674 steps.
+Episode 133, global step 93005, Losses: {'critic1_loss': 84.05768585205078, 'critic2_loss': 74.6878662109375, 'actor_loss': 83.21228790283203}
+	Replay buffer size: 95446  |  Epsilon: 0.977
+Episode 148 finished in environment 15 with total reward -8770.356 and discounted reward -3802.485 after 655 steps.
+Episode 133 finished in environment 0 with total reward -9262.730 and discounted reward -3810.695 after 708 steps.
+Episode 135, global step 94012, Losses: {'critic1_loss': 52.898468017578125, 'critic2_loss': 52.676239013671875, 'actor_loss': 84.36956787109375}
+	Replay buffer size: 96453  |  Epsilon: 0.977
+Episode 140 finished in environment 7 with total reward -6488.046 and discounted reward -3315.095 after 508 steps.
+Episode 135, global step 95000, Losses: {'critic1_loss': 50.60975646972656, 'critic2_loss': 51.94756317138672, 'actor_loss': 86.70686340332031}
+	Replay buffer size: 97441  |  Epsilon: 0.977
+Episode 165 finished in environment 13 with total reward -8737.013 and discounted reward -3687.227 after 665 steps.
+Episode 135, global step 96007, Losses: {'critic1_loss': 65.6636962890625, 'critic2_loss': 71.59228515625, 'actor_loss': 84.9365234375}
+	Replay buffer size: 98448  |  Epsilon: 0.977
+Episode 151 finished in environment 18 with total reward -10977.573 and discounted reward -4116.798 after 818 steps.
+Episode 135, global step 97014, Losses: {'critic1_loss': 61.34566879272461, 'critic2_loss': 64.45892333984375, 'actor_loss': 87.33428955078125}
+	Replay buffer size: 99455  |  Epsilon: 0.976
+Episode 149 finished in environment 16 with total reward -7351.540 and discounted reward -3517.539 after 570 steps.
+Episode 160 finished in environment 8 with total reward -9694.441 and discounted reward -3946.009 after 730 steps.
+Episode 135, global step 98002, Losses: {'critic1_loss': 53.1932373046875, 'critic2_loss': 55.46484375, 'actor_loss': 86.31529235839844}
+	Replay buffer size: 100443  |  Epsilon: 0.976
+Episode 139 finished in environment 6 with total reward -7276.409 and discounted reward -3456.438 after 576 steps.
+Episode 135 finished in environment 2 with total reward -9381.368 and discounted reward -3978.272 after 693 steps.
+Episode 135, global step 99009, Losses: {'critic1_loss': 72.66763305664062, 'critic2_loss': 76.42543029785156, 'actor_loss': 88.62891387939453}
+	Replay buffer size: 101450  |  Epsilon: 0.976
+Episode 145 finished in environment 12 with total reward -8405.858 and discounted reward -3768.502 after 622 steps.
+Episode 143, global step 100016, Losses: {'critic1_loss': 58.5013427734375, 'critic2_loss': 50.61797332763672, 'actor_loss': 89.49678802490234}
+	Replay buffer size: 102457  |  Epsilon: 0.976
+Episode 153 finished in environment 1 with total reward -6837.376 and discounted reward -3403.794 after 525 steps.
+Episode 143 finished in environment 10 with total reward -9240.938 and discounted reward -3931.350 after 688 steps.
+Episode 152, global step 101004, Losses: {'critic1_loss': 45.75275421142578, 'critic2_loss': 50.3988037109375, 'actor_loss': 88.76660919189453}
+	Replay buffer size: 103445  |  Epsilon: 0.976
+Episode 169 finished in environment 17 with total reward -8785.639 and discounted reward -3783.084 after 651 steps.
+Episode 152, global step 102011, Losses: {'critic1_loss': 47.121463775634766, 'critic2_loss': 47.54570388793945, 'actor_loss': 89.76255798339844}
+	Replay buffer size: 104452  |  Epsilon: 0.976
+Episode 182 finished in environment 11 with total reward -6722.369 and discounted reward -3380.208 after 513 steps.
+Episode 152, global step 103018, Losses: {'critic1_loss': 55.97921371459961, 'critic2_loss': 54.20728302001953, 'actor_loss': 89.8966064453125}
+	Replay buffer size: 105459  |  Epsilon: 0.976
+Episode 167 finished in environment 15 with total reward -6720.579 and discounted reward -3409.500 after 514 steps.
+Episode 161 finished in environment 9 with total reward -7591.811 and discounted reward -3575.667 after 576 steps.
+Episode 166 finished in environment 14 with total reward -7371.378 and discounted reward -3581.655 after 564 steps.
+Episode 152, global step 104006, Losses: {'critic1_loss': 58.85409164428711, 'critic2_loss': 56.953025817871094, 'actor_loss': 91.8250732421875}
+	Replay buffer size: 106447  |  Epsilon: 0.975
+Episode 152, global step 105013, Losses: {'critic1_loss': 76.6312255859375, 'critic2_loss': 76.95758819580078, 'actor_loss': 92.71321105957031}
+	Replay buffer size: 107454  |  Epsilon: 0.975
+Episode 156 finished in environment 4 with total reward -10020.955 and discounted reward -4088.465 after 766 steps.
+Episode 159 finished in environment 7 with total reward -7522.486 and discounted reward -3569.609 after 571 steps.
+Episode 155 finished in environment 3 with total reward -9189.058 and discounted reward -3902.076 after 678 steps.
+Episode 152, global step 106001, Losses: {'critic1_loss': 56.238258361816406, 'critic2_loss': 62.17068862915039, 'actor_loss': 92.83367156982422}
+	Replay buffer size: 108442  |  Epsilon: 0.975
+Episode 152, global step 107008, Losses: {'critic1_loss': 58.61151885986328, 'critic2_loss': 62.909481048583984, 'actor_loss': 92.63383483886719}
+	Replay buffer size: 109449  |  Epsilon: 0.975
+Episode 152 finished in environment 0 with total reward -9275.966 and discounted reward -3883.468 after 700 steps.
+Episode 179 finished in environment 8 with total reward -7113.844 and discounted reward -3599.799 after 538 steps.
+Episode 184 finished in environment 13 with total reward -8996.072 and discounted reward -3840.094 after 658 steps.
+Episode 154, global step 108015, Losses: {'critic1_loss': 61.52418518066406, 'critic2_loss': 66.05158996582031, 'actor_loss': 94.90361022949219}
+	Replay buffer size: 110456  |  Epsilon: 0.975
+Episode 168 finished in environment 16 with total reward -7615.139 and discounted reward -3638.963 after 575 steps.
+Episode 157 finished in environment 5 with total reward -13678.186 and discounted reward -4280.413 after 999 steps.
+Episode 154, global step 109003, Losses: {'critic1_loss': 45.46322250366211, 'critic2_loss': 52.609764099121094, 'actor_loss': 94.50566101074219}
+	Replay buffer size: 111444  |  Epsilon: 0.975
+Episode 154, global step 110010, Losses: {'critic1_loss': 57.08702850341797, 'critic2_loss': 60.3551025390625, 'actor_loss': 94.32728576660156}
+	Replay buffer size: 112451  |  Epsilon: 0.975
+Episode 154, global step 111017, Losses: {'critic1_loss': 50.02729797363281, 'critic2_loss': 48.83243942260742, 'actor_loss': 95.56449890136719}
+	Replay buffer size: 113458  |  Epsilon: 0.974
+Episode 172 finished in environment 1 with total reward -7557.236 and discounted reward -3468.898 after 585 steps.
+Episode 164 finished in environment 12 with total reward -8897.780 and discounted reward -3941.134 after 658 steps.
+Episode 154, global step 112005, Losses: {'critic1_loss': 45.30909729003906, 'critic2_loss': 44.49591064453125, 'actor_loss': 96.05340576171875}
+	Replay buffer size: 114446  |  Epsilon: 0.974
+Episode 170 finished in environment 18 with total reward -11296.912 and discounted reward -4255.632 after 820 steps.
+Episode 154, global step 113012, Losses: {'critic1_loss': 64.93743133544922, 'critic2_loss': 66.97456359863281, 'actor_loss': 97.04474639892578}
+	Replay buffer size: 115453  |  Epsilon: 0.974
+Episode 154 finished in environment 2 with total reward -10086.848 and discounted reward -3952.581 after 754 steps.
+Episode 158 finished in environment 6 with total reward -10458.171 and discounted reward -4092.052 after 784 steps.
+Episode 162, global step 114000, Losses: {'critic1_loss': 42.52185821533203, 'critic2_loss': 42.593692779541016, 'actor_loss': 97.80549621582031}
+	Replay buffer size: 116441  |  Epsilon: 0.974
+Episode 201 finished in environment 11 with total reward -7890.952 and discounted reward -3606.167 after 607 steps.
+Episode 162 finished in environment 10 with total reward -9511.400 and discounted reward -3990.490 after 709 steps.
+Episode 186 finished in environment 15 with total reward -7770.560 and discounted reward -3579.417 after 599 steps.
+Episode 171, global step 115007, Losses: {'critic1_loss': 39.070701599121094, 'critic2_loss': 45.091087341308594, 'actor_loss': 99.18876647949219}
+	Replay buffer size: 117448  |  Epsilon: 0.974
+Episode 178 finished in environment 7 with total reward -6657.749 and discounted reward -3319.156 after 538 steps.
+Episode 171, global step 116014, Losses: {'critic1_loss': 100.2839126586914, 'critic2_loss': 117.78388977050781, 'actor_loss': 99.7248764038086}
+	Replay buffer size: 118455  |  Epsilon: 0.974
+Episode 171 finished in environment 0 with total reward -6021.669 and discounted reward -3180.233 after 475 steps.
+Episode 180 finished in environment 9 with total reward -9279.101 and discounted reward -3920.978 after 693 steps.
+Episode 188 finished in environment 17 with total reward -10589.677 and discounted reward -4045.473 after 783 steps.
+Episode 173, global step 117002, Losses: {'critic1_loss': 61.44004821777344, 'critic2_loss': 64.91995239257812, 'actor_loss': 99.56170654296875}
+	Replay buffer size: 119443  |  Epsilon: 0.974
+Episode 174 finished in environment 3 with total reward -7739.500 and discounted reward -3555.566 after 590 steps.
+Episode 185 finished in environment 14 with total reward -9601.228 and discounted reward -4017.210 after 718 steps.
+Episode 173, global step 118009, Losses: {'critic1_loss': 76.55755615234375, 'critic2_loss': 74.92970275878906, 'actor_loss': 99.65403747558594}
+	Replay buffer size: 120450  |  Epsilon: 0.974
+Episode 198 finished in environment 8 with total reward -7283.750 and discounted reward -3533.391 after 559 steps.
+Episode 173, global step 119016, Losses: {'critic1_loss': 83.19242858886719, 'critic2_loss': 78.5115966796875, 'actor_loss': 101.65790557861328}
+	Replay buffer size: 121457  |  Epsilon: 0.973
+Episode 175 finished in environment 4 with total reward -9756.006 and discounted reward -4074.908 after 714 steps.
+Episode 203 finished in environment 13 with total reward -8101.988 and discounted reward -3534.972 after 634 steps.
+Episode 187 finished in environment 16 with total reward -8306.996 and discounted reward -3807.701 after 612 steps.
+Episode 173, global step 120004, Losses: {'critic1_loss': 49.503929138183594, 'critic2_loss': 54.350345611572266, 'actor_loss': 101.83972930908203}
+	Replay buffer size: 122445  |  Epsilon: 0.973
+Episode 173, global step 121011, Losses: {'critic1_loss': 49.64727783203125, 'critic2_loss': 43.00144577026367, 'actor_loss': 101.87651062011719}
+	Replay buffer size: 123452  |  Epsilon: 0.973
+Episode 173, global step 122018, Losses: {'critic1_loss': 43.34430694580078, 'critic2_loss': 46.49507522583008, 'actor_loss': 103.93359375}
+	Replay buffer size: 124459  |  Epsilon: 0.973
+Episode 176 finished in environment 5 with total reward -10096.308 and discounted reward -4094.247 after 752 steps.
+Episode 173, global step 123006, Losses: {'critic1_loss': 50.838565826416016, 'critic2_loss': 52.42256546020508, 'actor_loss': 103.49064636230469}
+	Replay buffer size: 125447  |  Epsilon: 0.973
+Episode 191 finished in environment 1 with total reward -8585.538 and discounted reward -3734.701 after 651 steps.
+Episode 173, global step 124013, Losses: {'critic1_loss': 68.64559173583984, 'critic2_loss': 75.45396423339844, 'actor_loss': 104.46820068359375}
+	Replay buffer size: 126454  |  Epsilon: 0.973
+Episode 173, global step 125001, Losses: {'critic1_loss': 52.098960876464844, 'critic2_loss': 50.81591033935547, 'actor_loss': 103.93287658691406}
+	Replay buffer size: 127442  |  Epsilon: 0.973
+Episode 205 finished in environment 15 with total reward -7870.338 and discounted reward -3622.251 after 584 steps.
+Episode 207 finished in environment 17 with total reward -6001.091 and discounted reward -3229.688 after 469 steps.
+Episode 173, global step 126008, Losses: {'critic1_loss': 121.98294067382812, 'critic2_loss': 115.66075897216797, 'actor_loss': 105.636962890625}
+	Replay buffer size: 128449  |  Epsilon: 0.972
+Episode 177 finished in environment 6 with total reward -8729.268 and discounted reward -3845.438 after 649 steps.
+Episode 220 finished in environment 11 with total reward -8659.317 and discounted reward -3902.008 after 649 steps.
+Episode 173, global step 127015, Losses: {'critic1_loss': 53.89747619628906, 'critic2_loss': 55.37816619873047, 'actor_loss': 106.90830993652344}
+	Replay buffer size: 129456  |  Epsilon: 0.972
+Episode 173 finished in environment 2 with total reward -9670.189 and discounted reward -3968.450 after 723 steps.
+Episode 197 finished in environment 7 with total reward -8485.442 and discounted reward -3816.032 after 621 steps.
+Episode 189 finished in environment 18 with total reward -11169.437 and discounted reward -4170.637 after 821 steps.
+Episode 181, global step 128003, Losses: {'critic1_loss': 61.548561096191406, 'critic2_loss': 54.08549499511719, 'actor_loss': 106.65791320800781}
+	Replay buffer size: 130444  |  Epsilon: 0.972
+Episode 183 finished in environment 12 with total reward -11749.457 and discounted reward -4240.124 after 865 steps.
+Episode 181, global step 129010, Losses: {'critic1_loss': 55.67344665527344, 'critic2_loss': 55.52810287475586, 'actor_loss': 107.07128143310547}
+	Replay buffer size: 131451  |  Epsilon: 0.972
+Episode 199 finished in environment 9 with total reward -8470.532 and discounted reward -3663.278 after 668 steps.
+Episode 204 finished in environment 14 with total reward -8570.956 and discounted reward -3841.236 after 646 steps.
+Episode 217 finished in environment 8 with total reward -8008.032 and discounted reward -3744.116 after 606 steps.
+Episode 222 finished in environment 13 with total reward -6930.156 and discounted reward -3454.007 after 536 steps.
+Episode 181, global step 130017, Losses: {'critic1_loss': 56.11097717285156, 'critic2_loss': 59.89485168457031, 'actor_loss': 106.79431915283203}
+	Replay buffer size: 132458  |  Epsilon: 0.972
+Episode 181 finished in environment 10 with total reward -11192.841 and discounted reward -3993.380 after 835 steps.
+Episode 193 finished in environment 3 with total reward -9546.568 and discounted reward -3897.120 after 711 steps.
+Episode 190, global step 131005, Losses: {'critic1_loss': 66.88681030273438, 'critic2_loss': 84.61404418945312, 'actor_loss': 109.85075378417969}
+	Replay buffer size: 133446  |  Epsilon: 0.972
+Episode 194 finished in environment 4 with total reward -8936.300 and discounted reward -3975.374 after 665 steps.
+Episode 190 finished in environment 0 with total reward -11231.971 and discounted reward -4254.294 after 826 steps.
+Episode 192, global step 132012, Losses: {'critic1_loss': 51.20454406738281, 'critic2_loss': 51.81746292114258, 'actor_loss': 109.78938293457031}
+	Replay buffer size: 134453  |  Epsilon: 0.972
+Episode 206 finished in environment 16 with total reward -8870.389 and discounted reward -3925.499 after 659 steps.
+Episode 192, global step 133000, Losses: {'critic1_loss': 60.88689422607422, 'critic2_loss': 65.81219482421875, 'actor_loss': 109.32154846191406}
+	Replay buffer size: 135441  |  Epsilon: 0.971
+Episode 195 finished in environment 5 with total reward -7554.331 and discounted reward -3555.412 after 570 steps.
+Episode 192, global step 134007, Losses: {'critic1_loss': 50.84986877441406, 'critic2_loss': 62.26986312866211, 'actor_loss': 110.92098999023438}
+	Replay buffer size: 136448  |  Epsilon: 0.971
+Episode 239 finished in environment 11 with total reward -5288.072 and discounted reward -3013.371 after 422 steps.
+	[BENCH] 1449.5 iter/s
+Episode 192, global step 135014, Losses: {'critic1_loss': 52.96184158325195, 'critic2_loss': 54.44609069824219, 'actor_loss': 111.6617431640625}
+	Replay buffer size: 137455  |  Epsilon: 0.971
+Episode 196 finished in environment 6 with total reward -6305.395 and discounted reward -3406.806 after 479 steps.
+Episode 210 finished in environment 1 with total reward -7801.842 and discounted reward -3475.514 after 616 steps.
+Episode 192, global step 136002, Losses: {'critic1_loss': 45.06945037841797, 'critic2_loss': 47.13087463378906, 'actor_loss': 112.37785339355469}
+	Replay buffer size: 138443  |  Epsilon: 0.971
+Episode 224 finished in environment 15 with total reward -7584.580 and discounted reward -3600.647 after 581 steps.
+Episode 192, global step 137009, Losses: {'critic1_loss': 65.32425689697266, 'critic2_loss': 64.33827209472656, 'actor_loss': 112.12033081054688}
+	Replay buffer size: 139450  |  Epsilon: 0.971
+Episode 226 finished in environment 17 with total reward -7978.955 and discounted reward -3541.359 after 625 steps.
+Episode 192, global step 138016, Losses: {'critic1_loss': 55.52922821044922, 'critic2_loss': 61.816043853759766, 'actor_loss': 113.41928100585938}
+	Replay buffer size: 140457  |  Epsilon: 0.971
+Episode 218 finished in environment 9 with total reward -6421.530 and discounted reward -3358.125 after 498 steps.
+Episode 216 finished in environment 7 with total reward -7587.229 and discounted reward -3613.523 after 575 steps.
+Episode 192, global step 139004, Losses: {'critic1_loss': 48.009151458740234, 'critic2_loss': 47.79981994628906, 'actor_loss': 114.55340576171875}
+	Replay buffer size: 141445  |  Epsilon: 0.971
+Episode 192 finished in environment 2 with total reward -8547.875 and discounted reward -3832.369 after 646 steps.
+Episode 200, global step 140011, Losses: {'critic1_loss': 43.425193786621094, 'critic2_loss': 48.582679748535156, 'actor_loss': 114.4225845336914}
+	Replay buffer size: 142452  |  Epsilon: 0.971
+Episode 208 finished in environment 18 with total reward -8738.359 and discounted reward -3765.137 after 663 steps.
+Episode 223 finished in environment 14 with total reward -7681.504 and discounted reward -3633.059 after 586 steps.
+Episode 241 finished in environment 13 with total reward -7807.765 and discounted reward -3702.989 after 583 steps.
+Episode 200, global step 141018, Losses: {'critic1_loss': 87.55256652832031, 'critic2_loss': 100.12295532226562, 'actor_loss': 116.46662139892578}
+	Replay buffer size: 143459  |  Epsilon: 0.970
+Episode 236 finished in environment 8 with total reward -8676.283 and discounted reward -3978.080 after 618 steps.
+Episode 200, global step 142006, Losses: {'critic1_loss': 66.25015258789062, 'critic2_loss': 70.43634033203125, 'actor_loss': 114.94200897216797}
+	Replay buffer size: 144447  |  Epsilon: 0.970
+Episode 225 finished in environment 16 with total reward -6911.961 and discounted reward -3470.148 after 522 steps.
+Episode 202 finished in environment 12 with total reward -10113.966 and discounted reward -4014.990 after 749 steps.
+Episode 200, global step 143013, Losses: {'critic1_loss': 78.9031982421875, 'critic2_loss': 77.91387176513672, 'actor_loss': 117.7476577758789}
+	Replay buffer size: 145454  |  Epsilon: 0.970
+Episode 209 finished in environment 0 with total reward -8149.671 and discounted reward -3827.733 after 612 steps.
+Episode 200, global step 144001, Losses: {'critic1_loss': 52.0018424987793, 'critic2_loss': 66.17033386230469, 'actor_loss': 117.54983520507812}
+	Replay buffer size: 146442  |  Epsilon: 0.970
+Episode 213 finished in environment 4 with total reward -8669.669 and discounted reward -3834.025 after 668 steps.
+Episode 258 finished in environment 11 with total reward -7342.045 and discounted reward -3550.178 after 546 steps.
+Episode 200, global step 145008, Losses: {'critic1_loss': 57.94369888305664, 'critic2_loss': 46.292266845703125, 'actor_loss': 117.8730239868164}
+	Replay buffer size: 147449  |  Epsilon: 0.970
+Episode 200 finished in environment 10 with total reward -10725.357 and discounted reward -3984.969 after 811 steps.
+Episode 212 finished in environment 3 with total reward -10627.651 and discounted reward -4041.197 after 799 steps.
+Episode 211, global step 146015, Losses: {'critic1_loss': 43.44879150390625, 'critic2_loss': 38.39741134643555, 'actor_loss': 120.04618072509766}
+	Replay buffer size: 148456  |  Epsilon: 0.970
+Episode 214 finished in environment 5 with total reward -8953.790 and discounted reward -3744.126 after 693 steps.
+Episode 215 finished in environment 6 with total reward -7962.366 and discounted reward -3773.324 after 606 steps.
+Episode 211, global step 147003, Losses: {'critic1_loss': 46.96826934814453, 'critic2_loss': 56.555259704589844, 'actor_loss': 119.79037475585938}
+	Replay buffer size: 149444  |  Epsilon: 0.970
+Episode 229 finished in environment 1 with total reward -8003.279 and discounted reward -3630.683 after 615 steps.
+Episode 243 finished in environment 15 with total reward -7861.345 and discounted reward -3648.784 after 602 steps.
+Episode 211, global step 148010, Losses: {'critic1_loss': 56.93960952758789, 'critic2_loss': 58.548954010009766, 'actor_loss': 118.89166259765625}
+	Replay buffer size: 150451  |  Epsilon: 0.969
+Episode 211, global step 149017, Losses: {'critic1_loss': 62.06470489501953, 'critic2_loss': 60.52685546875, 'actor_loss': 119.79673767089844}
+	Replay buffer size: 151458  |  Epsilon: 0.969
+Episode 237 finished in environment 9 with total reward -7409.325 and discounted reward -3517.835 after 572 steps.
+Episode 211 finished in environment 2 with total reward -7292.168 and discounted reward -3567.250 after 560 steps.
+Episode 219, global step 150005, Losses: {'critic1_loss': 45.25630569458008, 'critic2_loss': 47.75267028808594, 'actor_loss': 120.91922760009766}
+	Replay buffer size: 152446  |  Epsilon: 0.969
+Episode 235 finished in environment 7 with total reward -7740.587 and discounted reward -3572.994 after 617 steps.
+Episode 219, global step 151012, Losses: {'critic1_loss': 71.56107330322266, 'critic2_loss': 86.90570831298828, 'actor_loss': 121.905517578125}
+	Replay buffer size: 153453  |  Epsilon: 0.969
+Episode 245 finished in environment 17 with total reward -9502.687 and discounted reward -3921.970 after 737 steps.
+Episode 219, global step 152000, Losses: {'critic1_loss': 60.69915771484375, 'critic2_loss': 71.66970825195312, 'actor_loss': 123.22096252441406}
+	Replay buffer size: 154441  |  Epsilon: 0.969
+Episode 219, global step 153007, Losses: {'critic1_loss': 64.89543151855469, 'critic2_loss': 75.2591552734375, 'actor_loss': 123.14794921875}
+	Replay buffer size: 155448  |  Epsilon: 0.969
+Episode 227 finished in environment 18 with total reward -8877.520 and discounted reward -3886.799 after 679 steps.
+Episode 260 finished in environment 13 with total reward -8694.873 and discounted reward -3755.249 after 655 steps.
+Episode 219, global step 154014, Losses: {'critic1_loss': 48.28699493408203, 'critic2_loss': 58.33327102661133, 'actor_loss': 122.62648010253906}
+	Replay buffer size: 156455  |  Epsilon: 0.969
+Episode 231 finished in environment 3 with total reward -5980.054 and discounted reward -3136.178 after 458 steps.
+Episode 255 finished in environment 8 with total reward -8783.302 and discounted reward -3838.501 after 686 steps.
+Episode 219, global step 155002, Losses: {'critic1_loss': 48.306053161621094, 'critic2_loss': 51.028926849365234, 'actor_loss': 123.73983764648438}
+	Replay buffer size: 157443  |  Epsilon: 0.968
+Episode 233 finished in environment 5 with total reward -5926.121 and discounted reward -3207.437 after 452 steps.
+Episode 242 finished in environment 14 with total reward -10640.912 and discounted reward -4091.448 after 799 steps.
+Episode 219, global step 156009, Losses: {'critic1_loss': 85.1751708984375, 'critic2_loss': 93.51573181152344, 'actor_loss': 124.98053741455078}
+	Replay buffer size: 158450  |  Epsilon: 0.968
+Episode 277 finished in environment 11 with total reward -7897.513 and discounted reward -3568.445 after 611 steps.
+Episode 221 finished in environment 12 with total reward -10250.456 and discounted reward -4078.474 after 747 steps.
+Episode 228 finished in environment 0 with total reward -9537.865 and discounted reward -4003.860 after 714 steps.
+Episode 219, global step 157016, Losses: {'critic1_loss': 70.36096954345703, 'critic2_loss': 72.75990295410156, 'actor_loss': 125.12165069580078}
+	Replay buffer size: 159457  |  Epsilon: 0.968
+Episode 262 finished in environment 15 with total reward -6660.803 and discounted reward -3407.966 after 503 steps.
+Episode 219, global step 158004, Losses: {'critic1_loss': 72.114013671875, 'critic2_loss': 76.23885345458984, 'actor_loss': 125.76152038574219}
+	Replay buffer size: 160445  |  Epsilon: 0.968
+Episode 219 finished in environment 10 with total reward -8472.932 and discounted reward -3681.244 after 652 steps.
+Episode 248 finished in environment 1 with total reward -7451.359 and discounted reward -3511.791 after 572 steps.
+Episode 244 finished in environment 16 with total reward -11393.564 and discounted reward -4107.463 after 853 steps.
+Episode 230, global step 159011, Losses: {'critic1_loss': 57.93161392211914, 'critic2_loss': 48.960784912109375, 'actor_loss': 128.28472900390625}
+	Replay buffer size: 161452  |  Epsilon: 0.968
+Episode 230, global step 160018, Losses: {'critic1_loss': 60.77599334716797, 'critic2_loss': 65.74488830566406, 'actor_loss': 127.4465103149414}
+	Replay buffer size: 162459  |  Epsilon: 0.968
+Episode 234 finished in environment 6 with total reward -9549.508 and discounted reward -4017.709 after 713 steps.
+Episode 230 finished in environment 2 with total reward -7366.150 and discounted reward -3646.168 after 555 steps.
+Episode 232, global step 161006, Losses: {'critic1_loss': 48.566322326660156, 'critic2_loss': 48.18934631347656, 'actor_loss': 128.85989379882812}
+	Replay buffer size: 163447  |  Epsilon: 0.968
+Episode 232 finished in environment 4 with total reward -12417.703 and discounted reward -4145.986 after 906 steps.
+Episode 238, global step 162013, Losses: {'critic1_loss': 78.7726821899414, 'critic2_loss': 83.91815948486328, 'actor_loss': 128.422119140625}
+	Replay buffer size: 164454  |  Epsilon: 0.968
+Episode 264 finished in environment 17 with total reward -7828.592 and discounted reward -3685.040 after 587 steps.
+Episode 238, global step 163001, Losses: {'critic1_loss': 84.00616455078125, 'critic2_loss': 72.82691955566406, 'actor_loss': 128.68267822265625}
+	Replay buffer size: 165442  |  Epsilon: 0.967
+Episode 256 finished in environment 9 with total reward -10076.846 and discounted reward -4099.424 after 738 steps.
+Episode 246 finished in environment 18 with total reward -7347.018 and discounted reward -3623.298 after 542 steps.
+Episode 238, global step 164008, Losses: {'critic1_loss': 53.583106994628906, 'critic2_loss': 52.35767364501953, 'actor_loss': 130.7513427734375}
+	Replay buffer size: 166449  |  Epsilon: 0.967
+Episode 279 finished in environment 13 with total reward -8162.097 and discounted reward -3837.228 after 606 steps.
+Episode 238, global step 165015, Losses: {'critic1_loss': 54.72386932373047, 'critic2_loss': 55.80426025390625, 'actor_loss': 130.61038208007812}
+	Replay buffer size: 167456  |  Epsilon: 0.967
+Episode 238, global step 166003, Losses: {'critic1_loss': 55.336463928222656, 'critic2_loss': 50.14018249511719, 'actor_loss': 131.40484619140625}
+	Replay buffer size: 168444  |  Epsilon: 0.967
+Episode 252 finished in environment 5 with total reward -7416.149 and discounted reward -3578.520 after 567 steps.
+Episode 261 finished in environment 14 with total reward -7436.994 and discounted reward -3712.618 after 555 steps.
+Episode 254 finished in environment 7 with total reward -11612.852 and discounted reward -4053.222 after 856 steps.
+Episode 240 finished in environment 12 with total reward -6966.667 and discounted reward -3458.355 after 543 steps.
+Episode 238, global step 167010, Losses: {'critic1_loss': 178.2708740234375, 'critic2_loss': 122.87442779541016, 'actor_loss': 132.01187133789062}
+	Replay buffer size: 169451  |  Epsilon: 0.967
+Episode 250 finished in environment 3 with total reward -9333.854 and discounted reward -4050.756 after 664 steps.
+Episode 238, global step 168017, Losses: {'critic1_loss': 73.02387237548828, 'critic2_loss': 75.39976501464844, 'actor_loss': 132.2589874267578}
+	Replay buffer size: 170458  |  Epsilon: 0.967
+Episode 247 finished in environment 0 with total reward -7865.434 and discounted reward -3688.377 after 608 steps.
+Episode 238, global step 169005, Losses: {'critic1_loss': 80.04261779785156, 'critic2_loss': 76.13119506835938, 'actor_loss': 132.6640167236328}
+	Replay buffer size: 171446  |  Epsilon: 0.967
+Episode 274 finished in environment 8 with total reward -10647.930 and discounted reward -4236.871 after 768 steps.
+Episode 267 finished in environment 1 with total reward -7494.399 and discounted reward -3501.810 after 583 steps.
+Episode 238 finished in environment 10 with total reward -7878.451 and discounted reward -3626.543 after 599 steps.
+Episode 249, global step 170012, Losses: {'critic1_loss': 51.03272247314453, 'critic2_loss': 64.12066650390625, 'actor_loss': 134.0677032470703}
+	Replay buffer size: 172453  |  Epsilon: 0.966
+Episode 249, global step 171000, Losses: {'critic1_loss': 80.05828857421875, 'critic2_loss': 69.29351806640625, 'actor_loss': 133.17282104492188}
+	Replay buffer size: 173441  |  Epsilon: 0.966
+Episode 281 finished in environment 15 with total reward -9440.129 and discounted reward -3989.952 after 723 steps.
+Episode 263 finished in environment 16 with total reward -9050.098 and discounted reward -3848.733 after 693 steps.
+Episode 249, global step 172007, Losses: {'critic1_loss': 43.66004180908203, 'critic2_loss': 45.21601867675781, 'actor_loss': 134.78379821777344}
+	Replay buffer size: 174448  |  Epsilon: 0.966
+Episode 249 finished in environment 2 with total reward -7960.300 and discounted reward -3632.606 after 617 steps.
+Episode 251 finished in environment 4 with total reward -7702.332 and discounted reward -3624.091 after 583 steps.
+Episode 253, global step 173014, Losses: {'critic1_loss': 66.85487365722656, 'critic2_loss': 55.85009002685547, 'actor_loss': 133.9731903076172}
+	Replay buffer size: 175455  |  Epsilon: 0.966
+Episode 275 finished in environment 9 with total reward -7085.854 and discounted reward -3518.501 after 541 steps.
+Episode 296 finished in environment 11 with total reward -12269.520 and discounted reward -4335.027 after 913 steps.
+Episode 283 finished in environment 17 with total reward -7674.716 and discounted reward -3570.768 after 586 steps.
+Episode 253, global step 174002, Losses: {'critic1_loss': 59.21001434326172, 'critic2_loss': 49.63634490966797, 'actor_loss': 136.28884887695312}
+	Replay buffer size: 176443  |  Epsilon: 0.966
+Episode 253, global step 175009, Losses: {'critic1_loss': 46.58479309082031, 'critic2_loss': 46.793209075927734, 'actor_loss': 136.32281494140625}
+	Replay buffer size: 177450  |  Epsilon: 0.966
+Episode 253, global step 176016, Losses: {'critic1_loss': 68.2713623046875, 'critic2_loss': 55.87458801269531, 'actor_loss': 136.2848663330078}
+	Replay buffer size: 178457  |  Epsilon: 0.966
+Episode 271 finished in environment 5 with total reward -6595.729 and discounted reward -3291.156 after 529 steps.
+Episode 253, global step 177004, Losses: {'critic1_loss': 128.64404296875, 'critic2_loss': 147.78916931152344, 'actor_loss': 137.5237274169922}
+	Replay buffer size: 179445  |  Epsilon: 0.965
+Episode 298 finished in environment 13 with total reward -8247.866 and discounted reward -3644.405 after 642 steps.
+Episode 253 finished in environment 6 with total reward -12136.135 and discounted reward -4197.212 after 891 steps.
+	[BENCH] 1441.2 iter/s
+Episode 272 finished in environment 6 with total reward -398.388 and discounted reward -381.263 after 29 steps.
+Episode 269 finished in environment 3 with total reward -7412.503 and discounted reward -3552.863 after 569 steps.
+Episode 257, global step 178011, Losses: {'critic1_loss': 74.20454406738281, 'critic2_loss': 84.57749938964844, 'actor_loss': 138.5203857421875}
+	Replay buffer size: 180452  |  Epsilon: 0.965
+Episode 280 finished in environment 14 with total reward -8195.372 and discounted reward -3662.118 after 631 steps.
+Episode 257, global step 179018, Losses: {'critic1_loss': 40.4850959777832, 'critic2_loss': 44.984779357910156, 'actor_loss': 139.24087524414062}
+	Replay buffer size: 181459  |  Epsilon: 0.965
+Episode 273 finished in environment 7 with total reward -8723.965 and discounted reward -3742.186 after 658 steps.
+Episode 265 finished in environment 18 with total reward -10953.696 and discounted reward -3987.053 after 842 steps.
+Episode 257, global step 180006, Losses: {'critic1_loss': 57.46036911010742, 'critic2_loss': 50.86870574951172, 'actor_loss': 138.9326171875}
+	Replay buffer size: 182447  |  Epsilon: 0.965
+Episode 257 finished in environment 10 with total reward -7233.042 and discounted reward -3516.225 after 561 steps.
+Episode 266 finished in environment 0 with total reward -8211.734 and discounted reward -3676.770 after 646 steps.
+Episode 259, global step 181013, Losses: {'critic1_loss': 45.4837532043457, 'critic2_loss': 43.501060485839844, 'actor_loss': 140.8450164794922}
+	Replay buffer size: 183454  |  Epsilon: 0.965
+Episode 286 finished in environment 1 with total reward -8094.430 and discounted reward -3623.006 after 626 steps.
+Episode 259 finished in environment 12 with total reward -10265.490 and discounted reward -4079.570 after 754 steps.
+Episode 300 finished in environment 15 with total reward -7065.559 and discounted reward -3448.101 after 533 steps.
+Episode 268, global step 182001, Losses: {'critic1_loss': 51.690147399902344, 'critic2_loss': 54.045013427734375, 'actor_loss': 141.00364685058594}
+	Replay buffer size: 184442  |  Epsilon: 0.965
+Episode 293 finished in environment 8 with total reward -9421.000 and discounted reward -3813.887 after 714 steps.
+Episode 268, global step 183008, Losses: {'critic1_loss': 71.71391296386719, 'critic2_loss': 76.30677795410156, 'actor_loss': 141.4456329345703}
+	Replay buffer size: 185449  |  Epsilon: 0.965
+Episode 302 finished in environment 17 with total reward -6114.850 and discounted reward -3195.924 after 498 steps.
+Episode 294 finished in environment 9 with total reward -7083.368 and discounted reward -3510.979 after 535 steps.
+Episode 268, global step 184015, Losses: {'critic1_loss': 72.36502075195312, 'critic2_loss': 72.94320678710938, 'actor_loss': 142.05218505859375}
+	Replay buffer size: 186456  |  Epsilon: 0.965
+Episode 270 finished in environment 4 with total reward -7794.246 and discounted reward -3621.786 after 608 steps.
+Episode 282 finished in environment 16 with total reward -9143.321 and discounted reward -4056.147 after 679 steps.
+Episode 268 finished in environment 2 with total reward -8167.619 and discounted reward -3589.111 after 648 steps.
+Episode 315 finished in environment 11 with total reward -7693.191 and discounted reward -3685.097 after 581 steps.
+Episode 276, global step 185003, Losses: {'critic1_loss': 73.22124481201172, 'critic2_loss': 99.7562026977539, 'actor_loss': 143.44065856933594}
+	Replay buffer size: 187444  |  Epsilon: 0.964
+Episode 276, global step 186010, Losses: {'critic1_loss': 57.799400329589844, 'critic2_loss': 43.869361877441406, 'actor_loss': 144.5305633544922}
+	Replay buffer size: 188451  |  Epsilon: 0.964
+Episode 290 finished in environment 5 with total reward -7486.996 and discounted reward -3594.411 after 570 steps.
+Episode 276, global step 187017, Losses: {'critic1_loss': 47.190277099609375, 'critic2_loss': 48.1080436706543, 'actor_loss': 144.24227905273438}
+	Replay buffer size: 189458  |  Epsilon: 0.964
+Episode 276, global step 188005, Losses: {'critic1_loss': 44.993263244628906, 'critic2_loss': 49.3883171081543, 'actor_loss': 144.044677734375}
+	Replay buffer size: 190446  |  Epsilon: 0.964
+Episode 276, global step 189012, Losses: {'critic1_loss': 85.10173034667969, 'critic2_loss': 61.32963180541992, 'actor_loss': 144.80506896972656}
+	Replay buffer size: 191453  |  Epsilon: 0.964
+Episode 288 finished in environment 3 with total reward -7553.827 and discounted reward -3589.613 after 591 steps.
+Episode 291 finished in environment 6 with total reward -8224.485 and discounted reward -3875.680 after 609 steps.
+Episode 276, global step 190000, Losses: {'critic1_loss': 49.038909912109375, 'critic2_loss': 68.58473205566406, 'actor_loss': 145.42478942871094}
+	Replay buffer size: 192441  |  Epsilon: 0.964
+Episode 284 finished in environment 18 with total reward -7349.372 and discounted reward -3460.728 after 578 steps.
+Episode 317 finished in environment 13 with total reward -9397.487 and discounted reward -3820.340 after 716 steps.
+Episode 276, global step 191007, Losses: {'critic1_loss': 49.78741455078125, 'critic2_loss': 48.02064895629883, 'actor_loss': 146.1163787841797}
+	Replay buffer size: 193448  |  Epsilon: 0.964
+Episode 285 finished in environment 0 with total reward -7408.888 and discounted reward -3591.238 after 579 steps.
+Episode 305 finished in environment 1 with total reward -7485.534 and discounted reward -3508.259 after 574 steps.
+Episode 276, global step 192014, Losses: {'critic1_loss': 65.564208984375, 'critic2_loss': 62.459938049316406, 'actor_loss': 146.6521759033203}
+	Replay buffer size: 194455  |  Epsilon: 0.963
+Episode 299 finished in environment 14 with total reward -9683.204 and discounted reward -3849.552 after 738 steps.
+Episode 276, global step 193002, Losses: {'critic1_loss': 87.71052551269531, 'critic2_loss': 94.59602355957031, 'actor_loss': 148.17491149902344}
+	Replay buffer size: 195443  |  Epsilon: 0.963
+Episode 312 finished in environment 8 with total reward -7479.206 and discounted reward -3694.355 after 564 steps.
+Episode 334 finished in environment 11 with total reward -5816.385 and discounted reward -3152.481 after 466 steps.
+Episode 321 finished in environment 17 with total reward -7029.497 and discounted reward -3443.425 after 543 steps.
+Episode 313 finished in environment 9 with total reward -6505.917 and discounted reward -3274.745 after 524 steps.
+Episode 276, global step 194009, Losses: {'critic1_loss': 66.59224700927734, 'critic2_loss': 60.573974609375, 'actor_loss': 148.8392791748047}
+	Replay buffer size: 196450  |  Epsilon: 0.963
+Episode 278 finished in environment 12 with total reward -9786.080 and discounted reward -4022.976 after 730 steps.
+Episode 276, global step 195016, Losses: {'critic1_loss': 178.556884765625, 'critic2_loss': 160.359619140625, 'actor_loss': 147.80078125}
+	Replay buffer size: 197457  |  Epsilon: 0.963
+Episode 319 finished in environment 15 with total reward -9765.298 and discounted reward -3807.202 after 732 steps.
+Episode 276, global step 196004, Losses: {'critic1_loss': 49.73112869262695, 'critic2_loss': 54.62030029296875, 'actor_loss': 149.07424926757812}
+	Replay buffer size: 198445  |  Epsilon: 0.963
+Episode 292 finished in environment 7 with total reward -12572.096 and discounted reward -4193.141 after 922 steps.
+Episode 276, global step 197011, Losses: {'critic1_loss': 79.8449935913086, 'critic2_loss': 80.2942123413086, 'actor_loss': 149.1653289794922}
+	Replay buffer size: 199452  |  Epsilon: 0.963
+Episode 287 finished in environment 2 with total reward -8679.053 and discounted reward -3847.670 after 663 steps.
+Episode 309 finished in environment 5 with total reward -7489.106 and discounted reward -3520.389 after 582 steps.
+Episode 276, global step 198018, Losses: {'critic1_loss': 62.73728561401367, 'critic2_loss': 62.21356201171875, 'actor_loss': 151.1012725830078}
+	Replay buffer size: 200459  |  Epsilon: 0.963
+Episode 276, global step 199006, Losses: {'critic1_loss': 96.448486328125, 'critic2_loss': 101.18751525878906, 'actor_loss': 151.25152587890625}
+	Replay buffer size: 201447  |  Epsilon: 0.963
+Episode 276 finished in environment 10 with total reward -13456.083 and discounted reward -4307.420 after 997 steps.
+Episode 307 finished in environment 3 with total reward -6780.417 and discounted reward -3420.745 after 531 steps.
+Episode 301 finished in environment 16 with total reward -10205.067 and discounted reward -4038.664 after 783 steps.
+Episode 289, global step 200013, Losses: {'critic1_loss': 47.05561447143555, 'critic2_loss': 46.89228820800781, 'actor_loss': 151.6141815185547}
+	Replay buffer size: 202454  |  Epsilon: 0.962
+Episode 289, global step 201001, Losses: {'critic1_loss': 108.7327880859375, 'critic2_loss': 142.81182861328125, 'actor_loss': 150.05836486816406}
+	Replay buffer size: 203442  |  Epsilon: 0.962
+Episode 324 finished in environment 1 with total reward -6422.835 and discounted reward -3238.154 after 520 steps.
+Episode 289, global step 202008, Losses: {'critic1_loss': 74.67213439941406, 'critic2_loss': 77.43889617919922, 'actor_loss': 153.4293975830078}
+	Replay buffer size: 204449  |  Epsilon: 0.962
+Episode 336 finished in environment 13 with total reward -7904.604 and discounted reward -3533.005 after 625 steps.
+Episode 289, global step 203015, Losses: {'critic1_loss': 48.336090087890625, 'critic2_loss': 51.27265167236328, 'actor_loss': 153.15576171875}
+	Replay buffer size: 205456  |  Epsilon: 0.962
+Episode 353 finished in environment 11 with total reward -6194.782 and discounted reward -3103.707 after 502 steps.
+Episode 340 finished in environment 17 with total reward -6349.067 and discounted reward -3199.718 after 507 steps.
+Episode 303 finished in environment 18 with total reward -8974.555 and discounted reward -3793.558 after 687 steps.
+Episode 310 finished in environment 6 with total reward -10315.710 and discounted reward -4122.764 after 752 steps.
+Episode 289, global step 204003, Losses: {'critic1_loss': 53.82020568847656, 'critic2_loss': 48.73930358886719, 'actor_loss': 152.35873413085938}
+	Replay buffer size: 206444  |  Epsilon: 0.962
+Episode 289, global step 205010, Losses: {'critic1_loss': 59.57952880859375, 'critic2_loss': 66.01377868652344, 'actor_loss': 154.68280029296875}
+	Replay buffer size: 207451  |  Epsilon: 0.962
+Episode 318 finished in environment 14 with total reward -8854.604 and discounted reward -3895.143 after 674 steps.
+Episode 289 finished in environment 4 with total reward -15717.593 and discounted reward -4493.719 after 1144 steps.
+Episode 295, global step 206017, Losses: {'critic1_loss': 72.75466918945312, 'critic2_loss': 77.34870910644531, 'actor_loss': 155.79306030273438}
+	Replay buffer size: 208458  |  Epsilon: 0.962
+Episode 304 finished in environment 0 with total reward -10525.180 and discounted reward -4110.209 after 777 steps.
+Episode 311 finished in environment 7 with total reward -6844.407 and discounted reward -3339.850 after 534 steps.
+Episode 295, global step 207005, Losses: {'critic1_loss': 78.28083801269531, 'critic2_loss': 77.0546875, 'actor_loss': 155.320068359375}
+	Replay buffer size: 209446  |  Epsilon: 0.961
+Episode 295, global step 208012, Losses: {'critic1_loss': 51.542396545410156, 'critic2_loss': 45.75081253051758, 'actor_loss': 155.50189208984375}
+	Replay buffer size: 210453  |  Epsilon: 0.961
+Episode 331 finished in environment 8 with total reward -10175.315 and discounted reward -3999.010 after 780 steps.
+Episode 332 finished in environment 9 with total reward -9590.136 and discounted reward -3798.046 after 757 steps.
+Episode 326 finished in environment 3 with total reward -6231.270 and discounted reward -3195.196 after 494 steps.
+Episode 295, global step 209000, Losses: {'critic1_loss': 52.85554504394531, 'critic2_loss': 50.46742248535156, 'actor_loss': 156.5284881591797}
+	Replay buffer size: 211441  |  Epsilon: 0.961
+Episode 355 finished in environment 13 with total reward -4621.742 and discounted reward -2741.599 after 385 steps.
+Episode 295, global step 210007, Losses: {'critic1_loss': 59.68073654174805, 'critic2_loss': 68.75749206542969, 'actor_loss': 157.91015625}
+	Replay buffer size: 212448  |  Epsilon: 0.961
+Episode 320 finished in environment 16 with total reward -7623.636 and discounted reward -3794.972 after 565 steps.
+Episode 297 finished in environment 12 with total reward -10685.835 and discounted reward -4002.842 after 811 steps.
+Episode 328 finished in environment 5 with total reward -8786.140 and discounted reward -3782.683 after 659 steps.
+Episode 338 finished in environment 15 with total reward -10507.143 and discounted reward -3923.693 after 803 steps.
+Episode 372 finished in environment 11 with total reward -4725.185 and discounted reward -2784.346 after 402 steps.
+Episode 295, global step 211014, Losses: {'critic1_loss': 47.0300407409668, 'critic2_loss': 45.30970764160156, 'actor_loss': 158.22190856933594}
+	Replay buffer size: 213455  |  Epsilon: 0.961
+Episode 295 finished in environment 10 with total reward -8952.212 and discounted reward -3931.024 after 674 steps.
+Episode 306, global step 212002, Losses: {'critic1_loss': 47.41687774658203, 'critic2_loss': 42.98664855957031, 'actor_loss': 158.27001953125}
+	Replay buffer size: 214443  |  Epsilon: 0.961
+Episode 306 finished in environment 2 with total reward -10675.009 and discounted reward -4036.449 after 805 steps.
+Episode 308, global step 213009, Losses: {'critic1_loss': 142.4029083251953, 'critic2_loss': 123.26554870605469, 'actor_loss': 159.86903381347656}
+	Replay buffer size: 215450  |  Epsilon: 0.961
+Episode 308, global step 214016, Losses: {'critic1_loss': 72.48527526855469, 'critic2_loss': 92.60358428955078, 'actor_loss': 160.06866455078125}
+	Replay buffer size: 216457  |  Epsilon: 0.961
+Episode 308, global step 215004, Losses: {'critic1_loss': 56.38615417480469, 'critic2_loss': 60.86585235595703, 'actor_loss': 161.00611877441406}
+	Replay buffer size: 217445  |  Epsilon: 0.960
+Episode 359 finished in environment 17 with total reward -8364.754 and discounted reward -3599.401 after 656 steps.
+Episode 308, global step 216011, Losses: {'critic1_loss': 70.6442642211914, 'critic2_loss': 91.12789154052734, 'actor_loss': 159.67433166503906}
+	Replay buffer size: 218452  |  Epsilon: 0.960
+Episode 329 finished in environment 6 with total reward -8746.044 and discounted reward -3789.769 after 659 steps.
+Episode 343 finished in environment 1 with total reward -10408.266 and discounted reward -4013.533 after 771 steps.
+Episode 308, global step 217018, Losses: {'critic1_loss': 97.11661529541016, 'critic2_loss': 101.53398895263672, 'actor_loss': 161.0991973876953}
+	Replay buffer size: 219459  |  Epsilon: 0.960
+Episode 308, global step 218006, Losses: {'critic1_loss': 56.30634689331055, 'critic2_loss': 54.771156311035156, 'actor_loss': 162.41439819335938}
+	Replay buffer size: 220447  |  Epsilon: 0.960
+Episode 330 finished in environment 7 with total reward -7645.783 and discounted reward -3538.916 after 602 steps.
+Episode 322 finished in environment 18 with total reward -10486.888 and discounted reward -4060.604 after 780 steps.
+Episode 308, global step 219013, Losses: {'critic1_loss': 111.52305603027344, 'critic2_loss': 104.00308227539062, 'actor_loss': 163.09909057617188}
+	Replay buffer size: 221454  |  Epsilon: 0.960
+Episode 337 finished in environment 14 with total reward -10099.035 and discounted reward -4113.950 after 749 steps.
+Episode 345 finished in environment 3 with total reward -7577.118 and discounted reward -3586.128 after 572 steps.
+Episode 308 finished in environment 4 with total reward -9543.581 and discounted reward -3940.721 after 728 steps.
+	[BENCH] 1401.3 iter/s
+Episode 314, global step 220001, Losses: {'critic1_loss': 80.2121810913086, 'critic2_loss': 59.08763885498047, 'actor_loss': 163.5048370361328}
+	Replay buffer size: 222442  |  Epsilon: 0.960
+Episode 350 finished in environment 8 with total reward -8064.236 and discounted reward -3665.734 after 626 steps.
+Episode 374 finished in environment 13 with total reward -7412.299 and discounted reward -3445.637 after 571 steps.
+Episode 314, global step 221008, Losses: {'critic1_loss': 56.07774353027344, 'critic2_loss': 63.967872619628906, 'actor_loss': 164.0319366455078}
+	Replay buffer size: 223449  |  Epsilon: 0.960
+Episode 351 finished in environment 9 with total reward -8796.780 and discounted reward -3732.803 after 687 steps.
+Episode 391 finished in environment 11 with total reward -7463.690 and discounted reward -3553.389 after 570 steps.
+Episode 357 finished in environment 15 with total reward -7565.641 and discounted reward -3511.556 after 589 steps.
+Episode 314, global step 222015, Losses: {'critic1_loss': 101.1451187133789, 'critic2_loss': 98.72920227050781, 'actor_loss': 165.17010498046875}
+	Replay buffer size: 224456  |  Epsilon: 0.959
+Episode 316 finished in environment 12 with total reward -8185.962 and discounted reward -3770.192 after 620 steps.
+Episode 347 finished in environment 5 with total reward -8326.899 and discounted reward -3652.064 after 640 steps.
+Episode 314, global step 223003, Losses: {'critic1_loss': 76.73326110839844, 'critic2_loss': 75.90666961669922, 'actor_loss': 164.74217224121094}
+	Replay buffer size: 225444  |  Epsilon: 0.959
+Episode 339 finished in environment 16 with total reward -8946.817 and discounted reward -3689.217 after 702 steps.
+Episode 314, global step 224010, Losses: {'critic1_loss': 101.43448638916016, 'critic2_loss': 82.586181640625, 'actor_loss': 165.97958374023438}
+	Replay buffer size: 226451  |  Epsilon: 0.959
+Episode 323 finished in environment 0 with total reward -12500.795 and discounted reward -4218.726 after 922 steps.
+Episode 325 finished in environment 2 with total reward -8229.437 and discounted reward -3726.103 after 616 steps.
+Episode 314 finished in environment 10 with total reward -8377.534 and discounted reward -3756.500 after 651 steps.
+Episode 327, global step 225017, Losses: {'critic1_loss': 43.02463150024414, 'critic2_loss': 57.26081848144531, 'actor_loss': 166.3914337158203}
+	Replay buffer size: 227458  |  Epsilon: 0.959
+Episode 327, global step 226005, Losses: {'critic1_loss': 106.43994140625, 'critic2_loss': 111.57301330566406, 'actor_loss': 166.10256958007812}
+	Replay buffer size: 228446  |  Epsilon: 0.959
+Episode 327, global step 227012, Losses: {'critic1_loss': 69.65470886230469, 'critic2_loss': 60.865386962890625, 'actor_loss': 167.64743041992188}
+	Replay buffer size: 229453  |  Epsilon: 0.959
+Episode 327, global step 228000, Losses: {'critic1_loss': 51.54155731201172, 'critic2_loss': 50.49262237548828, 'actor_loss': 168.61788940429688}
+	Replay buffer size: 230441  |  Epsilon: 0.959
+Episode 348 finished in environment 6 with total reward -8465.712 and discounted reward -3774.171 after 654 steps.
+Episode 362 finished in environment 1 with total reward -8356.582 and discounted reward -3599.553 after 643 steps.
+Episode 349 finished in environment 7 with total reward -7276.021 and discounted reward -3557.865 after 556 steps.
+Episode 327, global step 229007, Losses: {'critic1_loss': 79.55076599121094, 'critic2_loss': 82.51997375488281, 'actor_loss': 166.7615203857422}
+	Replay buffer size: 231448  |  Epsilon: 0.958
+Episode 327, global step 230014, Losses: {'critic1_loss': 103.36891174316406, 'critic2_loss': 123.54920959472656, 'actor_loss': 169.80023193359375}
+	Replay buffer size: 232455  |  Epsilon: 0.958
+Episode 327 finished in environment 4 with total reward -7217.081 and discounted reward -3473.763 after 565 steps.
+Episode 364 finished in environment 3 with total reward -7612.029 and discounted reward -3557.876 after 587 steps.
+Episode 333, global step 231002, Losses: {'critic1_loss': 70.67913818359375, 'critic2_loss': 69.93426513671875, 'actor_loss': 170.4489288330078}
+	Replay buffer size: 233443  |  Epsilon: 0.958
+Episode 356 finished in environment 14 with total reward -8412.165 and discounted reward -3811.514 after 627 steps.
+Episode 393 finished in environment 13 with total reward -7128.458 and discounted reward -3456.933 after 561 steps.
+Episode 333, global step 232009, Losses: {'critic1_loss': 67.77667236328125, 'critic2_loss': 81.7486572265625, 'actor_loss': 171.9823760986328}
+	Replay buffer size: 234450  |  Epsilon: 0.958
+Episode 369 finished in environment 8 with total reward -8312.525 and discounted reward -3828.727 after 630 steps.
+Episode 341 finished in environment 18 with total reward -9292.940 and discounted reward -3932.874 after 725 steps.
+Episode 376 finished in environment 15 with total reward -7259.252 and discounted reward -3525.831 after 557 steps.
+Episode 333, global step 233016, Losses: {'critic1_loss': 57.984619140625, 'critic2_loss': 62.88210678100586, 'actor_loss': 171.7618865966797}
+	Replay buffer size: 235457  |  Epsilon: 0.958
+Episode 410 finished in environment 11 with total reward -7855.452 and discounted reward -3644.043 after 610 steps.
+Episode 333, global step 234004, Losses: {'critic1_loss': 40.79974365234375, 'critic2_loss': 36.68977355957031, 'actor_loss': 173.20176696777344}
+	Replay buffer size: 236445  |  Epsilon: 0.958
+Episode 378 finished in environment 17 with total reward -12959.567 and discounted reward -4052.731 after 988 steps.
+Episode 333, global step 235011, Losses: {'critic1_loss': 87.90791320800781, 'critic2_loss': 61.4146614074707, 'actor_loss': 170.75762939453125}
+	Replay buffer size: 237452  |  Epsilon: 0.958
+Episode 344 finished in environment 2 with total reward -7542.691 and discounted reward -3642.976 after 580 steps.
+Episode 342 finished in environment 0 with total reward -7615.546 and discounted reward -3493.388 after 610 steps.
+Episode 335 finished in environment 12 with total reward -9687.081 and discounted reward -4011.289 after 723 steps.
+Episode 333, global step 236018, Losses: {'critic1_loss': 76.16355895996094, 'critic2_loss': 122.35873413085938, 'actor_loss': 172.63763427734375}
+	Replay buffer size: 238459  |  Epsilon: 0.958
+Episode 333, global step 237006, Losses: {'critic1_loss': 74.64158630371094, 'critic2_loss': 75.05462646484375, 'actor_loss': 173.99075317382812}
+	Replay buffer size: 239447  |  Epsilon: 0.957
+Episode 366 finished in environment 5 with total reward -10018.676 and discounted reward -3919.264 after 759 steps.
+Episode 370 finished in environment 9 with total reward -10965.071 and discounted reward -3991.911 after 846 steps.
+Episode 358 finished in environment 16 with total reward -9324.041 and discounted reward -3755.630 after 736 steps.
+Episode 333, global step 238013, Losses: {'critic1_loss': 110.33587646484375, 'critic2_loss': 135.15289306640625, 'actor_loss': 173.43606567382812}
+	Replay buffer size: 240454  |  Epsilon: 0.957
+Episode 333, global step 239001, Losses: {'critic1_loss': 132.9266357421875, 'critic2_loss': 100.43597412109375, 'actor_loss': 175.89773559570312}
+	Replay buffer size: 241442  |  Epsilon: 0.957
+Episode 367 finished in environment 6 with total reward -7215.533 and discounted reward -3523.722 after 569 steps.
+Episode 333 finished in environment 10 with total reward -10610.099 and discounted reward -4018.830 after 812 steps.
+Episode 346, global step 240008, Losses: {'critic1_loss': 99.80908203125, 'critic2_loss': 98.56462097167969, 'actor_loss': 174.2862091064453}
+	Replay buffer size: 242449  |  Epsilon: 0.957
+Episode 383 finished in environment 3 with total reward -6261.873 and discounted reward -3247.460 after 503 steps.
+Episode 381 finished in environment 1 with total reward -8429.533 and discounted reward -3742.009 after 639 steps.
+Episode 368 finished in environment 7 with total reward -8276.977 and discounted reward -3647.047 after 639 steps.
+Episode 346, global step 241015, Losses: {'critic1_loss': 107.1986083984375, 'critic2_loss': 111.6759033203125, 'actor_loss': 176.85984802246094}
+	Replay buffer size: 243456  |  Epsilon: 0.957
+Episode 346 finished in environment 4 with total reward -7420.568 and discounted reward -3501.430 after 591 steps.
+Episode 352, global step 242003, Losses: {'critic1_loss': 108.80770874023438, 'critic2_loss': 134.70921325683594, 'actor_loss': 176.71231079101562}
+	Replay buffer size: 244444  |  Epsilon: 0.957
+Episode 412 finished in environment 13 with total reward -7025.539 and discounted reward -3364.418 after 557 steps.
+Episode 375 finished in environment 14 with total reward -7733.493 and discounted reward -3716.822 after 586 steps.
+Episode 352, global step 243010, Losses: {'critic1_loss': 68.01355743408203, 'critic2_loss': 54.19209289550781, 'actor_loss': 176.97427368164062}
+	Replay buffer size: 245451  |  Epsilon: 0.957
+Episode 429 finished in environment 11 with total reward -7088.655 and discounted reward -3356.876 after 567 steps.
+Episode 352, global step 244017, Losses: {'critic1_loss': 46.86113357543945, 'critic2_loss': 46.45711135864258, 'actor_loss': 176.22793579101562}
+	Replay buffer size: 246458  |  Epsilon: 0.956
+Episode 388 finished in environment 8 with total reward -8689.967 and discounted reward -3996.335 after 652 steps.
+Episode 360 finished in environment 18 with total reward -8656.035 and discounted reward -3655.506 after 671 steps.
+Episode 352, global step 245005, Losses: {'critic1_loss': 72.29164123535156, 'critic2_loss': 68.7999267578125, 'actor_loss': 178.51071166992188}
+	Replay buffer size: 247446  |  Epsilon: 0.956
+Episode 352, global step 246012, Losses: {'critic1_loss': 46.739501953125, 'critic2_loss': 44.87084197998047, 'actor_loss': 177.3692169189453}
+	Replay buffer size: 248453  |  Epsilon: 0.956
+Episode 397 finished in environment 17 with total reward -8012.609 and discounted reward -3644.099 after 623 steps.
+Episode 395 finished in environment 15 with total reward -9344.165 and discounted reward -3758.783 after 737 steps.
+Episode 354 finished in environment 12 with total reward -7572.755 and discounted reward -3713.956 after 578 steps.
+Episode 352, global step 247000, Losses: {'critic1_loss': 121.655029296875, 'critic2_loss': 193.70101928710938, 'actor_loss': 179.7180633544922}
+	Replay buffer size: 249441  |  Epsilon: 0.956
+Episode 385 finished in environment 5 with total reward -6692.098 and discounted reward -3379.037 after 531 steps.
+Episode 363 finished in environment 2 with total reward -8158.960 and discounted reward -3728.236 after 635 steps.
+Episode 352, global step 248007, Losses: {'critic1_loss': 57.785438537597656, 'critic2_loss': 64.66600036621094, 'actor_loss': 179.93423461914062}
+	Replay buffer size: 250448  |  Epsilon: 0.956
+Episode 361 finished in environment 0 with total reward -9174.833 and discounted reward -3833.743 after 700 steps.
+Episode 352, global step 249014, Losses: {'critic1_loss': 60.94215774536133, 'critic2_loss': 66.49884033203125, 'actor_loss': 180.65426635742188}
+	Replay buffer size: 251455  |  Epsilon: 0.956
+Episode 389 finished in environment 9 with total reward -8258.729 and discounted reward -3616.764 after 648 steps.
+Episode 352, global step 250002, Losses: {'critic1_loss': 68.30143737792969, 'critic2_loss': 57.217872619628906, 'actor_loss': 181.26580810546875}
+	Replay buffer size: 252443  |  Epsilon: 0.956
+Episode 352 finished in environment 10 with total reward -7787.375 and discounted reward -3681.584 after 589 steps.
+Episode 365, global step 251009, Losses: {'critic1_loss': 64.36241149902344, 'critic2_loss': 76.88838195800781, 'actor_loss': 182.37008666992188}
+	Replay buffer size: 253450  |  Epsilon: 0.956
+Episode 386 finished in environment 6 with total reward -7863.451 and discounted reward -3521.118 after 629 steps.
+Episode 387 finished in environment 7 with total reward -7233.186 and discounted reward -3544.355 after 554 steps.
+Episode 400 finished in environment 1 with total reward -7135.238 and discounted reward -3352.019 after 578 steps.
+Episode 365, global step 252016, Losses: {'critic1_loss': 55.46979522705078, 'critic2_loss': 55.86113739013672, 'actor_loss': 182.34982299804688}
+	Replay buffer size: 254457  |  Epsilon: 0.955
+Episode 377 finished in environment 16 with total reward -10531.547 and discounted reward -3994.947 after 798 steps.
+Episode 365, global step 253004, Losses: {'critic1_loss': 76.93450927734375, 'critic2_loss': 93.01002502441406, 'actor_loss': 183.60948181152344}
+	Replay buffer size: 255445  |  Epsilon: 0.955
+Episode 365, global step 254011, Losses: {'critic1_loss': 40.11296081542969, 'critic2_loss': 43.766353607177734, 'actor_loss': 184.26136779785156}
+	Replay buffer size: 256452  |  Epsilon: 0.955
+Episode 394 finished in environment 14 with total reward -8456.453 and discounted reward -3723.720 after 649 steps.
+Episode 365, global step 255018, Losses: {'critic1_loss': 51.33903121948242, 'critic2_loss': 51.139381408691406, 'actor_loss': 185.4085693359375}
+	Replay buffer size: 257459  |  Epsilon: 0.955
+Episode 431 finished in environment 13 with total reward -9023.823 and discounted reward -3841.479 after 693 steps.
+Episode 365 finished in environment 4 with total reward -9272.880 and discounted reward -3807.648 after 710 steps.
+Episode 371, global step 256006, Losses: {'critic1_loss': 48.010128021240234, 'critic2_loss': 40.045326232910156, 'actor_loss': 183.96817016601562}
+	Replay buffer size: 258447  |  Epsilon: 0.955
+Episode 402 finished in environment 3 with total reward -11380.000 and discounted reward -4050.991 after 852 steps.
+Episode 373 finished in environment 12 with total reward -6184.286 and discounted reward -3304.186 after 496 steps.
+Episode 371, global step 257013, Losses: {'critic1_loss': 126.57681274414062, 'critic2_loss': 127.65328216552734, 'actor_loss': 185.6346893310547}
+	Replay buffer size: 259454  |  Epsilon: 0.955
+Episode 414 finished in environment 15 with total reward -7600.536 and discounted reward -3561.857 after 584 steps.
+Episode 382 finished in environment 2 with total reward -6761.625 and discounted reward -3367.399 after 542 steps.
+Episode 371, global step 258001, Losses: {'critic1_loss': 184.59030151367188, 'critic2_loss': 212.6331787109375, 'actor_loss': 186.84828186035156}
+	Replay buffer size: 260442  |  Epsilon: 0.955
+Episode 379 finished in environment 18 with total reward -9274.362 and discounted reward -3864.873 after 717 steps.
+Episode 371, global step 259008, Losses: {'critic1_loss': 80.70625305175781, 'critic2_loss': 61.949920654296875, 'actor_loss': 185.2064208984375}
+	Replay buffer size: 261449  |  Epsilon: 0.954
+Episode 407 finished in environment 8 with total reward -10004.912 and discounted reward -3958.072 after 772 steps.
+Episode 404 finished in environment 5 with total reward -7890.468 and discounted reward -3583.360 after 632 steps.
+Episode 448 finished in environment 11 with total reward -10641.075 and discounted reward -3931.379 after 821 steps.
+Episode 371, global step 260015, Losses: {'critic1_loss': 92.32068634033203, 'critic2_loss': 120.218017578125, 'actor_loss': 185.9893341064453}
+	Replay buffer size: 262456  |  Epsilon: 0.954
+Episode 380 finished in environment 0 with total reward -7475.604 and discounted reward -3595.443 after 585 steps.
+Episode 406 finished in environment 7 with total reward -5675.493 and discounted reward -3016.868 after 488 steps.
+Episode 371, global step 261003, Losses: {'critic1_loss': 51.75273895263672, 'critic2_loss': 44.03687286376953, 'actor_loss': 187.46852111816406}
+	Replay buffer size: 263444  |  Epsilon: 0.954
+	[BENCH] 1398.9 iter/s
+Episode 408 finished in environment 9 with total reward -8258.569 and discounted reward -3632.133 after 642 steps.
+Episode 371, global step 262010, Losses: {'critic1_loss': 108.39834594726562, 'critic2_loss': 105.07230377197266, 'actor_loss': 186.76287841796875}
+	Replay buffer size: 264451  |  Epsilon: 0.954
+Episode 416 finished in environment 17 with total reward -10438.448 and discounted reward -3833.231 after 827 steps.
+Episode 419 finished in environment 1 with total reward -7308.591 and discounted reward -3501.156 after 581 steps.
+Episode 405 finished in environment 6 with total reward -7848.446 and discounted reward -3640.747 after 612 steps.
+Episode 371, global step 263017, Losses: {'critic1_loss': 226.15415954589844, 'critic2_loss': 220.01846313476562, 'actor_loss': 187.83802795410156}
+	Replay buffer size: 265458  |  Epsilon: 0.954
+Episode 371 finished in environment 10 with total reward -8148.465 and discounted reward -3657.511 after 648 steps.
+Episode 384, global step 264005, Losses: {'critic1_loss': 71.12673950195312, 'critic2_loss': 59.393253326416016, 'actor_loss': 189.41050720214844}
+	Replay buffer size: 266446  |  Epsilon: 0.954
+Episode 384 finished in environment 4 with total reward -6201.404 and discounted reward -3256.705 after 500 steps.
+Episode 390, global step 265012, Losses: {'critic1_loss': 48.06593322753906, 'critic2_loss': 54.41425323486328, 'actor_loss': 190.6644744873047}
+	Replay buffer size: 267453  |  Epsilon: 0.954
+Episode 396 finished in environment 16 with total reward -8653.610 and discounted reward -3805.973 after 667 steps.
+Episode 390, global step 266000, Losses: {'critic1_loss': 49.67816162109375, 'critic2_loss': 51.506446838378906, 'actor_loss': 191.043701171875}
+	Replay buffer size: 268441  |  Epsilon: 0.954
+Episode 450 finished in environment 13 with total reward -7614.213 and discounted reward -3582.352 after 590 steps.
+Episode 421 finished in environment 3 with total reward -6974.182 and discounted reward -3391.580 after 551 steps.
+Episode 390, global step 267007, Losses: {'critic1_loss': 55.81611633300781, 'critic2_loss': 52.27727508544922, 'actor_loss': 191.3153076171875}
+	Replay buffer size: 269448  |  Epsilon: 0.953
+Episode 413 finished in environment 14 with total reward -8788.151 and discounted reward -3815.828 after 683 steps.
+Episode 390, global step 268014, Losses: {'critic1_loss': 45.20947265625, 'critic2_loss': 45.19163131713867, 'actor_loss': 190.4208221435547}
+	Replay buffer size: 270455  |  Epsilon: 0.953
+Episode 392 finished in environment 12 with total reward -8154.697 and discounted reward -3807.580 after 618 steps.
+Episode 401 finished in environment 2 with total reward -7040.035 and discounted reward -3379.771 after 582 steps.
+Episode 433 finished in environment 15 with total reward -7374.416 and discounted reward -3374.417 after 587 steps.
+Episode 390, global step 269002, Losses: {'critic1_loss': 64.76806640625, 'critic2_loss': 57.14006805419922, 'actor_loss': 191.4342041015625}
+	Replay buffer size: 271443  |  Epsilon: 0.953
+Episode 390, global step 270009, Losses: {'critic1_loss': 51.26394271850586, 'critic2_loss': 56.328155517578125, 'actor_loss': 193.11944580078125}
+	Replay buffer size: 272450  |  Epsilon: 0.953
+Episode 390, global step 271016, Losses: {'critic1_loss': 174.68682861328125, 'critic2_loss': 225.7681884765625, 'actor_loss': 193.08216857910156}
+	Replay buffer size: 273457  |  Epsilon: 0.953
+Episode 390, global step 272004, Losses: {'critic1_loss': 90.36337280273438, 'critic2_loss': 115.37147521972656, 'actor_loss': 194.31468200683594}
+	Replay buffer size: 274445  |  Epsilon: 0.953
+Episode 435 finished in environment 17 with total reward -6629.106 and discounted reward -3319.035 after 533 steps.
+Episode 398 finished in environment 18 with total reward -9129.801 and discounted reward -3630.089 after 731 steps.
+Episode 423 finished in environment 5 with total reward -9089.627 and discounted reward -3746.916 after 707 steps.
+Episode 427 finished in environment 9 with total reward -7228.104 and discounted reward -3437.867 after 570 steps.
+Episode 399 finished in environment 0 with total reward -8587.546 and discounted reward -3712.430 after 666 steps.
+Episode 390, global step 273011, Losses: {'critic1_loss': 71.79718780517578, 'critic2_loss': 80.05203247070312, 'actor_loss': 195.12078857421875}
+	Replay buffer size: 275452  |  Epsilon: 0.953
+Episode 426 finished in environment 8 with total reward -9756.355 and discounted reward -4033.863 after 734 steps.
+Episode 425 finished in environment 7 with total reward -8707.294 and discounted reward -3790.495 after 656 steps.
+Episode 390, global step 274018, Losses: {'critic1_loss': 80.12478637695312, 'critic2_loss': 40.340911865234375, 'actor_loss': 196.1842498779297}
+	Replay buffer size: 276459  |  Epsilon: 0.952
+Episode 467 finished in environment 11 with total reward -9995.123 and discounted reward -3759.272 after 779 steps.
+Episode 390, global step 275006, Losses: {'critic1_loss': 69.93439483642578, 'critic2_loss': 79.41697692871094, 'actor_loss': 196.44529724121094}
+	Replay buffer size: 277447  |  Epsilon: 0.952
+Episode 424 finished in environment 6 with total reward -8625.643 and discounted reward -3702.539 after 661 steps.
+Episode 415 finished in environment 16 with total reward -7096.736 and discounted reward -3511.938 after 548 steps.
+Episode 390, global step 276013, Losses: {'critic1_loss': 62.5629768371582, 'critic2_loss': 64.10391235351562, 'actor_loss': 196.1129608154297}
+	Replay buffer size: 278454  |  Epsilon: 0.952
+Episode 390 finished in environment 10 with total reward -8883.451 and discounted reward -3780.591 after 682 steps.
+Episode 440 finished in environment 3 with total reward -6673.708 and discounted reward -3359.385 after 525 steps.
+Episode 403, global step 277001, Losses: {'critic1_loss': 82.3327865600586, 'critic2_loss': 62.66960144042969, 'actor_loss': 197.85325622558594}
+	Replay buffer size: 279442  |  Epsilon: 0.952
+Episode 403, global step 278008, Losses: {'critic1_loss': 49.383968353271484, 'critic2_loss': 41.5012092590332, 'actor_loss': 197.9344940185547}
+	Replay buffer size: 280449  |  Epsilon: 0.952
+Episode 403 finished in environment 4 with total reward -9406.201 and discounted reward -3755.973 after 725 steps.
+Episode 469 finished in environment 13 with total reward -8466.556 and discounted reward -3717.993 after 648 steps.
+Episode 409, global step 279015, Losses: {'critic1_loss': 66.88661193847656, 'critic2_loss': 66.60731506347656, 'actor_loss': 198.03314208984375}
+	Replay buffer size: 281456  |  Epsilon: 0.952
+Episode 452 finished in environment 15 with total reward -7637.834 and discounted reward -3588.782 after 579 steps.
+Episode 438 finished in environment 1 with total reward -11580.043 and discounted reward -3984.495 after 894 steps.
+Episode 409, global step 280003, Losses: {'critic1_loss': 60.78369140625, 'critic2_loss': 63.64078903198242, 'actor_loss': 198.6006622314453}
+	Replay buffer size: 282444  |  Epsilon: 0.952
+Episode 420 finished in environment 2 with total reward -8465.431 and discounted reward -3739.897 after 649 steps.
+Episode 409, global step 281010, Losses: {'critic1_loss': 106.2382583618164, 'critic2_loss': 96.17251586914062, 'actor_loss': 198.5106658935547}
+	Replay buffer size: 283451  |  Epsilon: 0.952
+Episode 446 finished in environment 9 with total reward -5723.360 and discounted reward -3063.043 after 461 steps.
+Episode 411 finished in environment 12 with total reward -9407.892 and discounted reward -3799.521 after 712 steps.
+Episode 417 finished in environment 18 with total reward -6382.993 and discounted reward -3370.808 after 494 steps.
+Episode 409, global step 282017, Losses: {'critic1_loss': 96.58900451660156, 'critic2_loss': 116.72845458984375, 'actor_loss': 199.46389770507812}
+	Replay buffer size: 284458  |  Epsilon: 0.951
+Episode 409, global step 283005, Losses: {'critic1_loss': 132.39035034179688, 'critic2_loss': 120.10665893554688, 'actor_loss': 199.08786010742188}
+	Replay buffer size: 285446  |  Epsilon: 0.951
+Episode 409, global step 284012, Losses: {'critic1_loss': 104.54469299316406, 'critic2_loss': 107.20269775390625, 'actor_loss': 199.56655883789062}
+	Replay buffer size: 286453  |  Epsilon: 0.951
+Episode 432 finished in environment 14 with total reward -11693.587 and discounted reward -4061.955 after 876 steps.
+Episode 486 finished in environment 11 with total reward -6799.243 and discounted reward -3364.298 after 552 steps.
+Episode 409, global step 285000, Losses: {'critic1_loss': 134.38328552246094, 'critic2_loss': 97.05329895019531, 'actor_loss': 202.0646209716797}
+	Replay buffer size: 287441  |  Epsilon: 0.951
+Episode 445 finished in environment 8 with total reward -8306.318 and discounted reward -3767.272 after 639 steps.
+Episode 454 finished in environment 17 with total reward -9063.212 and discounted reward -3798.291 after 696 steps.
+Episode 444 finished in environment 7 with total reward -8220.066 and discounted reward -3649.524 after 647 steps.
+Episode 409, global step 286007, Losses: {'critic1_loss': 54.62110137939453, 'critic2_loss': 52.98762130737305, 'actor_loss': 200.66944885253906}
+	Replay buffer size: 288448  |  Epsilon: 0.951
+Episode 442 finished in environment 5 with total reward -9676.821 and discounted reward -3817.431 after 746 steps.
+Episode 409 finished in environment 10 with total reward -7306.838 and discounted reward -3517.591 after 575 steps.
+Episode 409, global step 287014, Losses: {'critic1_loss': 65.38655853271484, 'critic2_loss': 53.84318542480469, 'actor_loss': 202.97084045410156}
+	Replay buffer size: 289455  |  Epsilon: 0.951
+Episode 418, global step 288002, Losses: {'critic1_loss': 91.09651947021484, 'critic2_loss': 89.96952819824219, 'actor_loss': 201.16505432128906}
+	Replay buffer size: 290443  |  Epsilon: 0.951
+Episode 418 finished in environment 0 with total reward -10694.191 and discounted reward -4032.749 after 816 steps.
+Episode 459 finished in environment 3 with total reward -7868.140 and discounted reward -3498.018 after 630 steps.
+Episode 434 finished in environment 16 with total reward -9086.397 and discounted reward -3852.349 after 699 steps.
+Episode 422, global step 289009, Losses: {'critic1_loss': 58.363563537597656, 'critic2_loss': 52.49483108520508, 'actor_loss': 203.57431030273438}
+	Replay buffer size: 291450  |  Epsilon: 0.950
+Episode 488 finished in environment 13 with total reward -6924.061 and discounted reward -3380.748 after 550 steps.
+Episode 422 finished in environment 4 with total reward -7102.907 and discounted reward -3407.570 after 579 steps.
+Episode 428, global step 290016, Losses: {'critic1_loss': 77.03016662597656, 'critic2_loss': 63.80360412597656, 'actor_loss': 203.97775268554688}
+	Replay buffer size: 292457  |  Epsilon: 0.950
+Episode 443 finished in environment 6 with total reward -10124.288 and discounted reward -3943.614 after 775 steps.
+Episode 465 finished in environment 9 with total reward -5656.649 and discounted reward -3086.506 after 469 steps.
+Training interrupted by user.
+Saving checkpoint...
+Checkpoint saved to: fault_k3_test-td3_checkpoint
+/home/twchen1258/c285_final_project/.venv/lib/python3.12/site-packages/gymnasium/vector/async_vector_env.py:610: UserWarning: [33mWARN: Calling `close` while waiting for a pending call to `step` to complete.[0m
+  logger.warn(
+Traceback (most recent call last):
+  File "/home/twchen1258/c285_final_project/main.py", line 370, in <module>
+    main()
+  File "/home/twchen1258/c285_final_project/main.py", line 364, in main
+    envs.close()
+  File "/home/twchen1258/c285_final_project/.venv/lib/python3.12/site-packages/gymnasium/vector/vector_env.py", line 234, in close
+    self.close_extras(**kwargs)
+  File "/home/twchen1258/c285_final_project/.venv/lib/python3.12/site-packages/gymnasium/vector/async_vector_env.py", line 614, in close_extras
+    function(timeout)
+  File "/home/twchen1258/c285_final_project/.venv/lib/python3.12/site-packages/gymnasium/vector/async_vector_env.py", line 449, in step_wait
+    env_step_return, success = pipe.recv()
+                               ^^^^^^^^^^^
+  File "/home/twchen1258/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/connection.py", line 251, in recv
+    return _ForkingPickler.loads(buf.getbuffer())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Ran out of input

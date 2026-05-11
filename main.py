@@ -32,6 +32,8 @@ def main():
     parser.add_argument("--num-fault-wheels", type=int, default=1, choices=[1, 2, 3], help="Eval: number of wheels to fault simultaneously (1=single, 2-3=multi-wheel)")
     parser.add_argument("--jitter-fault", action="store_true", default=False, help="Eval: fault alpha varies randomly every JITTER_INTERVAL steps")
     parser.add_argument("--same-side", action="store_true", default=False, help="Eval: force all faulted wheels to the same side (left 0-2 or right 3-5)")
+    parser.add_argument("--wandb", action="store_true", default=False, help="Enable Weights & Biases logging")
+    parser.add_argument("--wandb-project", type=str, default="285-final-project", help="W&B project name")
     args = parser.parse_args()
 
     algo = str(args.algo).lower().strip()
@@ -44,6 +46,8 @@ def main():
     num_fault_wheels = int(args.num_fault_wheels)
     jitter_fault = bool(args.jitter_fault)
     same_side = bool(args.same_side)
+    wandb_enabled = bool(args.wandb)
+    wandb_project = str(args.wandb_project)
     exp_prefix = args.exp_name.strip() if args.exp_name else ("normal" if no_fault else "fault")
     ckpt_prefix = args.ckpt_name.strip() if args.ckpt_name else exp_prefix
 
@@ -89,7 +93,7 @@ def main():
     print(f"Experiment prefix: {exp_prefix}")
     print(f"Training on device: {agent.device}, env action device: {'GPU' if agent.device.type == 'cuda' else 'CPU'}")
 
-    if EVAL:
+    if eval_mode:
         print(f"EVAL mode enabled. Running {EVAL_EPISODES} evaluation episodes.")
         with open(eval_csv_path, mode='w', newline='') as eval_file:
             writer = csv.writer(eval_file)
@@ -157,6 +161,25 @@ def main():
         print(f"Eval log saved to: {eval_csv_path}")
         envs.close()
         return
+
+    wandb_run = None
+    if wandb_enabled:
+        import wandb
+        wandb_run = wandb.init(
+            project=wandb_project,
+            name=exp_prefix,
+            config={
+                "algo": algo,
+                "obs_stack": obs_stack,
+                "pure_rl": pure,
+                "no_fault": no_fault,
+                "fine_tune": ft,
+                "num_envs": env_config.NUM_ENVS,
+                "g_steps": G_STEPS,
+                "discount": DISCOUNT,
+                "reward_fn": RWD_FN,
+            },
+        )
 
     train_thread = None
     train_losses = [None]
@@ -278,6 +301,13 @@ def main():
                         episode_discounted_rewards[i],
                         critic_estimated_q[i],
                     )
+                    if wandb_run:
+                        wandb_run.log({
+                            "episode/total_reward": float(episode_rewards[i]),
+                            "episode/discounted_reward": float(episode_discounted_rewards[i]),
+                            "episode/steps": int(episode_step[i]),
+                            "episode/expected_q": float(critic_estimated_q[i]),
+                        }, step=global_step)
                     agent.hist_reset_single_env(i)
                     next_obs_t[i] = agent.parse_obs(obs[i], env_id=i)[1]
                     critic_estimated_q[i] = 0.0
@@ -299,6 +329,14 @@ def main():
                     print(f"\tRollout size: {len(agent.rollout)} transitions")
                 if losses and algo == "td3":
                     logging(episode, global_step, losses['critic1_loss'], losses['critic2_loss'], losses['actor_loss'])
+                    if wandb_run:
+                        wandb_run.log({
+                            "train/critic1_loss": losses['critic1_loss'],
+                            "train/critic2_loss": losses['critic2_loss'],
+                            "train/actor_loss": losses['actor_loss'],
+                            "train/epsilon": agent.epsilon,
+                            "train/replay_buffer_size": len(agent.replay),
+                        }, step=global_step)
                 elif losses and algo == "ppo":
                     logging(episode, global_step, losses['value_loss'], losses['policy_loss'], losses['entropy'])
             obs_t = next_obs_t
@@ -324,6 +362,8 @@ def main():
         agent.checkpoint_save(path=checkpoint_base_path)
         print("Checkpoint saved to:", checkpoint_base_path)
         envs.close()
+        if wandb_run:
+            wandb_run.finish()
     
 
 if __name__ == "__main__":
