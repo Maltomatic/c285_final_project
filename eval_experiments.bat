@@ -1,17 +1,17 @@
 @echo off
 
-@REM echo Running no-fault experiments with BASELINE controller, NORMAL controller, NORMAL-PURE controller, FAULT controller, and FAULT-PURE controller.
+echo Running no-fault experiments with BASELINE controller, NORMAL controller, NORMAL-PURE controller, FAULT controller, and FAULT-PURE controller.
 
-@REM echo BASELINE:
-@REM python main.py --no-fault --exp-name baseline --no-op
-@REM echo NORMAL:
-@REM python main.py --no-fault --exp-name normal
-@REM echo NORMAL-PURE:
-@REM python main.py --no-fault --exp-name normal --pure
-@REM echo FAULT:
-@REM python main.py --no-fault --exp-name fault
-@REM echo FAULT-PURE:
-@REM python main.py --no-fault --exp-name fault --pure
+echo BASELINE:
+python main.py --no-fault --exp-name baseline --no-op
+echo NORMAL:
+python main.py --no-fault --exp-name normal
+echo NORMAL-PURE:
+python main.py --no-fault --exp-name normal --pure
+echo FAULT:
+python main.py --no-fault --exp-name fault
+echo FAULT-PURE:
+python main.py --no-fault --exp-name fault --pure
 
 
 echo Running fault-injected experiments with BASELINE controller, NORMAL controller, NORMAL-PURE controller, FAULT controller, and FAULT-PURE controller.
