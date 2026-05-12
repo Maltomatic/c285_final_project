@@ -222,8 +222,7 @@ class SixWheelEnv(gym.Env):
         # 2. Apply fault (hidden from policy) — vectorized per-wheel multiplier
         if not self.no_fault:
             if env_config.FAULT_JITTER:
-                # noise = self.np_random.normal(0.0, env_config.JITTER_STD, _ACTION_DIM).astype(np.float32)
-                jitter = self.np_random.uniform(-0.1, 0.1, _ACTION_DIM).astype(np.float32)
+                jitter = self.np_random.normal(0.0, env_config.JITTER_STD, _ACTION_DIM).astype(np.float32)
                 effective = np.where(
                     self.fault_alphas < 1.0,
                     # np.clip(self.fault_alphas * (1.0 + noise), 0.0, 1.0),

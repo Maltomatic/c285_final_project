@@ -3,15 +3,15 @@
 echo Running no-fault experiments with BASELINE controller, NORMAL controller, NORMAL-PURE controller, FAULT controller, and FAULT-PURE controller.
 
 echo BASELINE:
-python main.py --no-fault --exp-name baseline --no-op
+python main.py --no-fault --exp-name baseline --no-op --eval
 echo NORMAL:
-python main.py --no-fault --exp-name normal
+python main.py --no-fault --exp-name normal --eval
 echo NORMAL-PURE:
-python main.py --no-fault --exp-name normal --pure
+python main.py --no-fault --exp-name normal --pure --eval
 echo FAULT:
-python main.py --no-fault --exp-name fault
+python main.py --no-fault --exp-name fault --eval
 echo FAULT-PURE:
-python main.py --no-fault --exp-name fault --pure
+python main.py --no-fault --exp-name fault --pure --eval
 
 
 echo Running fault-injected experiments with BASELINE controller, NORMAL controller, NORMAL-PURE controller, FAULT controller, and FAULT-PURE controller.
