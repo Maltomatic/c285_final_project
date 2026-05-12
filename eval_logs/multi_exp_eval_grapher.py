@@ -172,16 +172,18 @@ def _parse_csv_args(csv_args, experiment_name: str):
     if not csv_args:
         raise ValueError("Provide at least one --csv argument")
     
+    exp_dir = "exp_" + experiment_name
     result = {}
     for arg in csv_args:
         if "=" in arg:
             model_name, csv_path = arg.split("=", 1)
+            csv_path = f"{exp_dir}/{csv_path.strip()}"
             model_name = model_name.strip()
             csv_path = Path(csv_path.strip())
             if not model_name or not csv_path:
                 raise ValueError(f"Invalid CSV argument: {arg}. Expected model_name=path")
         else:
-            csv_path = Path(arg)
+            csv_path = Path(f"{exp_dir}/{arg}")
             model_name = _infer_model_name(csv_path, experiment_name)
         
         if model_name in result:
@@ -250,28 +252,24 @@ def main():
 
     rows_by_model = {name: _read_eval_log(path) for name, path in csv_map.items()}
     print(f"Loaded {len(rows_by_model)} model(s)")
-    for model_name in sorted(rows_by_model.keys()):
+    for model_name in rows_by_model.keys():
         print(f"  {model_name}")
 
-    model_names = sorted(rows_by_model.keys())
+    model_names = rows_by_model.keys()
     color_map = _experiment_color_map(model_names)
     overall_success_rates = {
         name: (sum(row["success"] for row in rows) / len(rows) * 100.0 if rows else math.nan)
         for name, rows in rows_by_model.items()
     }
 
-    out_dir = Path(args.out_dir)
+    out_dir = Path(f"{args.out_dir}/exp_{args.experiment_name}")
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    out_path = (
-        Path(args.out)
-        if args.out
-        else out_dir / f"{args.experiment_name}_comparison.png"
-    )
+    # Ensure output directory exists
+    out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Create a single figure with 2 subplots
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 12), constrained_layout=True)
-    
+    # Overall success figure (saved separately)
+    fig1, ax1 = plt.subplots(figsize=(12, 6))
     _plot_overall_success_chart(
         ax1,
         model_names,
@@ -279,7 +277,12 @@ def main():
         color_map,
         experiment_name=args.experiment_name,
     )
-    
+    out_path1 = out_dir / f"{args.experiment_name}_overall_success.png"
+    fig1.savefig(str(out_path1), dpi=170)
+    print(f"Saved: {out_path1}")
+
+    # Failure density figure (saved separately)
+    fig2, ax2 = plt.subplots(figsize=(12, 6))
     _plot_failure_step_density(
         ax2,
         rows_by_model,
@@ -288,11 +291,10 @@ def main():
         step_bin=args.step_bin,
         experiment_name=args.experiment_name,
     )
-    
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(str(out_path), dpi=170)
-    print(f"Saved: {out_path}")
-    
+    out_path2 = out_dir / f"{args.experiment_name}_failure_density.png"
+    fig2.savefig(str(out_path2), dpi=170)
+    print(f"Saved: {out_path2}")
+
     if not args.no_show:
         plt.show()
 

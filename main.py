@@ -6,6 +6,7 @@ from envs.six_wheel_env import SixWheelEnv
 from controllers.TD3_controller import Agent as TD3Agent
 from controllers.PPO_controller import Agent as PPOAgent
 import time, csv, multiprocessing, threading
+from pathlib import Path
 
 from controllers.utils.model_configs import DECAY_INTERVAL, DISCOUNT, G_STEPS, RWD_FN
 from envs.utils import env_helpers
@@ -62,6 +63,8 @@ def main():
     env_config.FAULT_JITTER = jitter_fault
     env_config.SAME_SIDE_FAULT = same_side
 
+    dir_name = "exp"
+
     if pure:
         exp_prefix += "_pure"
         ckpt_prefix += "_pure"
@@ -70,16 +73,21 @@ def main():
         ckpt_prefix += "_ft"
     if jitter_fault:
         exp_prefix += "_jitter"
+        dir_name += "_jitter"
     if num_fault_wheels > 1:
         exp_prefix += f"_{num_fault_wheels}faults"
+        dir_name += f"_{num_fault_wheels}faults"
     if same_side:
         exp_prefix += "_same_side"
+        dir_name += "_same_side"
     # ensure ft only if pure
     assert not ft or pure, "Fine-tuning mode only applies if using pure RL (no residuals). Please set --pure if using --ft."
     #
     env_helpers.csv_path = f"{exp_prefix}-training_log.csv"
     env_helpers.csv_eps_log_path = f"{exp_prefix}-episode_returns.csv"
-    eval_csv_path = f"eval_logs/{exp_prefix}-eval_log.csv"
+    eval_csv_path = f"eval_logs/{dir_name}/{exp_prefix}-eval_log.csv"
+    # make eval dir if not exist
+    Path(eval_csv_path).parent.mkdir(parents=True, exist_ok=True)
     checkpoint_base_path = f"{ckpt_prefix}-{algo}_checkpoint"
 
     print(f"Launching {env_config.NUM_ENVS} parallel environments.")
@@ -155,7 +163,7 @@ def main():
                         fin_steps,
                         episode_rewards[i],
                         int(damaged_wheel) if damaged_wheel is not None else -1,
-                        (round(float(fault_alpha), 2) if fault_alpha is not None else np.nan),
+                        float(f"{fault_alpha:.2f}") if fault_alpha is not None else np.nan,
                         damaged_wheels_str if damaged_wheels_str else '',
                         fault_alphas_str if fault_alphas_str else '',
                         int(success)
