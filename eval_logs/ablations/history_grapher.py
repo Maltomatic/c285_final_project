@@ -25,12 +25,14 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-SCRIPT_DIR = Path(__file__).parent
+SCRIPT_DIR   = Path(__file__).parent
+EVAL_LOG_DIR = SCRIPT_DIR.parent   # eval_logs/
 
 EXPS = [
     {"k": 1,  "name": "fault_k1",  "csv": "fault_k1-eval_log.csv",  "label": "k=1\n(no history)"},
     {"k": 3,  "name": "fault_k3",  "csv": "fault_k3-eval_log.csv",  "label": "k=3\n(~60ms)"},
-    {"k": 5,  "name": "fault_w1",  "csv": "fault_w1-eval_log.csv",  "label": "k=5\n(baseline)"},
+    {"k": 5,  "name": "fault_k5",  "csv": "fault_k5-eval_log.csv",  "label": "k=5\n(baseline)"},
+    {"k": 7,  "name": "fault_k7",  "csv": "fault_k7-eval_log.csv",  "label": "k=7\n(~140ms)"},
     {"k": 10, "name": "fault_k10", "csv": "fault_k10-eval_log.csv", "label": "k=10\n(~200ms)"},
 ]
 
@@ -40,7 +42,7 @@ COLOR_BASE  = "#7570b3"
 
 
 def _load(csv_name):
-    path = SCRIPT_DIR / csv_name
+    path = EVAL_LOG_DIR / csv_name
     if not path.exists():
         return None
     rows = []
@@ -90,7 +92,7 @@ srs    = [_sr(e["data"])   for e in EXPS]
 rwds   = [_avg(e["data"], "reward") for e in EXPS]
 steps  = [_avg(e["data"], "steps")  for e in EXPS]
 
-baseline_idx = next((i for i, e in enumerate(EXPS) if e["name"] == "fault_w1"), None)
+baseline_idx = next((i for i, e in enumerate(EXPS) if e["name"] == "fault_k5"), None)
 
 
 def _label_bars(ax, bars):
@@ -106,7 +108,7 @@ def _label_bars(ax, bars):
 
 
 def _save(fig, filename):
-    out = SCRIPT_DIR / filename
+    out = EVAL_LOG_DIR / filename
     fig.savefig(out, dpi=150)
     print(f"Saved: {out}")
     plt.close(fig)
