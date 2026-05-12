@@ -68,6 +68,12 @@ def main():
     if ft:
         exp_prefix += "_ft"
         ckpt_prefix += "_ft"
+    if jitter_fault:
+        exp_prefix += "_jitter"
+    if num_fault_wheels > 1:
+        exp_prefix += f"_{num_fault_wheels}faults"
+    if same_side:
+        exp_prefix += "_same_side"
     # ensure ft only if pure
     assert not ft or pure, "Fine-tuning mode only applies if using pure RL (no residuals). Please set --pure if using --ft."
     #
@@ -78,7 +84,18 @@ def main():
 
     print(f"Launching {env_config.NUM_ENVS} parallel environments.")
     envs = gym.vector.AsyncVectorEnv([
-        make_env(RWD_FN if not EVAL else 'eval', i, no_fault=no_fault, pure_rl=pure)
+        make_env(
+            RWD_FN if not EVAL else 'eval',
+            i,
+            eval=eval_mode,
+            no_fault=no_fault,
+            pure_rl=pure,
+            num_fault_wheels=num_fault_wheels,
+            jitter_fault=jitter_fault,
+            same_side=same_side,
+            obs_stack=obs_stack,
+            ft=ft,
+        )
         for i in range(env_config.NUM_ENVS)
     ])
     agent_cls = PPOAgent if algo == "ppo" else TD3Agent
@@ -97,7 +114,7 @@ def main():
         print(f"EVAL mode enabled. Running {EVAL_EPISODES} evaluation episodes.")
         with open(eval_csv_path, mode='w', newline='') as eval_file:
             writer = csv.writer(eval_file)
-            writer.writerow(['Episode', 'Env', 'Steps', 'Total Reward', 'Damaged Wheel', 'Fault Alpha', 'Fault Alphas', 'Success'])
+            writer.writerow(['Episode', 'Env', 'Steps', 'Total Reward', 'Damaged Wheel', 'Fault Alpha', 'Damaged Wheels', 'Fault Alphas', 'Success'])
 
             obs, _ = envs.reset()
             obs_t = torch.stack([agent.parse_obs(obs[i], env_id=i)[1] for i in range(env_config.NUM_ENVS)])
@@ -127,6 +144,7 @@ def main():
                     success = bool(extract_eps_info(infos, 'success', i, False))
                     damaged_wheel = extract_eps_info(infos, 'fault_wheel_idx', i, -1)
                     fault_alpha = extract_eps_info(infos, 'fault_alpha', i, np.nan)
+                    damaged_wheels_str = extract_eps_info(infos, 'fault_wheels', i, '')
                     fault_alphas_str = extract_eps_info(infos, 'fault_alphas', i, '')
                     completed += 1
                     success_count += int(success)
@@ -137,17 +155,25 @@ def main():
                         fin_steps,
                         episode_rewards[i],
                         int(damaged_wheel) if damaged_wheel is not None else -1,
-                        float(fault_alpha) if fault_alpha is not None else np.nan,
+                        (round(float(fault_alpha), 2) if fault_alpha is not None else np.nan),
+                        damaged_wheels_str if damaged_wheels_str else '',
                         fault_alphas_str if fault_alphas_str else '',
                         int(success)
                     ])
 
                     if completed % 50 == 0 or completed == EVAL_EPISODES:
-                        print(
-                            f"[EVAL] Episode {completed}/{EVAL_EPISODES} | env {i} | "
-                            f"reward {episode_rewards[i]:.3f} | wheel {damaged_wheel} | "
-                            f"alpha {float(fault_alpha):.2f} | success {success} | steps {fin_steps}"
-                        )
+                        if damaged_wheels_str and fault_alphas_str:
+                            print(
+                                f"[EVAL] Episode {completed}/{EVAL_EPISODES} | env {i} | "
+                                f"reward {episode_rewards[i]:.3f} | wheel {damaged_wheels_str} | "
+                                f"alpha {fault_alphas_str} | success {success} | steps {fin_steps}"
+                            )
+                        else:
+                            print(
+                                f"[EVAL] Episode {completed}/{EVAL_EPISODES} | env {i} | "
+                                f"reward {episode_rewards[i]:.3f} | wheel {damaged_wheel} | "
+                                f"alpha {float(fault_alpha):.2f} | success {success} | steps {fin_steps}"
+                            )
 
                     episode_rewards[i] = 0.0
                     episode_steps[i] = 0
