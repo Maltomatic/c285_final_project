@@ -3,7 +3,7 @@
 # hardware setup controls
 RENDER_TRAINING = False
 DEBUG = False
-GPU_THREAD = False  # True may be faster if GPU is strong and CPU is meh; on laptop 4070 basically no difference
+GPU_THREAD = False   # True may be faster if GPU is strong and CPU is meh; on laptop 4070 basically no difference
 
 # script controls - set through cmd args
 NUM_ENVS = 16
