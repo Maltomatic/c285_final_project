@@ -168,6 +168,8 @@ def main():
         wandb_run = wandb.init(
             project=wandb_project,
             name=exp_prefix,
+            id=exp_prefix,        # stable ID so restarts resume the same run
+            resume="allow",
             config={
                 "algo": algo,
                 "obs_stack": obs_stack,

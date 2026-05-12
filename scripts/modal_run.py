@@ -33,9 +33,9 @@ VOLUME_PATH = "/root/vol"
 # ── Hardware ──────────────────────────────────────────────────────────────────
 # CPU is the real bottleneck (MuJoCo physics across parallel envs).
 # H100 keeps the small TD3 MLP updates instant; 32 CPUs saturate the env pool.
-GPU    = "A10G"
-CPUS   = 32.0
-MEMORY = 32768   # MB (32 GB) — replay buffer peaks ~8 GB for k=10, comfortable headroom
+GPU    = "T4"
+CPUS   = 8.0
+MEMORY = 16384   # MB (16 GB)
 
 volume = modal.Volume.from_name("six-wheel-rl-volume", create_if_missing=True)
 
@@ -82,6 +82,7 @@ _env = {
 @app.function(
     volumes={VOLUME_PATH: volume},
     timeout=60 * 60 * 10,
+    retries=modal.Retries(max_retries=10, initial_delay=5.0),
     image=image,
     gpu=GPU,
     cpu=CPUS,
