@@ -53,6 +53,21 @@ def _read_eval_log(path: Path):
             except (TypeError, ValueError):
                 continue
 
+            # Normalize alpha to the canonical evaluation bins: 0.0,0.1,...,0.5
+            # This prevents continuous/training-sampled alphas from creating
+            # hundreds of x-axis categories in the grapher.
+            try:
+                alpha = round(float(alpha), 1)
+            except Exception:
+                alpha = float(alpha)
+            # clamp to expected eval range [0.0, 0.5]
+            if alpha < 0.0:
+                alpha = 0.0
+            if alpha > 0.8:
+                alpha = 1.0
+            elif alpha > 0.5:
+                alpha = 0.5
+
             rows.append(
                 {
                     "alpha": alpha,

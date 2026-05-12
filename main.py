@@ -155,7 +155,7 @@ def main():
                         fin_steps,
                         episode_rewards[i],
                         int(damaged_wheel) if damaged_wheel is not None else -1,
-                        float(fault_alpha) if fault_alpha is not None else np.nan,
+                        (round(float(fault_alpha), 2) if fault_alpha is not None else np.nan),
                         damaged_wheels_str if damaged_wheels_str else '',
                         fault_alphas_str if fault_alphas_str else '',
                         int(success)
