@@ -112,5 +112,23 @@ python main.py --eval --exp-name fault --num-fault-wheels 3 --jitter-fault
 
 echo Generating graphs
 cd eval_logs
+
+echo Generating baseline eval graphs
 python eval_grapher.py --experiment baseline=baseline-eval_log.csv --experiment normal_pure=normal_pure-eval_log.csv --experiment fault_pure=fault_pure-eval_log.csv --experiment fine_tune=rl_7_ft_3_pure_ft-eval_log.csv --experiment normal=normal-eval_log.csv --experiment fault=fault-eval_log.csv --no-show
+
+echo Generating jitter comparison graph
+python multi_exp_eval_grapher.py --experiment-name jitter --csv baseline_jitter-eval_log.csv --csv normal_pure_jitter-eval_log.csv --csv fault_pure_jitter-eval_log.csv --csv fine_tune=rl_7_ft_3_pure_ft_jitter-eval_log.csv --csv normal_jitter-eval_log.csv --csv fault_jitter-eval_log.csv --no-show
+
+echo Generating 2-fault comparison graph
+python multi_exp_eval_grapher.py --experiment-name 2faults --csv baseline_2faults-eval_log.csv --csv normal_pure_2faults-eval_log.csv --csv fault_pure_2faults-eval_log.csv --csv fine_tune=rl_7_ft_3_pure_ft_2faults-eval_log.csv --csv normal_2faults-eval_log.csv --csv fault_2faults-eval_log.csv --no-show
+
+echo Generating 3-fault comparison graph
+python multi_exp_eval_grapher.py --experiment-name 3faults --csv baseline_3faults-eval_log.csv --csv normal_pure_3faults-eval_log.csv --csv fault_pure_3faults-eval_log.csv --csv fine_tune=rl_7_ft_3_pure_ft_3faults-eval_log.csv --csv normal_3faults-eval_log.csv --csv fault_3faults-eval_log.csv --no-show
+
+echo Generating jitter_2faults comparison graph
+python multi_exp_eval_grapher.py --experiment-name jitter_2faults --csv baseline_jitter_2faults-eval_log.csv --csv normal_pure_jitter_2faults-eval_log.csv --csv fault_pure_jitter_2faults-eval_log.csv --csv fine_tune=rl_7_ft_3_pure_ft_jitter_2faults-eval_log.csv --csv normal_jitter_2faults-eval_log.csv --csv fault_jitter_2faults-eval_log.csv --no-show
+
+echo Generating jitter_3faults comparison graph
+python multi_exp_eval_grapher.py --experiment-name jitter_3faults --csv baseline_jitter_3faults-eval_log.csv --csv normal_pure_jitter_3faults-eval_log.csv --csv fault_pure_jitter_3faults-eval_log.csv --csv fine_tune=rl_7_ft_3_pure_ft_jitter_3faults-eval_log.csv --csv normal_jitter_3faults-eval_log.csv --csv fault_jitter_3faults-eval_log.csv --no-show
+
 echo Eval experiments finished.
