@@ -69,15 +69,15 @@ def main():
         # ablation tests with history length
         ckpt_prefix += f"_k{obs_stack}"
         exp_prefix += f"_k{obs_stack}"
-    if no_fault:
-        exp_prefix += "_nofault"
-        dir_name += "_nofault"
     if pure:
         exp_prefix += "_pure"
         ckpt_prefix += "_pure"
     if ft:
         exp_prefix += "_ft"
         ckpt_prefix += "_ft"
+    if no_fault:
+        exp_prefix += "_nofault"
+        dir_name += "_nofault"
     if jitter_fault:
         exp_prefix += "_jitter"
         dir_name += "_jitter"

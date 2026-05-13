@@ -281,14 +281,16 @@ def _parse_experiment_arg(spec):
     path = path.strip()
     if not name or not path:
         raise ValueError(f"Invalid --experiment value '{spec}'. Expected NAME=PATH")
-    return name, Path(path)
+    return name, path
 
 
-def _resolve_experiment_paths(args):
+def _resolve_experiment_paths(args, logs_dir=None):
     experiment_paths = {}
     if args.experiment:
         for spec in args.experiment:
             name, path = _parse_experiment_arg(spec)
+            if logs_dir is not None:
+                path = Path(f"{logs_dir}/{path}")
             if name in experiment_paths:
                 raise ValueError(f"Duplicate experiment name provided: {name}")
             experiment_paths[name] = path
@@ -351,6 +353,12 @@ def main():
         default=1,
         help="Step-bin width for failure density points (1 means exact step)",
     )
+    parser.add_argument(
+        "--logs-dir",
+        default=None,
+        help=("If specified, overrides paths in --experiment by looking for logs in this directory. "
+              "For example, if --logs-dir=./logs and an experiment is named 'fault', the grapher will look for './logs/fault-eval_log.csv'.")
+    )
     parser.add_argument("--no-show", action="store_true", help="Do not display plot window")
     args = parser.parse_args()
 
@@ -359,7 +367,7 @@ def main():
     if args.failure_step_bin <= 0:
         raise ValueError("--failure-step-bin must be > 0")
 
-    experiment_paths = _resolve_experiment_paths(args)
+    experiment_paths = _resolve_experiment_paths(args, logs_dir=args.logs_dir)
 
     for name, path in experiment_paths.items():
         if not path.exists():
@@ -481,25 +489,25 @@ def main():
         color_map,
     )
 
-    alpha_out_path = Path(args.alpha_out)
+    alpha_out_path = Path(args.alpha_out) if not args.logs_dir else Path(args.logs_dir) / args.alpha_out
     alpha_out_path.parent.mkdir(parents=True, exist_ok=True)
     alpha_fig.savefig(str(alpha_out_path), dpi=170)
     print(f"Saved: {alpha_out_path}")
 
-    wheel_out_path = Path(args.wheel_out)
+    wheel_out_path = Path(args.wheel_out) if not args.logs_dir else Path(args.logs_dir) / args.wheel_out
     wheel_out_path.parent.mkdir(parents=True, exist_ok=True)
-    overall_out_path = Path(args.overall_out)
+    wheel_fig.savefig(str(wheel_out_path), dpi=170)
+    print(f"Saved: {wheel_out_path}")
+
+    overall_out_path = Path(args.overall_out) if not args.logs_dir else Path(args.logs_dir) / args.overall_out
     overall_out_path.parent.mkdir(parents=True, exist_ok=True)
     overall_fig.savefig(str(overall_out_path), dpi=170)
     print(f"Saved: {overall_out_path}")
 
-    failure_out_path = Path(args.failure_out)
+    failure_out_path = Path(args.failure_out) if not args.logs_dir else Path(args.logs_dir) / args.failure_out
     failure_out_path.parent.mkdir(parents=True, exist_ok=True)
     failure_fig.savefig(str(failure_out_path), dpi=170)
     print(f"Saved: {failure_out_path}")
-
-    wheel_fig.savefig(str(wheel_out_path), dpi=170)
-    print(f"Saved: {wheel_out_path}")
 
     if not args.no_show:
         plt.show()
