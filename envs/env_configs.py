@@ -11,6 +11,7 @@ NO_FAULT = False
 NO_OP = False # if True, agent takes no action. deviation is 0
 PURE_RL = True # if false, use residual policy w/ baseAllocator; if true, RL does everything
 FINE_TUNE = True # if true, no-fault for 70% G_STEPS, fault for remianing 30%
+GYM_RANDOM = False
 
 # evaluation controls
 EVAL = True

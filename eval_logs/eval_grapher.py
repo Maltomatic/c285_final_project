@@ -444,10 +444,14 @@ def main():
     )
 
     failure_fig, failure_ax = plt.subplots(1, 1, figsize=(12, 6), constrained_layout=True)
+    # Override baseline to black for failure density plot
+    failure_color_map = color_map.copy()
+    if "baseline" in failure_color_map:
+        failure_color_map["baseline"] = "black"
     _plot_failure_step_density(
         failure_ax,
         rows_by_experiment,
-        color_map,
+        failure_color_map,
         max_step=args.max_step,
         step_bin=args.failure_step_bin,
     )

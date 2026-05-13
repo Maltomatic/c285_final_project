@@ -120,13 +120,18 @@ def _plot_failure_step_density(ax, rows_by_model, color_map, max_step, step_bin,
     ax.set_ylabel("Failure Count")
     ax.set_xlim(0, max_step)
     ax.grid(True, alpha=0.25)
-    ax.legend(
-        loc="upper center",
-        bbox_to_anchor=(0.5, -0.18),
-        fontsize=8,
-        ncol=3,
-        frameon=True,
-    )
+    # Create a color legend below the plot using proxy handles to ensure
+    # consistent mapping even if some series have no visible points.
+    from matplotlib.lines import Line2D
+    handles = [Line2D([0], [0], marker='o', color='w', markerfacecolor=color_map[name], markersize=8)
+               for name in rows_by_model.keys()]
+    labels = [name for name in rows_by_model.keys()]
+    ax.legend(handles, labels,
+              loc="upper center",
+              bbox_to_anchor=(0.5, -0.18),
+              fontsize=8,
+              ncol=max(1, min(6, len(labels))),
+              frameon=True)
 
 
 def _infer_model_name(csv_path: Path, experiment_name: str) -> str:
@@ -283,16 +288,20 @@ def main():
 
     # Failure density figure (saved separately)
     fig2, ax2 = plt.subplots(figsize=(12, 6))
+    # Override baseline to black for failure density plot
+    failure_color_map = color_map.copy()
+    if "baseline" in failure_color_map:
+        failure_color_map["baseline"] = "black"
     _plot_failure_step_density(
         ax2,
         rows_by_model,
-        color_map,
+        failure_color_map,
         max_step=args.max_step,
         step_bin=args.step_bin,
         experiment_name=args.experiment_name,
     )
     out_path2 = out_dir / f"{args.experiment_name}_failure_density.png"
-    fig2.savefig(str(out_path2), dpi=170)
+    fig2.savefig(str(out_path2), dpi=170, bbox_inches='tight', pad_inches=0.1)
     print(f"Saved: {out_path2}")
 
     if not args.no_show:
