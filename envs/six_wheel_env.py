@@ -74,7 +74,6 @@ class SixWheelEnv(gym.Env):
         pure_rl: bool | None = None,
     ):
         super().__init__()
-
         # validate render_mode
         assert render_mode is None or render_mode in self.metadata["render_modes"], (
             f"Invalid render_mode '{render_mode}'. "
@@ -144,6 +143,8 @@ class SixWheelEnv(gym.Env):
         super().reset(seed=seed)  # seeds self.np_random
 
         self._steps = 0
+        if env_config.EVAL:
+            self.no_fault = True
 
         # Reset physics
         mujoco.mj_resetData(self.model, self.data)
@@ -173,6 +174,7 @@ class SixWheelEnv(gym.Env):
         if self.no_fault:
             self.fault_wheel_idx = -1
             self.fault_alpha = 1.0
+            self.fault_alphas = np.ones(_ACTION_DIM, dtype=np.float32)
         else:
             self.fault_wheel_idx = int(self.np_random.integers(0, _ACTION_DIM))
             self.fault_alpha = float(self.np_random.uniform(0.0, 1.0))
@@ -191,8 +193,6 @@ class SixWheelEnv(gym.Env):
         self._prev_delta_omega = np.zeros(_ACTION_DIM, dtype=np.float32)
         self._prev_omega_base = np.zeros(_ACTION_DIM, dtype=np.float32)
         self._prev_ctrl_cmd = np.zeros(_ACTION_DIM, dtype=np.float32)
-        if env_config.EVAL:
-            self.no_fault = True
 
         # Fill history buffer with zeros
         self._obs_history.clear()
@@ -343,13 +343,13 @@ class SixWheelEnv(gym.Env):
                              otherwise drawn uniformly from all 6 if only 2 faults (at most 2 per side).
         """
         self.fault_alphas = np.ones(_ACTION_DIM, dtype=np.float32)
-        n = min(env_config.NUM_FAULT_WHEELS, _ACTION_DIM)
+        n = env_config.NUM_FAULT_WHEELS
         if env_config.SAME_SIDE_FAULT and n > 1:
             side = int(self.np_random.integers(0, 2))
             candidates = np.array([0, 1, 2] if side == 0 else [3, 4, 5])
+            idxs = self.np_random.choice(candidates, size=n, replace=False)
         else:
-            candidates = np.arange(_ACTION_DIM)
-        idxs = self.np_random.choice(candidates, size=min(n, len(candidates)), replace=False)
+            idxs = self.np_random.choice(6, size=env_config.NUM_FAULT_WHEELS, replace=False)
         # enforce: if 3 faults and not SAME_SIDE_FAULT, at most 2 faults per side
         if not env_config.SAME_SIDE_FAULT and n == 3:
             side_counts = np.bincount(idxs // 3)
@@ -359,12 +359,17 @@ class SixWheelEnv(gym.Env):
                 idxs = self.np_random.choice([0, 1, 2], size=1, replace=False).tolist() + self.np_random.choice([3, 4, 5], size=2, replace=False).tolist()
         for idx in idxs:
             self.fault_alphas[int(idx)] = float(self.np_random.choice(eval_fault_types))
-        # if self.env_id == 0:
-        #     print(f"Expected: inject {env_config.NUM_FAULT_WHEELS} fault(s) at step {self.inject_step}")
-        #     print(idxs)
+            # print(f"Setting fault on wheel {idx} with alpha {self.fault_alphas[int(idx)]:.2f}")
+        # if self.env_id == 5:
         #     print(f"Injecting to wheels {idxs} with alphas {[self.fault_alphas[int(idx)] for idx in idxs]} at step {self._steps}")
-        self.fault_wheel_idx = int(idxs[0])
-        self.fault_alpha = float(self.fault_alphas[self.fault_wheel_idx])
+        #     print(f"Fault alphas after injection: {self.fault_alphas}")
+        if len(idxs) > 1:
+            self.fault_wheel_idx = -1
+            self.fault_alpha = 1.0
+        else:
+            self.fault_wheel_idx = int(idxs[0])
+            self.fault_alpha = float(self.fault_alphas[self.fault_wheel_idx])
+
 
     # internal helpers
 

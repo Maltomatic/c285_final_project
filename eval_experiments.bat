@@ -72,20 +72,20 @@
 @REM python main.py --eval --exp-name fault --jitter-fault --obs-stack 10
 
 
-@REM echo Running 2-wheeled damage experiments with BASELINE controller, NORMAL controller, NORMAL-PURE controller, FAULT controller, and FAULT-PURE controller.
+echo Running 2-wheeled damage experiments with BASELINE controller, NORMAL controller, NORMAL-PURE controller, FAULT controller, and FAULT-PURE controller.
 
 @REM echo BASELINE:
 @REM python main.py --eval --exp-name baseline --no-op --num-fault-wheels 2
-@REM echo NORMAL-PURE:
-@REM python main.py --eval --exp-name normal --pure --num-fault-wheels 2
+echo NORMAL-PURE:
+python main.py --eval --exp-name normal --pure --num-fault-wheels 2
 @REM echo FAULT-PURE:
 @REM python main.py --eval --exp-name fault --pure --num-fault-wheels 2
 @REM echo FINE-TUNE:
 @REM python main.py --eval --exp-name rl_7_ft_3 --pure --ft --num-fault-wheels 2
 @REM echo NORMAL:
 @REM python main.py --eval --exp-name normal --num-fault-wheels 2
-@REM echo FAULT:
-@REM python main.py --eval --exp-name fault --num-fault-wheels 2
+echo FAULT:
+python main.py --eval --exp-name fault --num-fault-wheels 2
 @REM echo FAULT-H1:
 @REM python main.py --eval --exp-name fault --num-fault-wheels 2 --obs-stack 1
 @REM echo FAULT-H3:
@@ -96,20 +96,20 @@
 @REM python main.py --eval --exp-name fault --num-fault-wheels 2 --obs-stack 10
 
 
-@REM echo Running 3-wheeled damage experiments with BASELINE controller, NORMAL controller, NORMAL-PURE controller, FAULT controller, and FAULT-PURE controller.
+echo Running 3-wheeled damage experiments with BASELINE controller, NORMAL controller, NORMAL-PURE controller, FAULT controller, and FAULT-PURE controller.
 
 @REM echo BASELINE:
 @REM python main.py --eval --exp-name baseline --no-op --num-fault-wheels 3
-@REM echo NORMAL-PURE:
-@REM python main.py --eval --exp-name normal --pure --num-fault-wheels 3
+echo NORMAL-PURE:
+python main.py --eval --exp-name normal --pure --num-fault-wheels 3
 @REM echo FAULT-PURE:
 @REM python main.py --eval --exp-name fault --pure --num-fault-wheels 3
 @REM echo FINE-TUNE:
 @REM python main.py --eval --exp-name rl_7_ft_3 --pure --ft --num-fault-wheels 3
 @REM echo NORMAL:
 @REM python main.py --eval --exp-name normal --num-fault-wheels 3
-@REM echo FAULT:
-@REM python main.py --eval --exp-name fault --num-fault-wheels 3
+echo FAULT:
+python main.py --eval --exp-name fault --num-fault-wheels 3
 @REM echo FAULT-H1:
 @REM python main.py --eval --exp-name fault --num-fault-wheels 3 --obs-stack 1
 @REM echo FAULT-H3:
@@ -120,12 +120,12 @@
 @REM python main.py --eval --exp-name fault --num-fault-wheels 3 --obs-stack 10
 
 
-@REM echo Running 2-wheeled damage with jitter experiments with BASELINE controller, NORMAL controller, NORMAL-PURE controller, FAULT controller, and FAULT-PURE controller.
+echo Running 2-wheeled damage with jitter experiments with BASELINE controller, NORMAL controller, NORMAL-PURE controller, FAULT controller, and FAULT-PURE controller.
 
 @REM echo BASELINE:
 @REM python main.py --eval --exp-name baseline --no-op --num-fault-wheels 2 --jitter-fault
-@REM echo NORMAL-PURE:
-@REM python main.py --eval --exp-name normal --pure --num-fault-wheels 2 --jitter-fault
+echo NORMAL-PURE:
+python main.py --eval --exp-name normal --pure --num-fault-wheels 2 --jitter-fault
 @REM echo FAULT-PURE:
 @REM python main.py --eval --exp-name fault --pure --num-fault-wheels 2 --jitter-fault
 @REM echo FINE-TUNE:
@@ -144,12 +144,12 @@
 @REM python main.py --eval --exp-name fault --num-fault-wheels 2 --jitter-fault --obs-stack 10
 
 
-@REM echo Running 3-wheeled damage with jitter experiments with BASELINE controller, NORMAL controller, NORMAL-PURE controller, FAULT controller, and FAULT-PURE controller.
+echo Running 3-wheeled damage with jitter experiments with BASELINE controller, NORMAL controller, NORMAL-PURE controller, FAULT controller, and FAULT-PURE controller.
 
 @REM echo BASELINE:
 @REM python main.py --eval --exp-name baseline --no-op --num-fault-wheels 3 --jitter-fault
-@REM echo NORMAL-PURE:
-@REM python main.py --eval --exp-name normal --pure --num-fault-wheels 3 --jitter-fault
+echo NORMAL-PURE:
+python main.py --eval --exp-name normal --pure --num-fault-wheels 3 --jitter-fault
 @REM echo FAULT-PURE:
 @REM python main.py --eval --exp-name fault --pure --num-fault-wheels 3 --jitter-fault
 @REM echo FINE-TUNE:
