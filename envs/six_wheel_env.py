@@ -82,7 +82,7 @@ class SixWheelEnv(gym.Env):
         )
         self.render_mode = render_mode
         self.reward_fn = reward_fn
-        print(f"Using {reward_fn.__name__} reward function.")
+        # print(f"Using {reward_fn.__name__} reward function.")
         self.reward_weights = reward_weights if reward_weights is not None else None
         self.env_id = env_id
         self.pure_rl = env_config.PURE_RL if pure_rl is None else bool(pure_rl)

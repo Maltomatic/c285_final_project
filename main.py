@@ -176,7 +176,7 @@ def main():
                         int(success)
                     ])
 
-                    if completed % 50 == 0 or completed == EVAL_EPISODES:
+                    if completed % 200 == 0 or completed == EVAL_EPISODES:
                         if damaged_wheels_str and fault_alphas_str:
                             print(
                                 f"[EVAL] Episode {completed}/{EVAL_EPISODES} | env {i} | "
