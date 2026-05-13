@@ -140,6 +140,28 @@ class SixWheelEnv(gym.Env):
 
     # Gymnasium API
 
+    def _rng_integers(self, low: int, high: int | None = None, size=None):
+        if env_config.GYM_RANDOM:
+            return self.np_random.integers(low, high=high, size=size)
+        if high is None:
+            return np.random.randint(0, low, size=size)
+        return np.random.randint(low, high, size=size)
+
+    def _rng_uniform(self, low: float = 0.0, high: float = 1.0, size=None):
+        if env_config.GYM_RANDOM:
+            return self.np_random.uniform(low, high, size=size)
+        return np.random.uniform(low, high, size=size)
+
+    def _rng_normal(self, loc: float = 0.0, scale: float = 1.0, size=None):
+        if env_config.GYM_RANDOM:
+            return self.np_random.normal(loc, scale, size=size)
+        return np.random.normal(loc, scale, size=size)
+
+    def _rng_choice(self, a, size=None, replace=True, p=None):
+        if env_config.GYM_RANDOM:
+            return self.np_random.choice(a, size=size, replace=replace, p=p)
+        return np.random.choice(a, size=size, replace=replace, p=p)
+
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)  # seeds self.np_random
 
@@ -174,12 +196,12 @@ class SixWheelEnv(gym.Env):
             self.fault_wheel_idx = -1
             self.fault_alpha = 1.0
         else:
-            self.fault_wheel_idx = int(self.np_random.integers(0, _ACTION_DIM))
-            self.fault_alpha = float(self.np_random.uniform(0.0, 1.0))
+            self.fault_wheel_idx = int(self._rng_integers(0, _ACTION_DIM))
+            self.fault_alpha = float(self._rng_uniform(0.0, 1.0))
             self.fault_alphas[self.fault_wheel_idx] = self.fault_alpha
         if env_config.EVAL:
-            injection_offset = int(self.np_random.integers(-2, 2))
-            self.inject_step = np.random.choice(FAULT_STEPS)# + injection_offset
+            injection_offset = int(self._rng_integers(-2, 2))
+            self.inject_step = self._rng_choice(FAULT_STEPS)# + injection_offset
 
         # if not self.no_fault:
         #     print(f"Fault in env {self.env_id}: wheel {self.fault_wheel_idx} at {self.fault_alpha:.2f}x effectiveness")
@@ -222,7 +244,7 @@ class SixWheelEnv(gym.Env):
         # 2. Apply fault (hidden from policy) — vectorized per-wheel multiplier
         if not self.no_fault:
             if env_config.FAULT_JITTER:
-                jitter = self.np_random.normal(0.0, env_config.JITTER_STD, _ACTION_DIM).astype(np.float32)
+                jitter = self._rng_normal(0.0, env_config.JITTER_STD, _ACTION_DIM).astype(np.float32)
                 effective = np.where(
                     self.fault_alphas < 1.0,
                     # np.clip(self.fault_alphas * (1.0 + noise), 0.0, 1.0),
@@ -345,20 +367,20 @@ class SixWheelEnv(gym.Env):
         self.fault_alphas = np.ones(_ACTION_DIM, dtype=np.float32)
         n = min(env_config.NUM_FAULT_WHEELS, _ACTION_DIM)
         if env_config.SAME_SIDE_FAULT and n > 1:
-            side = int(self.np_random.integers(0, 2))
+            side = int(self._rng_integers(0, 2))
             candidates = np.array([0, 1, 2] if side == 0 else [3, 4, 5])
         else:
             candidates = np.arange(_ACTION_DIM)
-        idxs = self.np_random.choice(candidates, size=min(n, len(candidates)), replace=False)
+        idxs = self._rng_choice(candidates, size=min(n, len(candidates)), replace=False)
         # enforce: if 3 faults and not SAME_SIDE_FAULT, at most 2 faults per side
         if not env_config.SAME_SIDE_FAULT and n == 3:
             side_counts = np.bincount(idxs // 3)
             if side_counts[0] > 2:
-                idxs = self.np_random.choice([0, 1, 2], size=2, replace=False).tolist() + self.np_random.choice([3, 4, 5], size=1, replace=False).tolist()
+                idxs = self._rng_choice([0, 1, 2], size=2, replace=False).tolist() + self._rng_choice([3, 4, 5], size=1, replace=False).tolist()
             elif side_counts[1] > 2:
-                idxs = self.np_random.choice([0, 1, 2], size=1, replace=False).tolist() + self.np_random.choice([3, 4, 5], size=2, replace=False).tolist()
+                idxs = self._rng_choice([0, 1, 2], size=1, replace=False).tolist() + self._rng_choice([3, 4, 5], size=2, replace=False).tolist()
         for idx in idxs:
-            self.fault_alphas[int(idx)] = float(self.np_random.choice(eval_fault_types))
+            self.fault_alphas[int(idx)] = float(self._rng_choice(eval_fault_types))
         # if self.env_id == 0:
         #     print(f"Expected: inject {env_config.NUM_FAULT_WHEELS} fault(s) at step {self.inject_step}")
         #     print(idxs)
