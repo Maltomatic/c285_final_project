@@ -8,6 +8,8 @@ echo NORMAL-PURE:
 python main.py --no-fault --exp-name normal --pure --eval
 echo FAULT-PURE:
 python main.py --no-fault --exp-name fault --pure --eval
+echo FINE-TUNE:
+python main.py --no-fault --exp-name rl_7_ft_3 --pure --ft --eval
 echo NORMAL:
 python main.py --no-fault --exp-name normal --eval
 echo FAULT:
@@ -94,7 +96,6 @@ echo FAULT-H10:
 python main.py --eval --exp-name fault --num-fault-wheels 2 --obs-stack 10
 
 
-@echo off
 echo Running 3-wheeled damage experiments with BASELINE controller, NORMAL controller, NORMAL-PURE controller, FAULT controller, and FAULT-PURE controller.
 
 echo BASELINE:
@@ -143,7 +144,6 @@ echo FAULT-H10:
 python main.py --eval --exp-name fault --num-fault-wheels 2 --jitter-fault --obs-stack 10
 
 
-@echo off
 echo Running 3-wheeled damage with jitter experiments with BASELINE controller, NORMAL controller, NORMAL-PURE controller, FAULT controller, and FAULT-PURE controller.
 
 echo BASELINE:
@@ -172,7 +172,7 @@ echo Generating graphs
 cd eval_logs
 
 echo Generating baseline-1 fault eval graphs
-python eval_grapher.py --experiment baseline=baseline-eval_log.csv --experiment normal_pure=normal_pure-eval_log.csv --experiment fault_pure=fault_pure-eval_log.csv --experiment fine_tune=rl_7_ft_3_pure_ft-eval_log.csv --experiment normal=normal-eval_log.csv --experiment fault=fault-eval_log.csv fault_k1=fault_k1-eval_log.csv fault_k3=fault_k3-eval_log.csv fault_k7=fault_k7-eval_log.csv fault_k10=fault_k10-eval_log.csv--no-show
+python eval_grapher.py --experiment baseline=baseline-eval_log.csv --experiment normal_pure=normal_pure-eval_log.csv --experiment fault_pure=fault_pure-eval_log.csv --experiment fine_tune=rl_7_ft_3_pure_ft-eval_log.csv --experiment normal=normal-eval_log.csv --experiment fault=fault-eval_log.csv --experiment fault_k1=fault_k1-eval_log.csv --experiment fault_k3=fault_k3-eval_log.csv --experiment fault_k7=fault_k7-eval_log.csv --experiment fault_k10=fault_k10-eval_log.csv --logs-dir exp --no-show
 
 echo Generating baseline-no fault eval graphs
 python multi_exp_eval_grapher.py --experiment-name nofault --csv baseline_nofault-eval_log.csv --csv normal_pure_nofault-eval_log.csv --csv fault_pure_nofault-eval_log.csv --csv fine_tune=rl_7_ft_3_pure_ft_nofault-eval_log.csv --csv normal_nofault-eval_log.csv --csv fault_nofault-eval_log.csv --csv fault_k1_nofault-eval_log.csv --csv fault_k3_nofault-eval_log.csv --csv fault_k7_nofault-eval_log.csv --csv fault_k10_nofault-eval_log.csv --no-show

@@ -23,7 +23,10 @@ class Agent(nn.Module):
     def __init__(self, num_envs = 1, checkpoint_path="td3_checkpoint"):
         super(Agent, self).__init__()
         self.num_envs = num_envs
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if not env_config.EVAL:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        else:
+            self.device = torch.device("cpu") # without training CPU is faster
         k = env_config._OBS_STACK
         # Residual obs: k × (vel + ang + 6 wheels + 6 base + 6 dev) = k × 20
         # Pure RL obs:  k × (heading + dist + vel + ang + 6 wheels + 6 act) = k × 16
